@@ -54,35 +54,37 @@ directly. Keep the same paths and config when resuming.
 `queries` expands each into the four fixed query conditions; `pairs` creates
 baseline/edit members for each of the four bindings under every query. Run
 calibration first and stop if full-vocabulary next-token accuracy misses the
-configured threshold. For discovery patching after the behavior result:
-
-On Ubuntu with an NVIDIA GPU, `bash scripts/run_four_query_288_ubuntu.sh`
-runs the 288-history behavior sequence end to end. It checks CUDA access,
-uses the locked dependencies, stops at a failed calibration gate, and resumes
-scoring from matching checkpoints. Set `REVALIDATE_TOKENS=1` to regenerate
-the token file.
+configured threshold. The behavior-frozen mechanistic workflow is separate from prompt development,
+gating, and behavioral confirmation. It expects the completed
+`outputs/four_query_288` artifacts and never reruns those stages:
 
 ```bash
-uv run python scripts/run_four_query_patching.py --config configs/four_query_pilot.yaml --pairs outputs/four_query/pairs.jsonl --token-ids outputs/four_query/token_ids.json --output outputs/four_query/patching.jsonl --stage discovery
-uv run python scripts/analyze_four_query_patching.py --patches outputs/four_query/patching.jsonl --output-dir outputs/four_query/patch_analysis_discovery --stage discovery
+bash scripts/run_four_query_mechanistic_ubuntu.sh
 ```
 
-The default discovery stage uses 24 histories. Its analyzer prespecifies the
-selection rule: at `final_preanswer`, select the contiguous three-layer window
-with the largest discovery `S_x` (lowest start layer breaks ties). Freeze those
-indices, then validate only that region on disjoint histories (up to 96):
+The frozen task uses `initial_update`. Behavior established that obsolete
+value identity remains more influential when its own variable is queried,
+even though the current value is answered correctly. Patching asks where
+transferring the stale-value-induced residual state transfers that output
+effect. This is a residual activation patch, distinct from a behavioral input
+intervention and from a linear probe. A patch demonstrates causal influence
+of the tested residual intervention; it transfers all information in that
+state, not a pure obsolete-binding feature, and does not identify a minimal
+circuit. Layer/site localization is a first mechanistic step. Head-level or
+MLP-level path patching and probe-direction interventions are not included.
 
-```bash
-uv run python scripts/run_four_query_patching.py --config configs/four_query_pilot.yaml --pairs outputs/four_query/pairs.jsonl --token-ids outputs/four_query/token_ids.json --output outputs/four_query/patching_heldout.jsonl --stage heldout --layers 12,13,14
-uv run python scripts/analyze_four_query_patching.py --patches outputs/four_query/patching_heldout.jsonl --output-dir outputs/four_query/patch_analysis --stage heldout
-```
+Discovery uses 24 deterministic histories and focal cells. It chooses the
+contiguous three-layer window with the largest history-level
+`R_x_patch = effect(old_x,current_x) - effect(old_x,current_z)` at
+`final_preanswer`; ties go to the lowest starting layer. Freeze the emitted
+layers before held-out validation on up to 96 disjoint histories. Held-out
+primary is `symmetric_R_patch = 0.5 * (R_x_patch + R_z_patch)`. Temporal
+`S_x/S_z` contrasts are sanity controls only. `--cell-set full` enables the
+exhaustive cell set. Optional `--all-positions` discovery is exploratory and
+writes a layer by absolute token position map; it does not alter selection.
+The patch runner checkpoints completed history/binding/query pairs and
+requires `--resume` with a matching manifest after interruption.
 
-An all-position discovery sweep is optional and limited to 24 histories with
-`--all-positions`; heldout patching always requires frozen layer indices.
-
-`configs/four_query_pilot.yaml` uses int8 weights for the inexpensive behavior
-pilot. Repeat focal behavioral and patching results with
-`configs/four_query_fp16.yaml` before making mechanistic claims.
 
 Only after the paired behavioral effect is established, extract query-state
 activations and run history-grouped probes. This evaluates the same four slots
@@ -182,7 +184,7 @@ Datasets and per-example behavioral / patch records are JSONL; activations are c
 
 ## Four-query prompt development, gate, and confirmation
 
-The four-query experiment now separates **prompt development ≠ held-out competence gate ≠ confirmatory experiment**. The previous Qwen3-8B INT8 run failed the pre-set 99% gate (current-x 93.2%, current-z 92.2%, initial-x 58.3%, initial-z 59.4%). Historical-query performance fell as old/current assignments became more separated. No confirmatory result was obtained; this failure is a task-clarity problem, not evidence about mechanistic supersession.
+The four-query experiment separates **prompt development ≠ held-out competence gate ≠ confirmatory experiment**. The frozen confirmatory task uses the selected `initial_update` prompt and passed the behavioral gate. Across 288 histories, obsolete-value identity had a query-specific causal input-intervention effect (symmetric relevance contrast about +6.91 logits), while current answers remained essentially perfectly accurate. The mechanistic workflow below locates where that obsolete identity's influence propagates and becomes query-conditioned.
 
 The runner first validates one shared 12-value vocabulary under all three deterministic prompt variants, then scores the same 96 prompt-development histories under each:
 
@@ -200,4 +202,4 @@ Run the full staged Ubuntu workflow (model inference occurs on that host):
 bash scripts/run_four_query_288_ubuntu.sh
 ```
 
-The runner does behavior-only scoring and analysis. It does not run probes or patching. The four-query generation path always uses centralized canonical rendering; legacy syntax/template factors remain limited to older experiment paths.
+This behavior runner does not launch probes or patching. The separate mechanistic runner above reuses the frozen artifacts. The four-query generation path always uses centralized canonical rendering; legacy syntax/template factors remain limited to older experiment paths.

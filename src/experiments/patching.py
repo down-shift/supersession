@@ -16,6 +16,45 @@ def patch_effect_metrics(donor_margin, recipient_margin, patched_margin, epsilon
     delta=float(patched_margin-recipient_margin)
     return {"patch_delta_toward_donor":delta,"normalized_recovery":delta/denominator if abs(denominator)>epsilon else None}
 
+def focal_cells(stage="discovery", all_positions=False, cell_set="focal"):
+    """Predeclared edited-binding/query cells for four-query patching."""
+    if cell_set == "full":
+        bindings=("old_x","current_x","old_z","current_z")
+        return [(b,q) for b in bindings for q in ("current_x","initial_x","current_z","initial_z")]
+    if stage == "discovery":
+        cells=[("old_x","current_x"),("old_x","current_z")]
+        if not all_positions:
+            cells += [("old_x","initial_x"),("current_x","current_x"),("current_x","initial_x")]
+        return cells
+    return [("old_x","current_x"),("old_x","current_z"),("old_z","current_z"),("old_z","current_x"),
+            ("old_x","initial_x"),("old_z","initial_z"),("current_x","current_x"),("current_z","current_z"),
+            ("current_x","initial_x"),("current_z","initial_z")]
+
+def relevance_contrast(cell, binding, layer, site_role="final_preanswer"):
+    """Per-history obsolete-value query relevance contrast."""
+    relevant="current_"+binding[-1]
+    other="current_"+("z" if binding.endswith("x") else "x")
+    a=cell.get((binding,relevant,layer,site_role),{}); b=cell.get((binding,other,layer,site_role),{})
+    ids=sorted(set(a)&set(b))
+    return {h:a[h]-b[h] for h in ids}
+
+def symmetric_relevance(cell, layer, site_role="final_preanswer"):
+    x=relevance_contrast(cell,"old_x",layer,site_role); z=relevance_contrast(cell,"old_z",layer,site_role)
+    ids=sorted(set(x)&set(z))
+    return {h:.5*(x[h]+z[h]) for h in ids}
+
+def canonical_site_role(binding, token_kind):
+    """Map an edited binding and assignment/query token kind to stable roles."""
+    if token_kind == "old_value": return "edited_binding_value" if binding.startswith("old_") else "same_variable_other_value"
+    if token_kind == "current_value": return "edited_binding_value" if binding.startswith("current_") else "same_variable_other_value"
+    return {"current_assignment_variable":"current_assignment_variable","query_variable":"query_variable","final_preanswer":"final_preanswer"}.get(token_kind,"other_position")
+
+def r_x_patch(old_x_current_x, old_x_current_z):
+    return float(old_x_current_x)-float(old_x_current_z)
+
+def symmetric_r_patch(r_x, r_z):
+    return .5*(float(r_x)+float(r_z))
+
 def assert_aligned(source_ids,target_ids,expected_differences):
     if len(source_ids)!=len(target_ids): raise ValueError("paired tokenized prompts differ in length")
     actual=[i for i,(a,b) in enumerate(zip(source_ids,target_ids)) if a!=b]

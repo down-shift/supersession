@@ -8,6 +8,18 @@ def test_patch_pairs_must_differ_only_at_expected_input_positions():
     assert_aligned([3,4,5,6],[3,9,5,6],[1])
     with pytest.raises(ValueError): assert_aligned([3,4,5],[3,9,8],[1])
 
+def test_focal_cells_and_canonical_roles():
+    from src.experiments.patching import focal_cells,canonical_site_role,r_x_patch,symmetric_r_patch
+    assert focal_cells('discovery')==[('old_x','current_x'),('old_x','current_z'),('old_x','initial_x'),('current_x','current_x'),('current_x','initial_x')]
+    assert focal_cells('discovery',True)==[('old_x','current_x'),('old_x','current_z')]
+    assert len(focal_cells('heldout'))==10
+    assert canonical_site_role('old_x','old_value')=='edited_binding_value'
+    assert canonical_site_role('old_z','current_value')=='same_variable_other_value'
+    assert canonical_site_role('current_x','current_value')=='edited_binding_value'
+    assert canonical_site_role('current_z','old_value')=='same_variable_other_value'
+    assert r_x_patch(4.5,1.25)==pytest.approx(3.25)
+    assert symmetric_r_patch(3.25,2.75)==pytest.approx(3.)
+
 def test_torch_patching_is_lazy_and_clear_architecture_errors():
     # This package must remain importable/testable without torch on data-only hosts.
     import src.models.hooks

@@ -9,9 +9,9 @@ dataset:
   splits: [0.7, 0.15, 0.15]
 model:
   id: Qwen/Qwen3-8B
-  revision: null
+  revision: b968826d9c46dd6066d109eabc6255188de91218
   tokenizer_id: null
-  tokenizer_revision: null
+  tokenizer_revision: b968826d9c46dd6066d109eabc6255188de91218
   device: cuda
   dtype: float16
   quantization: int8

@@ -176,13 +176,31 @@ def test_patch_analyzer_supports_x_only_discovery_and_full_heldout(tmp_path):
     discovery=tmp_path/"discovery"; discovery.mkdir()
     subprocess.run([sys.executable,str(script),"--patches",str(patches_x),"--output-dir",str(discovery),"--stage","discovery"],check=True,env=env,capture_output=True,text=True)
     d=json.loads((discovery/"four_query_patch_summary.json").read_text())
-    assert d["bindings"]==["current_x","old_x"]
-    assert "S_x" in d["results"]["final_preanswer/layer_0"]["temporal_contrasts"]
-    assert "S_z" not in d["results"]["final_preanswer/layer_0"]["temporal_contrasts"]
-    assert d["prespecified_discovery_layer_selection"]["selected_layers"]==[0,1,2]
+    assert set(d["cells_present"])=={f"{b}/{q}" for b in ("old_x","current_x") for q in ("current_x","initial_x","current_z","initial_z")}
+    assert "S_x_control" in d["results"]["final_preanswer/layer_0"]
+    assert d["selection"]["selection_statistic"]["name"]=="R_x_patch"
+    assert d["selection"]["selection_statistic"]["selected_layers"]==[0,1,2]
     heldout=tmp_path/"heldout"; heldout.mkdir()
     subprocess.run([sys.executable,str(script),"--patches",str(patches),"--output-dir",str(heldout),"--stage","heldout"],check=True,env=env,capture_output=True,text=True)
-    h=json.loads((heldout/"four_query_patch_summary.json").read_text())
-    contrasts=h["results"]["final_preanswer/layer_0"]["temporal_contrasts"]
-    assert set(h["bindings"])=={"old_x","current_x","old_z","current_z"}
-    assert {"S_x","S_z","symmetric_obsolete_query_relevance"}.issubset(contrasts)
+    h=json.loads((heldout/"heldout_patch_summary.json").read_text())
+    result=h["results"]["final_preanswer/layer_0"]
+    assert "symmetric_R_patch" in result and "S_x_control" in result and "S_z_control" in result
+
+def test_all_position_patch_analysis_keeps_absolute_positions_separate(tmp_path):
+    script=Path(__file__).resolve().parents[1]/"scripts/analyze_four_query_patching.py"
+    rows=[]
+    for hid in ("h1","h2"):
+        for query,value in (("current_x",4.),("current_z",1.)):
+            for layer in (0,1,2):
+                for position,role in ((7,"other_position"),(8,"other_position"),(9,"final_preanswer")):
+                    for direction in ("baseline_to_edited","edited_to_baseline"):
+                        rows.append({"history_id":hid,"edited_binding":"old_x","query_id":query,"direction":direction,"site_role":role,"site":role,"position":position,"token_id":position+100,"token_text":f"tok{position}","layer":layer,"patch_delta_toward_donor":value+position/100})
+    patches=tmp_path/"positions.jsonl"; patches.write_text("".join(json.dumps(r)+"\n" for r in rows))
+    out=tmp_path/"analysis"; out.mkdir(); env={**os.environ,"PYTHONPATH":str(Path(__file__).resolve().parents[1]),"MPLBACKEND":"Agg","MPLCONFIGDIR":str(tmp_path/"mpl")}
+    subprocess.run([sys.executable,str(script),"--patches",str(patches),"--output-dir",str(out),"--stage","discovery"],check=True,env=env,capture_output=True,text=True)
+    import pandas as pd
+    matrix=pd.read_csv(out/"all_positions_Rx.csv")
+    assert set(matrix.position)=={7,8,9}
+    assert len(matrix)==9  # three layers × three absolute positions
+    assert set(matrix['count'])=={2}
+    assert set(pd.read_csv(out/"all_positions_token_legend.csv").site_role)=={"other_position","final_preanswer"}
