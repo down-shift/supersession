@@ -20,6 +20,59 @@ Configure model ID, exact optional revision, tokenizer, device map, quantization
 
 ## Commands
 
+### Four-query matched pilot (new primary design)
+
+This design uses one fixed history to produce current-x, initial-x, current-z,
+and initial-z queries. The pilot config gives 120 histories from the full
+`6 orders × 4 variable-name pairs × 5 replicates` design. Calibration data use
+an independent seed and must not be included in confirmatory analysis.
+
+```bash
+uv run python scripts/validate_tokens.py --config configs/four_query_pilot.yaml --design four-query --output outputs/four_query/token_ids.json
+uv run python scripts/generate_four_query.py --config configs/four_query_pilot.yaml --token-ids outputs/four_query/token_ids.json --calibration --kind queries --output outputs/four_query/calibration.jsonl
+uv run python scripts/run_four_query_competence.py --config configs/four_query_pilot.yaml --dataset outputs/four_query/calibration.jsonl --token-ids outputs/four_query/token_ids.json --output outputs/four_query/calibration.json
+uv run python scripts/generate_four_query.py --config configs/four_query_pilot.yaml --token-ids outputs/four_query/token_ids.json --kind queries --output outputs/four_query/behavior_inputs.jsonl
+uv run python scripts/generate_four_query.py --config configs/four_query_pilot.yaml --kind pairs --token-ids outputs/four_query/token_ids.json --output outputs/four_query/pairs.jsonl
+uv run python scripts/audit_four_query.py outputs/four_query/behavior_inputs.jsonl
+uv run python scripts/audit_four_query.py outputs/four_query/pairs.jsonl
+uv run python scripts/run_behavior.py --config configs/four_query_pilot.yaml --dataset outputs/four_query/behavior_inputs.jsonl --token-ids outputs/four_query/token_ids.json --output outputs/four_query/behavior.jsonl
+uv run python scripts/run_behavior.py --config configs/four_query_pilot.yaml --dataset outputs/four_query/pairs.jsonl --token-ids outputs/four_query/token_ids.json --output outputs/four_query/pair_behavior.jsonl
+uv run python scripts/analyze_four_query.py --behavior outputs/four_query/behavior.jsonl --pairs outputs/four_query/pair_behavior.jsonl --output-dir outputs/four_query/analysis
+```
+
+`generate_four_query.py --kind histories` writes one record per history;
+`queries` expands each into the four fixed query conditions; `pairs` creates
+baseline/edit members for each of the four bindings under every query. Run
+calibration first and stop if unrestricted greedy answer accuracy misses the
+configured threshold. For discovery patching after the behavior result:
+
+```bash
+uv run python scripts/run_four_query_patching.py --config configs/four_query_pilot.yaml --pairs outputs/four_query/pairs.jsonl --token-ids outputs/four_query/token_ids.json --output outputs/four_query/patching.jsonl --stage discovery
+```
+
+The default discovery stage uses 24 histories. After inspecting it and freezing
+layer indices, validate only those layers on disjoint histories (up to 96):
+
+```bash
+uv run python scripts/run_four_query_patching.py --config configs/four_query_pilot.yaml --pairs outputs/four_query/pairs.jsonl --token-ids outputs/four_query/token_ids.json --output outputs/four_query/patching_heldout.jsonl --stage heldout --layers 12,13,14
+```
+
+An all-position discovery sweep is optional and limited to 24 histories with
+`--all-positions`; heldout patching always requires frozen layer indices.
+
+`configs/four_query_pilot.yaml` uses int8 weights for the inexpensive behavior
+pilot. Repeat focal behavioral and patching results with
+`configs/four_query_fp16.yaml` before making mechanistic claims.
+
+Only after the paired behavioral effect is established, extract query-state
+activations and run history-grouped probes. This evaluates the same four slots
+under all four queries; decoding remains descriptive.
+
+```bash
+uv run python scripts/run_extraction.py --config configs/four_query_pilot.yaml --dataset outputs/four_query/behavior_inputs.jsonl --token-ids outputs/four_query/token_ids.json --output outputs/four_query/activations
+uv run python scripts/run_four_query_probes.py --dataset outputs/four_query/behavior_inputs.jsonl --activations outputs/four_query/activations --token-ids outputs/four_query/token_ids.json --output outputs/four_query/probes.json
+```
+
 Run checks:
 
 ```bash
@@ -95,6 +148,8 @@ Then pass the natural dataset and token IDs to the same behavioral, extraction, 
 
 - Query position is the last model-input token before answer continuation. Activation storage includes the input embedding at that position and each decoder block output at that position. Patching convention is residual stream **leaving** a selected block, at a selected input position.
 - `B = logit(O_q) - logit(O_d)` is binding-specific obsolete residue; `R = logit(C_q) - logit(C_d)` is the current-binding control; `M` compares the correct value to all three distractor candidates. Accuracy is argmax over the configured candidate vocabulary. Full candidate probabilities and per-role logits are stored.
+- The four-query design fixes history and wording across query variants. Its primary edit score is `[logit(replacement)-logit(source)]_edited - [logit(replacement)-logit(source)]_baseline`; its primary contrast compares that score for current-x versus current-z while holding source, replacement, position, and history fixed. It also records unrestricted greedy correctness, full-vocabulary target rank, candidate rank, and candidate probability.
+- Four-query summaries bootstrap and sign-flip at the `history_id` level. Calibration examples are generated independently and excluded from confirmatory outputs. `audit_four_query.py` fails on incomplete query sets or role/edit imbalance.
 - Probe scores are linear decoding performance, not mutual information. Low decoding is not evidence of absence. Decoding is not evidence of causal use. Attention weights are not treated as causal evidence.
 - Input counterfactual effects are controlled prompt interventions, not proof of an internal causal variable. Patch effects establish effects of the tested residual intervention; they do not identify a complete circuit. A small output effect does not show that obsolete information failed to propagate.
 - The main design target is paired obsolete-query versus obsolete-distractor effects under fixed current state, reported both across all trials and alongside aggregate competence. Avoid interpreting a model that fails the configurable direct/overwrite competence gate as showing successful supersession.

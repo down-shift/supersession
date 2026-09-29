@@ -33,8 +33,8 @@ def capture_run(model,inputs):
         return out.logits[0,-1].float().detach(),{i:x.detach() for i,x in hook.captures.items()}
     finally: hook.close()
 
-def patch_sweep(model,tokenizer,source,target,metric_token_ids,chat=True,position_batch_size=16):
-    """Patch all block outputs at all source positions; returns raw patched logits."""
+def patch_sweep(model,tokenizer,source,target,metric_token_ids,chat=True,position_batch_size=16,positions=None,layers=None):
+    """Patch selected block outputs (all positions by default); return raw logits."""
     import torch
     from src.data.generate import render_example
     if position_batch_size<1: raise ValueError("position_batch_size must be positive")
@@ -56,11 +56,20 @@ def patch_sweep(model,tokenizer,source,target,metric_token_ids,chat=True,positio
     if not differences or not set(differences).issubset(expected):
         raise ValueError(f"tokenized pair differs outside the intended {role_key} value span: {differences} vs {sorted(expected)}")
     if not differences: raise ValueError("patch pair has no differing input token")
+    selected_positions=list(range(len(si))) if positions is None else sorted(set(int(p) for p in positions))
+    if any(p<0 or p>=len(si) for p in selected_positions): raise ValueError("selected patch position is outside the input sequence")
     s_logits,s_resid=capture_run(model,sin); t_logits,_=capture_run(model,tin)
+    selected_layers=sorted(s_resid) if layers is None else sorted(set(int(x) for x in layers))
+    if not set(selected_layers).issubset(s_resid): raise ValueError(f"requested patch layers unavailable: {selected_layers}")
     rows=[]
-    for layer,acts in tqdm(s_resid.items(),desc="Patching layers"):
-        for start in tqdm(range(0,len(si),position_batch_size),desc=f"Layer {layer} position batches",leave=False):
-            positions=list(range(start,min(start+position_batch_size,len(si)))); outs=patched_logits_positions(model,tin,acts,layer,positions).detach().cpu()
-            for position,out in zip(positions,outs):
-                rows.append({"layer":layer,"position":position,"patched_logits":{k:float(out[v]) for k,v in metric_token_ids.items()},"source_logits":{k:float(s_logits[v]) for k,v in metric_token_ids.items()},"target_logits":{k:float(t_logits[v]) for k,v in metric_token_ids.items()},"patched_source_minus_target":float(out[metric_token_ids[source[role_key]]]-out[metric_token_ids[target[role_key]]]),"source_source_minus_target":float(s_logits[metric_token_ids[source[role_key]]]-s_logits[metric_token_ids[target[role_key]]]),"target_source_minus_target":float(t_logits[metric_token_ids[source[role_key]]]-t_logits[metric_token_ids[target[role_key]]]),"input_difference_positions":differences,"semantic_role_key":role_key})
+    for layer in tqdm(selected_layers,desc="Patching layers"):
+        acts=s_resid[layer]
+        for start in tqdm(range(0,len(selected_positions),position_batch_size),desc=f"Layer {layer} position batches",leave=False):
+            batch_positions=selected_positions[start:start+position_batch_size]; outs=patched_logits_positions(model,tin,acts,layer,batch_positions).detach().cpu()
+            for position,out in zip(batch_positions,outs):
+                donor_margin=float(s_logits[metric_token_ids[source[role_key]]]-s_logits[metric_token_ids[target[role_key]]])
+                recipient_margin=float(t_logits[metric_token_ids[source[role_key]]]-t_logits[metric_token_ids[target[role_key]]])
+                patched_margin=float(out[metric_token_ids[source[role_key]]]-out[metric_token_ids[target[role_key]]])
+                denominator=donor_margin-recipient_margin
+                rows.append({"layer":layer,"position":position,"patched_logits":{k:float(out[v]) for k,v in metric_token_ids.items()},"source_logits":{k:float(s_logits[v]) for k,v in metric_token_ids.items()},"target_logits":{k:float(t_logits[v]) for k,v in metric_token_ids.items()},"patched_source_minus_target":patched_margin,"source_source_minus_target":donor_margin,"target_source_minus_target":recipient_margin,"patch_delta_toward_donor":patched_margin-recipient_margin,"normalized_recovery":(patched_margin-recipient_margin)/denominator if abs(denominator)>1e-6 else None,"donor_value":source[role_key],"recipient_value":target[role_key],"input_difference_positions":differences,"semantic_role_key":role_key})
     return rows

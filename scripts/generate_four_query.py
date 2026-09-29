@@ -1,0 +1,25 @@
+#!/usr/bin/env python3
+"""Generate balanced history-level four-query and matched-edit datasets."""
+import argparse, json
+from src.utils import load_config,provenance,save_json
+from src.data.generate import make_histories,expand_history_queries,matched_history_pairs
+from src.data.splits import grouped_split
+from src.data.io import write_jsonl
+
+p=argparse.ArgumentParser(); p.add_argument("--config",default="configs/four_query_pilot.yaml"); p.add_argument("--output",default="outputs/four_query/histories.jsonl")
+p.add_argument("--kind",choices=("histories","queries","pairs"),default="queries"); p.add_argument("--token-ids",default=None); p.add_argument("--calibration",action="store_true",help="generate an independent throwaway calibration set"); a=p.parse_args()
+c=load_config(a.config); d=c["dataset"]; values=d["values"]
+if a.token_ids:
+ values=list(json.load(open(a.token_ids))["token_ids"])
+ values=values[:(len(values)//4)*4]
+ if len(values)<12: raise ValueError("four-query pilot requires at least 12 accepted candidate values")
+count=d.get("calibration_histories",192) if a.calibration else d["n_histories"]
+seed=c["seed"]+1000003 if a.calibration else c["seed"]
+histories=make_histories(count,seed,values,d["variables"])
+for h in histories: h["candidate_values"]=values
+histories=grouped_split(histories,d.get("splits",[.7,.15,.15]),seed)
+if a.kind=="histories": rows=histories
+elif a.kind=="queries": rows=[q|{"split":h["split"]} for h in histories for q in expand_history_queries(h)]
+else: rows=[r|{"split":h["split"]} for h in histories for r in matched_history_pairs(h,d.get("replacement_offset",1))]
+write_jsonl(rows,a.output); save_json(provenance(c,a.output),a.output+".provenance.json")
+print(f"wrote {len(rows)} {a.kind} from {len(histories)} histories to {a.output}")

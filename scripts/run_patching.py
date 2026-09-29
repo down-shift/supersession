@@ -12,11 +12,10 @@ c=load_config(a.config); model,tok=load_model(c); rows=read_jsonl(a.dataset); va
 for ex in tqdm(rows[:a.n_pairs],desc="Patching contexts"):
  for role in ("C_q","O_q","O_d"):
   alt=next(v for v in values if v not in ex["roles"].values()); source,target=counterfactual_pair(ex,role,ex["roles"][role],alt)
-  for direction,s,t,sign in tqdm((("source_to_target",source,target,1),("target_to_source",target,source,-1)),desc=f"{role} directions",leave=False):
+  for direction,s,t in tqdm((("source_to_target",source,target),("target_to_source",target,source)),desc=f"{role} directions",leave=False):
    table=patch_sweep(model,tok,s,t,values,chat=c["model"].get("chat_template",True))
    for row in table:
-    for metric in ("patched_source_minus_target","source_source_minus_target","target_source_minus_target"): row[metric]*=sign
-    row.update({"example_id":ex["example_id"],"intervention_role":role,"source_value":ex["roles"][role],"target_value":alt,"positive_control":role=="C_q","direction":direction,"metric_orientation":"original source-value logit minus original target-value logit"}); output.append(row)
+    row.update({"example_id":ex["example_id"],"intervention_role":role,"source_value":s["roles"][role],"target_value":t["roles"][role],"positive_control":role=="C_q","direction":direction,"metric_orientation":"each direction is oriented toward its activation donor; patch_delta_toward_donor = patched margin - recipient margin"}); output.append(row)
 write_jsonl(output,a.output); run=provenance(c,a.dataset); run["candidate_token_ids"]=values; save_json(run,a.output+".provenance.json")
 import numpy as np,matplotlib.pyplot as plt
 positive=[r for r in output if r["positive_control"]]
@@ -25,5 +24,5 @@ if positive:
 obsolete=[r for r in output if r["intervention_role"] in ("O_q","O_d")]; summary={}
 for role in ("O_q","O_d"):
  subset=[r for r in obsolete if r["intervention_role"]==role]; summary[role]={"n_records":len(subset),"mean_output_directed_patch_change":float(np.mean([r["patched_source_minus_target"]-r["target_source_minus_target"] for r in subset])) if subset else None}
-save_json({"raw_metric":"patched source-value minus target-value logit contrast, minus unpatched target contrast","summary":summary,"interpretation":"Residual intervention effect; not complete circuit identification"},a.output+".obsolete_summary.json")
+save_json({"raw_metric":"donor-oriented logit margin; patch_delta_toward_donor = patched margin - recipient margin; normalized recovery omitted when endpoint separation is near zero","summary":summary,"interpretation":"Residual intervention effect; not complete circuit identification"},a.output+".obsolete_summary.json")
 print(f"saved {len(output)} raw patch records")

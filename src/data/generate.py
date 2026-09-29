@@ -35,8 +35,13 @@ def render_example(ex, tokenizer=None, chat=True):
     for tag in ex["order"]:
         var, key=rel[tag]; rows.append(_render_assignment(vars[0] if var=="x" else vars[1],ex[key],fam,ex["template_id"],names,tag.startswith("C_") and not ex.get("direct",False)))
     qvar=vars[0] if ex["query"]=="x" else vars[1]
-    if fam=="natural": question=f"What is {names[qvar]}'s current code?"
-    else: question=f"What is the current value of {qvar}?"
+    time=ex.get("query_time","current")
+    if fam=="natural":
+        question=(f"What was {names[qvar]}'s initial code?" if time=="initial"
+                  else f"What is {names[qvar]}'s current code?")
+    else:
+        question=(f"What was the initial value of {qvar}?" if time=="initial"
+                  else f"What is the current value of {qvar}?")
     joiner="\n" if ex.get("format_id",0)==0 else "\n\n"
     # Keep the scored continuation in answer mode: the behavior and activation
     # scripts read logits at the first answer token, so an unconstrained
@@ -65,6 +70,79 @@ def render_example(ex, tokenizer=None, chat=True):
                 "for next-token answer scoring"
             ) from exc
     return prompt + "\nAnswer:"
+
+def make_histories(n_histories=120, seed=0, values=None, variables=None):
+    """Create canonical symbolic histories with balanced value roles.
+
+    History factors are crossed in six-order × variable-pair × replicate blocks.
+    Values are assigned by role on a cyclic schedule; each role is balanced to
+    within one across histories and each history has four distinct values.
+    """
+    rng=random.Random(seed)
+    values=list(values or ["amber","birch","coral","denim","elm","frost","grape","hazel","indigo","jade","khaki","lilac","maple","navy","ochre","pearl"])
+    variables=variables or [["x","z"],["a","b"],["red","blue"],["foo","bar"]]
+    orders=legal_orders()
+    if len(values)<8: raise ValueError("four-query design requires at least eight candidate values")
+    if len(set(values))!=len(values): raise ValueError("candidate values must be unique")
+    if n_histories % (len(orders)*len(variables)):
+        raise ValueError("n_histories must be divisible by six legal orders × variable-name pairs")
+    if len({tuple(v) for v in variables})!=len(variables): raise ValueError("variable-name pairs must be unique")
+    cells=[(o,p,r) for r in range(n_histories//(len(orders)*len(variables))) for o in orders for p in variables]
+    rng.shuffle(cells)
+    rows=[]; stride=len(values)//4
+    if len(values)%4: raise ValueError("candidate count must be divisible by four for exact role balancing")
+    start_order=list(range(len(values))); rng.shuffle(start_order)
+    for i,(order,pair,replicate) in enumerate(cells):
+        start=start_order[i % len(values)]
+        vals=[values[(start+j*stride)%len(values)] for j in range(4)]
+        vmap={"x":pair[0],"z":pair[1]}
+        entities={vmap["x"]:"Nora",vmap["z"]:"Liam"}
+        row={"history_id":f"hist{i:06d}","family":"symbolic","variables":[vmap["x"],vmap["z"]],"entities":entities,
+             "order":list(order),"template_id":0,"format_id":0,"old_x":vals[0],"old_z":vals[1],
+             "current_x":vals[2],"current_z":vals[3],"replicate":replicate,
+             "split_group":("four_query",tuple(sorted(pair)),tuple(order),replicate)}
+        rows.append(row)
+    return rows
+
+def expand_history_queries(history):
+    """Return the four fixed queries, preserving one history identity."""
+    rows=[]
+    for variable in ("x","z"):
+        for time in ("current","initial"):
+            answer=history[f"{time}_{variable}"] if time=="current" else history[f"old_{variable}"]
+            ex={**history,"example_id":f"{history['history_id']}:{time}_{variable}","query":variable,
+                "query_time":time,"query_id":f"{time}_{variable}","answer":answer}
+            other="z" if variable=="x" else "x"
+            ex["roles"]={"target":answer,"old_x":history["old_x"],"current_x":history["current_x"],
+                         "old_z":history["old_z"],"current_z":history["current_z"],
+                         "query_old":history[f"old_{variable}"],"other_old":history[f"old_{other}"]}
+            rows.append(ex)
+    return rows
+
+def matched_history_pairs(history, replacement_offset=1):
+    """Baseline/edit pairs for each binding, replicated across all four queries."""
+    values=history.get("candidate_values")
+    if not values: raise ValueError("history must include candidate_values for matched replacements")
+    out=[]
+    for binding in ("old_x","old_z","current_x","current_z"):
+        source=history[binding]
+        target=values[(values.index(source)+replacement_offset)%len(values)]
+        untouched={history[k] for k in ("old_x","old_z","current_x","current_z") if k!=binding}
+        if target in untouched: raise ValueError(f"replacement for {binding} collides with an unchanged assignment")
+        for query in expand_history_queries(history):
+            for direction,value in ((0,source),(1,target)):
+                ex={**query,"example_id":f"{history['history_id']}:{binding}:{query['query_id']}:{direction}",
+                    "pair_id":f"{history['history_id']}:{binding}:{query['query_id']}",
+                    "pair_direction":direction,"edited_binding":binding,"source_value":source,
+                    "replacement_value":target,"intervention_role":binding}
+                if direction:
+                    ex[binding]=target
+                    ex["roles"][binding]=target
+                    if binding==f"{query['query_time']}_{query['query']}" or (query["query_time"]=="initial" and binding==f"old_{query['query']}"):
+                        ex["answer"]=target
+                    ex["roles"]["target"]=ex["answer"]
+                out.append(ex)
+    return out
 
 def make_contexts(n=48, seed=0, values=None, variables=None, family="symbolic"):
     rng=random.Random(seed); values=values or ["amber","birch","coral","denim","elm","frost","grape","hazel","indigo","jade","khaki","lilac","maple","navy","ochre","pearl"]

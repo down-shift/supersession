@@ -6,6 +6,12 @@ def role_metrics(logits, token_ids, roles):
     candidate_values=list(token_ids)
     candidate_logits=np.asarray([logits[token_ids[v]] for v in candidate_values],dtype=float)
     cp=np.exp(candidate_logits-candidate_logits.max()); cp/=cp.sum()
+    if "target" in roles:
+        answer=roles["target"]; target_logit=float(logits[token_ids[answer]])
+        rank=1+int(np.sum(np.asarray(logits)>target_logit))
+        return {"target":target_logit,"accuracy":int(candidate_values[int(np.argmax(candidate_logits))]==answer),
+                "candidate_rank":int(1+np.sum(candidate_logits>target_logit)),"full_vocab_rank":rank,
+                "candidate_probabilities":dict(zip(candidate_values,cp.tolist()))}
     if "O_q" not in roles:
         q=float(logits[token_ids[roles["C_q"]]]); d=float(logits[token_ids[roles["C_d"]]])
         vals=np.array([q,d]); p=np.exp(vals-vals.max()); p/=p.sum()

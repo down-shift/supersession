@@ -1,0 +1,22 @@
+seed: 20260929
+dataset:
+  n_histories: 120
+  calibration_histories: 192
+  values: [amber, birch, coral, denim, elm, frost, grape, hazel, indigo, jade, khaki, lilac, maple, navy, ochre, pearl]
+  variables: [[x, z], [a, b], [red, blue], [foo, bar]]
+  splits: [0.7, 0.15, 0.15]
+  replacement_offset: 1
+model:
+  id: Qwen/Qwen3-8B
+  revision: null
+  tokenizer_id: null
+  tokenizer_revision: null
+  device: cuda
+  dtype: float16
+  quantization: none
+  device_map: auto
+  chat_template: true
+  attn_implementation: sdpa
+thresholds:
+  direct_accuracy: 0.99
+  overwrite_accuracy: 0.99

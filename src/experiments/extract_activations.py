@@ -23,6 +23,6 @@ def extract(model,tokenizer,examples,output_dir,chunk_size=8,chat=True):
                 pos=ids.shape[1]-1; all_layers.append(np.stack([embedding["x"][0,pos].float().cpu().numpy(),*[hook.captures[i][0,pos].float().cpu().numpy() for i in range(len(hook.blocks))]]))
             finally:
                 hook.close(); embedding_handle.remove()
-            meta.append({"example_id":ex["example_id"],"query_position":int(ids.shape[1]-1),"roles":ex["roles"],"split":ex.get("split")})
+            meta.append({"example_id":ex["example_id"],"history_id":ex.get("history_id"),"query_id":ex.get("query_id"),"query_position":int(ids.shape[1]-1),"roles":ex["roles"],"split":ex.get("split")})
         np.savez_compressed(out/f"chunk_{start:06d}.npz",activations=np.asarray(all_layers,dtype=np.float16))
     return meta
