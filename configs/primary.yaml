@@ -1,0 +1,18 @@
+seed: 20260929
+dataset:
+  n_contexts: 2400
+  values: [amber, birch, coral, denim, elm, frost, grape, hazel, indigo, jade, khaki, lilac, maple, navy, ochre, pearl, quartz, rust, slate, teal, umber, violet, wheat, zinc]
+  variables: [[x, z], [a, b], [red, blue], [foo, bar]]
+  splits: [0.7, 0.15, 0.15]
+model:
+  id: Qwen/Qwen3-8B
+  revision: null
+  tokenizer_id: null
+  tokenizer_revision: null
+  device: cuda
+  dtype: bfloat16
+  chat_template: true
+  attn_implementation: eager
+thresholds:
+  direct_accuracy: 0.98
+  overwrite_accuracy: 0.95

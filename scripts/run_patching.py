@@ -1,0 +1,28 @@
+#!/usr/bin/env python3
+"""Current-binding positive control and obsolete-value residual patch sweeps."""
+import argparse,json
+from src.utils import load_config,save_json,provenance
+from src.data.io import read_jsonl,write_jsonl
+from src.data.generate import counterfactual_pair
+from src.models.loader import load_model
+from src.experiments.patching import patch_sweep
+p=argparse.ArgumentParser(); p.add_argument("--config",default="configs/pilot.yaml"); p.add_argument("--dataset",default="outputs/pilot/dataset.jsonl"); p.add_argument("--token-ids",default="outputs/pilot/token_ids.json"); p.add_argument("--output",default="outputs/pilot/patching.jsonl"); p.add_argument("--n-pairs",type=int,default=2); a=p.parse_args()
+c=load_config(a.config); model,tok=load_model(c); rows=read_jsonl(a.dataset); values=json.load(open(a.token_ids))["token_ids"]; output=[]
+for ex in rows[:a.n_pairs]:
+ for role in ("C_q","O_q","O_d"):
+  alt=next(v for v in values if v not in ex["roles"].values()); source,target=counterfactual_pair(ex,role,ex["roles"][role],alt)
+  for direction,s,t,sign in (("source_to_target",source,target,1),("target_to_source",target,source,-1)):
+   table=patch_sweep(model,tok,s,t,values,chat=c["model"].get("chat_template",True))
+   for row in table:
+    for metric in ("patched_source_minus_target","source_source_minus_target","target_source_minus_target"): row[metric]*=sign
+    row.update({"example_id":ex["example_id"],"intervention_role":role,"source_value":ex["roles"][role],"target_value":alt,"positive_control":role=="C_q","direction":direction,"metric_orientation":"original source-value logit minus original target-value logit"}); output.append(row)
+write_jsonl(output,a.output); run=provenance(c,a.dataset); run["candidate_token_ids"]=values; save_json(run,a.output+".provenance.json")
+import numpy as np,matplotlib.pyplot as plt
+positive=[r for r in output if r["positive_control"]]
+if positive:
+ layers=sorted({r["layer"] for r in positive}); positions=sorted({r["position"] for r in positive}); matrix=np.array([[np.mean([r["patched_source_minus_target"] for r in positive if r["layer"]==ly and r["position"]==po]) for po in positions] for ly in layers]); fig,ax=plt.subplots(figsize=(11,5)); im=ax.imshow(matrix,aspect="auto",origin="lower",interpolation="nearest"); ax.set(xlabel="Patched token position",ylabel="Block output layer",title="Current-binding patching positive control: source − target answer logit"); fig.colorbar(im,ax=ax,label="logit difference"); fig.tight_layout(); fig.savefig(a.output+".current_positive_control.png",dpi=180); plt.close(fig)
+obsolete=[r for r in output if r["intervention_role"] in ("O_q","O_d")]; summary={}
+for role in ("O_q","O_d"):
+ subset=[r for r in obsolete if r["intervention_role"]==role]; summary[role]={"n_records":len(subset),"mean_output_directed_patch_change":float(np.mean([r["patched_source_minus_target"]-r["target_source_minus_target"] for r in subset])) if subset else None}
+save_json({"raw_metric":"patched source-value minus target-value logit contrast, minus unpatched target contrast","summary":summary,"interpretation":"Residual intervention effect; not complete circuit identification"},a.output+".obsolete_summary.json")
+print(f"saved {len(output)} raw patch records")
