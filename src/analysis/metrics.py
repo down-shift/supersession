@@ -1,5 +1,6 @@
 """Candidate-restricted behavioral metrics."""
 import numpy as np
+from tqdm.auto import tqdm
 
 def role_metrics(logits, token_ids, roles):
     candidate_values=list(token_ids)
@@ -22,7 +23,7 @@ def bootstrap_mean_ci(values, groups=None, n_boot=2000, seed=0, alpha=.05):
     values=np.asarray(values,dtype=float)
     if groups is None: groups=np.arange(len(values))
     unique=np.unique(groups); rng=np.random.default_rng(seed); means=[]
-    for _ in range(n_boot):
+    for _ in tqdm(range(n_boot),desc="Bootstrap CI",leave=False):
         sampled=rng.choice(unique,size=len(unique),replace=True); indexes=np.concatenate([np.flatnonzero(groups==g) for g in sampled]); means.append(values[indexes].mean())
     return {"mean":float(values.mean()),"ci_low":float(np.quantile(means,alpha/2)),"ci_high":float(np.quantile(means,1-alpha/2)),"n":len(values)}
 

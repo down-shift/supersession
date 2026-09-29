@@ -25,3 +25,9 @@
 - Natural-language generation and symbolic generation preserve the same abstract state structure, but the natural-language templates are narrow controlled paraphrases rather than a broad QA benchmark.
 - Large run resource use has not been measured. The patch sweep forwards each layer × input position and is intended for a small pilot subset. Activation files are chunked to avoid all-token/all-example caches.
 - Before scientific conclusions: run direct and overwrite competence first; examine all-example and correct-trial summaries; verify current-binding patching positive control; retain raw data/provenance; compare obsolete-query with matched obsolete-distractor interventions.
+
+## RTX 5080 inference configuration
+
+- Pilot and primary configs now load Qwen3-8B with bitsandbytes LLM.int8, FP16 for non-quantized modules, `device_map: auto`, and PyTorch SDPA for attention. SDPA is an attention backend, not a weight quantizer; it complements int8 loading.
+- The experiment PC must have a CUDA/PyTorch runtime compatible with the installed bitsandbytes wheel. bitsandbytes currently lists SM120 builds for CUDA 12.8+ on Linux x86-64 and Windows x86-64. This host has no PyTorch/CUDA, so warning behavior and speed on the RTX 5080 remain unverified.
+- Dtype is explicitly FP16 to avoid the usual BF16-to-FP16 conversion path inside bitsandbytes LLM.int8. Warnings are not suppressed; if any remain, record the exact warning and package/runtime versions.

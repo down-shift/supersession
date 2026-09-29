@@ -1,6 +1,7 @@
 """Counterbalanced paired binding datasets."""
 from __future__ import annotations
 import itertools, random
+from tqdm.auto import tqdm
 
 SYNTAX = ("equals", "colon_equals", "natural")
 TEMPLATES = {
@@ -49,7 +50,7 @@ def make_contexts(n=48, seed=0, values=None, variables=None, family="symbolic"):
     if len(values)<4: raise ValueError("at least four candidate values are required")
     if n<6: raise ValueError("n_contexts must cover all six legal orderings")
     rows=[]; orders=legal_orders()
-    for i in range(n):
+    for i in tqdm(range(n),desc="Generating contexts"):
         pair=variables[i%len(variables)]; order=orders[i%6]; vals=rng.sample(values,4)
         # Randomly map named variables to abstract x/z on every context.
         chosen=list(pair); rng.shuffle(chosen); vmap={"x":chosen[0],"z":chosen[1]}

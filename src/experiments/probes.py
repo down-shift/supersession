@@ -2,11 +2,12 @@
 import numpy as np
 from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import StandardScaler
+from tqdm.auto import tqdm
 
 def fit_probe_curves(X,labels,splits,seed=0,C_values=(.01,.1,1,10)):
     """X [N,L,H], labels [N] candidate ids, splits [N] train/validation/test."""
     train=splits=="train"; val=splits=="validation"; test=splits=="test"; out=[]
-    for layer in range(X.shape[1]):
+    for layer in tqdm(range(X.shape[1]),desc=f"Probe layers (seed {seed})"):
         scaler=StandardScaler().fit(X[train,layer]); xtrain=scaler.transform(X[train,layer]); xv=scaler.transform(X[val,layer]); xt=scaler.transform(X[test,layer]); best=None
         for c in C_values:
             model=LogisticRegression(C=c,max_iter=1000,random_state=seed).fit(xtrain,labels[train]); acc=(model.predict(xv)==labels[val]).mean()

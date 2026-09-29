@@ -1,5 +1,6 @@
 """Residual output patching between aligned full-sequence runs."""
 from src.models.hooks import ResidualHooks
+from tqdm.auto import tqdm
 
 def assert_aligned(source_ids,target_ids,expected_differences):
     if len(source_ids)!=len(target_ids): raise ValueError("paired tokenized prompts differ in length")
@@ -57,8 +58,8 @@ def patch_sweep(model,tokenizer,source,target,metric_token_ids,chat=True,positio
     if not differences: raise ValueError("patch pair has no differing input token")
     s_logits,s_resid=capture_run(model,sin); t_logits,_=capture_run(model,tin)
     rows=[]
-    for layer,acts in s_resid.items():
-        for start in range(0,len(si),position_batch_size):
+    for layer,acts in tqdm(s_resid.items(),desc="Patching layers"):
+        for start in tqdm(range(0,len(si),position_batch_size),desc=f"Layer {layer} position batches",leave=False):
             positions=list(range(start,min(start+position_batch_size,len(si)))); outs=patched_logits_positions(model,tin,acts,layer,positions).detach().cpu()
             for position,out in zip(positions,outs):
                 rows.append({"layer":layer,"position":position,"patched_logits":{k:float(out[v]) for k,v in metric_token_ids.items()},"source_logits":{k:float(s_logits[v]) for k,v in metric_token_ids.items()},"target_logits":{k:float(t_logits[v]) for k,v in metric_token_ids.items()},"patched_source_minus_target":float(out[metric_token_ids[source[role_key]]]-out[metric_token_ids[target[role_key]]]),"source_source_minus_target":float(s_logits[metric_token_ids[source[role_key]]]-s_logits[metric_token_ids[target[role_key]]]),"target_source_minus_target":float(t_logits[metric_token_ids[source[role_key]]]-t_logits[metric_token_ids[target[role_key]]]),"input_difference_positions":differences,"semantic_role_key":role_key})

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import argparse
+from tqdm.auto import tqdm
 from src.utils import load_config,provenance,save_json
 from src.data.generate import make_contexts,counterfactual_pair
 from src.data.splits import grouped_split
@@ -9,7 +10,7 @@ if a.token_ids:
  import json
  d["values"]=list(json.load(open(a.token_ids))["token_ids"])
 contexts=make_contexts(d["n_contexts"],c["seed"],d["values"],d["variables"],a.family); contexts=grouped_split(contexts,d["splits"],c["seed"]); pairs=[]
-for ctx in contexts:
+for ctx in tqdm(contexts,desc="Building counterfactual pairs"):
  for role in ("O_q","C_q","O_d","C_d"):
   alternate=next(v for v in d["values"] if v not in ctx["roles"].values())
   pair=counterfactual_pair(ctx,role,ctx["roles"][role],alternate)

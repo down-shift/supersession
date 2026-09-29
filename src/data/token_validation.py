@@ -1,4 +1,6 @@
 """Validate answers as single continuation tokens in the exact rendered prompt."""
+from tqdm.auto import tqdm
+
 def continuation_token_id(tokenizer, prompt, answer):
     prefix=tokenizer(prompt,add_special_tokens=False)["input_ids"]
     full=tokenizer(prompt+answer,add_special_tokens=False)["input_ids"]
@@ -8,7 +10,7 @@ def continuation_token_id(tokenizer, prompt, answer):
 
 def validate_candidate_vocabulary(tokenizer, contexts, candidates, chat=True):
     valid={}; rejected={}
-    for value in candidates:
+    for value in tqdm(candidates,desc="Validating candidate tokens"):
         ids=set(); ok=True
         for ex in contexts:
             prompt=__import__("src.data.generate",fromlist=["render_example"]).render_example(ex,tokenizer,chat=chat)

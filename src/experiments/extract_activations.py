@@ -1,17 +1,19 @@
 """Stream query-position block outputs to NPZ chunks (layers × examples × hidden)."""
 from pathlib import Path
 import numpy as np
+from tqdm.auto import tqdm
 from src.data.generate import render_example
 from src.models.hooks import ResidualHooks
 
 def extract(model,tokenizer,examples,output_dir,chunk_size=8,chat=True):
     import torch
     out=Path(output_dir); out.mkdir(parents=True,exist_ok=True); meta=[]
-    for start in range(0,len(examples),chunk_size):
+    starts=range(0,len(examples),chunk_size)
+    for start in tqdm(starts,desc="Activation chunks"):
         batch_examples=examples[start:start+chunk_size]; encoded=[]
         # no padding required: process individually to preserve query positions.
         all_layers=[]
-        for ex in batch_examples:
+        for ex in tqdm(batch_examples,desc="Extracting examples",leave=False):
             ids=tokenizer(render_example(ex,tokenizer,chat=chat),return_tensors="pt",add_special_tokens=False)["input_ids"].to(next(model.parameters()).device)
             hook=ResidualHooks(model)
             embedding={}

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Current-binding positive control and obsolete-value residual patch sweeps."""
 import argparse,json
+from tqdm.auto import tqdm
 from src.utils import load_config,save_json,provenance
 from src.data.io import read_jsonl,write_jsonl
 from src.data.generate import counterfactual_pair
@@ -8,10 +9,10 @@ from src.models.loader import load_model
 from src.experiments.patching import patch_sweep
 p=argparse.ArgumentParser(); p.add_argument("--config",default="configs/pilot.yaml"); p.add_argument("--dataset",default="outputs/pilot/dataset.jsonl"); p.add_argument("--token-ids",default="outputs/pilot/token_ids.json"); p.add_argument("--output",default="outputs/pilot/patching.jsonl"); p.add_argument("--n-pairs",type=int,default=2); a=p.parse_args()
 c=load_config(a.config); model,tok=load_model(c); rows=read_jsonl(a.dataset); values=json.load(open(a.token_ids))["token_ids"]; output=[]
-for ex in rows[:a.n_pairs]:
+for ex in tqdm(rows[:a.n_pairs],desc="Patching contexts"):
  for role in ("C_q","O_q","O_d"):
   alt=next(v for v in values if v not in ex["roles"].values()); source,target=counterfactual_pair(ex,role,ex["roles"][role],alt)
-  for direction,s,t,sign in (("source_to_target",source,target,1),("target_to_source",target,source,-1)):
+  for direction,s,t,sign in tqdm((("source_to_target",source,target,1),("target_to_source",target,source,-1)),desc=f"{role} directions",leave=False):
    table=patch_sweep(model,tok,s,t,values,chat=c["model"].get("chat_template",True))
    for row in table:
     for metric in ("patched_source_minus_target","source_source_minus_target","target_source_minus_target"): row[metric]*=sign

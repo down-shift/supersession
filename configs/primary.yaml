@@ -10,9 +10,11 @@ model:
   tokenizer_id: null
   tokenizer_revision: null
   device: cuda
-  dtype: bfloat16
+  dtype: float16
+  quantization: int8
+  device_map: auto
   chat_template: true
-  attn_implementation: eager
+  attn_implementation: sdpa
 thresholds:
   direct_accuracy: 0.98
   overwrite_accuracy: 0.95

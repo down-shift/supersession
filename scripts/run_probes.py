@@ -2,6 +2,7 @@
 """Fit matched value-identity linear probes from streamed activation chunks."""
 import argparse,json
 import numpy as np
+from tqdm.auto import tqdm
 from src.data.io import read_jsonl
 from src.experiments.probes import fit_probe_curves
 from src.utils import save_json
@@ -9,7 +10,7 @@ p=argparse.ArgumentParser(); p.add_argument("--dataset",default="outputs/primary
 data=read_jsonl(a.dataset); token_ids=json.load(open(a.token_ids))["token_ids"]; chunks=sorted(__import__("pathlib").Path(a.activations).glob("chunk_*.npz")); arrays=[np.load(f)["activations"] for f in chunks]; X=np.concatenate(arrays); meta=json.load(open(a.activations+"/metadata.json"))["examples"]
 if len(X)!=len(data) or len(meta)!=len(data): raise ValueError("activation, metadata, and dataset row counts differ")
 splits=np.array([r["split"] for r in data]); out={}
-for role in ("C_q","O_q","C_d","O_d"):
+for role in tqdm(("C_q","O_q","C_d","O_d"),desc="Probe roles"):
  labels=np.array([token_ids[r["roles"][role]] for r in data]); train_classes=set(labels[splits=="train"]); unseen=set(labels)-train_classes
  if unseen: raise ValueError(f"probe role {role} has value classes absent from probe train data: {sorted(unseen)}")
  out[role]=[row for seed in range(a.seed,a.seed+a.n_seeds) for row in fit_probe_curves(X,labels,splits,seed)]
