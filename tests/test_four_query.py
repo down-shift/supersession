@@ -18,6 +18,7 @@ from src.data.generate import (
     render_example,
 )
 from src.data.token_validation import validate_assignment_patching
+from src.data.progress import append_jsonl_record,prepare_jsonl_progress
 from src.experiments.patching import assert_aligned,partition_history_ids,patch_effect_metrics
 
 VALUES=("amber","birch","coral","denim","elm","frost","grape","hazel","indigo","jade","khaki","lilac")
@@ -133,6 +134,19 @@ def test_patch_effect_orientation_is_donor_relative_in_both_directions():
     assert reverse["patch_delta_toward_donor"]==5
     assert forward["normalized_recovery"]==pytest.approx(.5)
     assert patch_effect_metrics(1,1+1e-9,2)["normalized_recovery"] is None
+
+def test_scoring_checkpoint_resumes_and_discards_truncated_final_record(tmp_path):
+    dataset=tmp_path/"data.jsonl"; dataset.write_text('{"example_id":"a"}\n{"example_id":"b"}\n')
+    token_ids=tmp_path/"tokens.json"; token_ids.write_text('{"token_ids":{"elm":1}}')
+    output=tmp_path/"scores.jsonl"; config={"model":{"id":"test"}}
+    rows=[{"example_id":"a"},{"example_id":"b"}]
+    assert prepare_jsonl_progress(output,dataset,token_ids,config,rows)==set()
+    append_jsonl_record(output,{"example_id":"a","score":1})
+    with output.open("ab") as f: f.write(b'{"example_id":"b"')
+    assert prepare_jsonl_progress(output,dataset,token_ids,config,rows,resume=True)=={"a"}
+    assert output.read_text()=='{"example_id": "a", "score": 1}\n'
+    with pytest.raises(ValueError,match="config differ"):
+        prepare_jsonl_progress(output,dataset,token_ids,{"model":{"id":"changed"}},rows,resume=True)
 
 def test_patch_analyzer_supports_x_only_discovery_and_full_heldout(tmp_path):
     script=Path(__file__).resolve().parents[1]/"scripts/analyze_four_query_patching.py"

@@ -44,6 +44,12 @@ uv run python scripts/run_behavior.py --config configs/four_query_pilot.yaml --d
 uv run python scripts/analyze_four_query.py --behavior outputs/four_query/behavior.jsonl --pairs outputs/four_query/pair_behavior.jsonl --output-dir outputs/four_query/analysis
 ```
 
+Both scoring commands checkpoint each completed example to JSONL. If interrupted,
+rerun the same command with `--resume`; it verifies the dataset, token IDs, and
+config against a sidecar manifest and skips completed examples. Calibration
+records default to `OUTPUT.records.jsonl`; behavior records use `--output`
+directly. Keep the same paths and config when resuming.
+
 `generate_four_query.py --kind histories` writes one record per history;
 `queries` expands each into the four fixed query conditions; `pairs` creates
 baseline/edit members for each of the four bindings under every query. Run
