@@ -11,13 +11,13 @@ def continuation_token_id(tokenizer, prompt, answer):
 def validate_candidate_vocabulary(tokenizer, contexts, candidates, chat=True):
     valid={}; rejected={}
     for value in tqdm(candidates,desc="Validating candidate tokens"):
-        ids=set(); ok=True
+        ids=set(); ok=True; failure=None
         for ex in contexts:
             prompt=__import__("src.data.generate",fromlist=["render_example"]).render_example(ex,tokenizer,chat=chat)
-            try: ids.add(continuation_token_id(tokenizer,prompt,value))
-            except ValueError: ok=False; break
+            try: ids.add(continuation_token_id(tokenizer,prompt," "+value))
+            except ValueError as exc: ok=False; failure=str(exc); break
         if ok and len(ids)==1: valid[value]=ids.pop()
-        else: rejected[value]="not stable single-token continuation across exact prompts"
+        else: rejected[value]=failure or "not stable single-token continuation across exact prompts"
     owners={}
     for value,token_id in valid.items(): owners.setdefault(token_id,[]).append(value)
     for token_id,words in owners.items():

@@ -41,7 +41,7 @@ def test_chat_renderer_disables_thinking_and_prefills_answer():
         "template_id": 0, "format_id": 0, "old_x": "amber", "old_z": "birch",
         "current_x": "coral", "current_z": "denim", "direct": False,
     }
-    assert render_example(example, ChatTokenizer()).endswith("Answer: ")
+    assert render_example(example, ChatTokenizer()).endswith("Answer:")
 
 def test_non_chat_renderer_has_explicit_answer_prefix():
     example = {
@@ -51,4 +51,4 @@ def test_non_chat_renderer_has_explicit_answer_prefix():
         "template_id": 0, "format_id": 0, "old_x": "amber", "old_z": "birch",
         "current_x": "coral", "current_z": "denim", "direct": False,
     }
-    assert render_example(example, chat=False).endswith("Answer: ")
+    assert render_example(example, chat=False).endswith("Answer:")
