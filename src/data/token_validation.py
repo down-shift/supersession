@@ -8,14 +8,19 @@ def continuation_token_id(tokenizer, prompt, answer):
         raise ValueError(f"{answer!r} is not exactly one continuation token for this prompt")
     return int(full[-1])
 
-def validate_candidate_vocabulary(tokenizer, contexts, candidates, chat=True):
+def validate_candidate_vocabulary(tokenizer, contexts, candidates, chat=True, prompt_variants=None):
     valid={}; rejected={}
     for value in tqdm(candidates,desc="Validating candidate tokens"):
         ids=set(); ok=True; failure=None
-        for ex in contexts:
+        from src.data.generate import PROMPT_VARIANTS
+        variants=prompt_variants or (None,)
+        for base_ex in contexts:
+          for variant in variants:
+            ex={**base_ex,**({"prompt_variant":variant} if variant else {})}
             prompt=__import__("src.data.generate",fromlist=["render_example"]).render_example(ex,tokenizer,chat=chat)
             try: ids.add(continuation_token_id(tokenizer,prompt," "+value))
             except ValueError as exc: ok=False; failure=str(exc); break
+          if not ok: break
         if ok and len(ids)==1: valid[value]=ids.pop()
         else: rejected[value]=failure or "not stable single-token continuation across exact prompts"
     owners={}
@@ -26,7 +31,7 @@ def validate_candidate_vocabulary(tokenizer, contexts, candidates, chat=True):
     if len(valid)<4: raise ValueError(f"only {len(valid)} distinct single-token candidates remain; at least four are required")
     return valid,rejected
 
-def validate_assignment_patching(tokenizer, histories, candidates, chat=True):
+def validate_assignment_patching(tokenizer, histories, candidates, chat=True, prompt_variants=None):
     """Require each value to be one token in every assignment slot/template.
 
     For every history and each of its four assignment positions, replacing the
@@ -35,7 +40,11 @@ def validate_assignment_patching(tokenizer, histories, candidates, chat=True):
     """
     from src.data.generate import render_example
     failures=[]
+    from src.data.generate import PROMPT_VARIANTS
+    variants=prompt_variants or (None,)
     for history in tqdm(histories,desc="Auditing assignment token alignment"):
+      for variant in variants:
+        history={**history,**({"prompt_variant":variant} if variant else {})}
         base=render_example({**history,"query":"x","query_time":"current","roles":{"C_q":history["current_x"],"C_d":history["current_z"]}},tokenizer,chat=chat)
         base_ids=tokenizer(base,add_special_tokens=False)["input_ids"]
         for key in ("old_x","old_z","current_x","current_z"):

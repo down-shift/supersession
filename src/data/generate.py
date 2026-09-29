@@ -4,6 +4,7 @@ import itertools, random
 from tqdm.auto import tqdm
 
 SYNTAX = ("equals", "colon_equals", "natural")
+PROMPT_VARIANTS = ("first_latest", "initial_update", "timestamped")
 TEMPLATES = {
     "symbolic": ["{v} = {value}", "{v} := {value}", "Set {v} to {value}."],
     "natural": ["{entity}'s code was {value}.", "The code for {entity} was {value}.", "{entity} used {value} as a code."],
@@ -28,6 +29,18 @@ def _render_assignment(var, value, family, template, natural_names, current=Fals
     if template == 1: return f"{var} := {value}"
     return f"Set {var} to {value}."
 
+def render_four_query_assignment(var, value, temporal_role, prompt_variant="first_latest"):
+    if prompt_variant == "first_latest": return f"{var} = {value}"
+    if prompt_variant == "initial_update": return f"{'Initial assignment' if temporal_role == 'old' else 'Update'}: {var} = {value}"
+    if prompt_variant == "timestamped": return f"t{'0' if temporal_role == 'old' else '1'}: {var} = {value}"
+    raise ValueError(f"unknown prompt_variant: {prompt_variant}")
+
+def render_four_query_question(var, time, prompt_variant="first_latest"):
+    if prompt_variant == "first_latest": return f"What value was {var} assigned {'first' if time == 'initial' else 'most recently'}?"
+    if prompt_variant == "initial_update": return (f"Before any updates, what was the value of {var}?" if time == "initial" else f"After all updates, what is the value of {var}?")
+    if prompt_variant == "timestamped": return f"What was the value of {var} at t{'0' if time == 'initial' else '1'}?"
+    raise ValueError(f"unknown prompt_variant: {prompt_variant}")
+
 def render_question(ex):
     """Return question text and the character span of its queried variable."""
     fam=ex["family"]; vars=ex["variables"]; names=ex["entities"]
@@ -36,6 +49,10 @@ def render_question(ex):
         label=names[qvar]
         question=(f"What was {label}'s initial code?" if time=="initial" else f"What is {label}'s current code?")
         return question,(question.index(label),question.index(label)+len(label))
+    if ex.get("prompt_variant"):
+        question=render_four_query_question(qvar,time,ex["prompt_variant"])
+        start=question.index(qvar)
+        return question,(start,start+len(qvar))
     question=(f"What was the initial value of {qvar}?" if time=="initial" else f"What is the current value of {qvar}?")
     start=question.rindex(qvar)
     return question,(start,start+len(qvar))
@@ -47,6 +64,8 @@ def query_variable_span(ex, rendered_prompt):
     return start+span[0],start+span[1]
 
 def render_example(ex, tokenizer=None, chat=True):
+    if "prompt_variant" in ex:
+        return render_four_query_example(ex,tokenizer,chat)
     fam=ex["family"]; vars=ex["variables"]; names=ex["entities"]
     rel={"O_x":("x","old_x"),"O_z":("z","old_z"),"C_x":("x","current_x"),"C_z":("z","current_z")}
     rows=[]
@@ -82,6 +101,18 @@ def render_example(ex, tokenizer=None, chat=True):
             ) from exc
     return prompt + "\nAnswer:"
 
+def render_four_query_example(ex, tokenizer=None, chat=True):
+    variant=ex.get("prompt_variant","first_latest")
+    rel={"O_x":("x","old_x"),"O_z":("z","old_z"),"C_x":("x","current_x"),"C_z":("z","current_z")}
+    rows=[render_four_query_assignment(ex["variables"][0 if rel[tag][0]=="x" else 1],ex[rel[tag][1]],"old" if tag.startswith("O_") else "current",variant) for tag in ex["order"]]
+    qvar=ex["variables"][0 if ex["query"]=="x" else 1]
+    prompt="\n".join(rows)+"\n"+render_four_query_question(qvar,ex["query_time"],variant)+"\nRespond with only the value, with no explanation."
+    if tokenizer is None: return prompt+"\nAnswer:"
+    if chat and getattr(tokenizer,"chat_template",None):
+        try: return tokenizer.apply_chat_template([{"role":"user","content":prompt}],tokenize=False,add_generation_prompt=True,enable_thinking=False)+"Answer:"
+        except TypeError as exc: raise RuntimeError("The tokenizer chat template must accept enable_thinking=False for next-token answer scoring") from exc
+    return prompt+"\nAnswer:"
+
 def make_histories(n_histories=144, seed=0, values=None, variables=None, partition="confirmatory"):
     """Create canonical symbolic histories with balanced value roles.
 
@@ -96,7 +127,8 @@ def make_histories(n_histories=144, seed=0, values=None, variables=None, partiti
     orders=legal_orders()
     if len(values) not in (12,16): raise ValueError("four-query design requires exactly 12 or 16 candidate values")
     if len(set(values))!=len(values): raise ValueError("candidate values must be unique")
-    if partition not in ("confirmatory","calibration"): raise ValueError("partition must be confirmatory or calibration")
+    aliases={"calibration":"gate"}; partition=aliases.get(partition,partition)
+    if partition not in ("prompt_dev","gate","confirmatory"): raise ValueError("partition must be prompt_dev, gate, or confirmatory")
     if n_histories % (len(orders)*len(variables)*2):
         raise ValueError("n_histories must be divisible by six orders × variable pairs × two orientations")
     if n_histories % len(values): raise ValueError("n_histories must be divisible by the candidate count for exact role balancing")
@@ -110,7 +142,12 @@ def make_histories(n_histories=144, seed=0, values=None, variables=None, partiti
         group=[(old_z,current_x,current_z)
                for current_x,current_z in itertools.permutations([x for x in even_offsets if x!=old_z],2)]
         random.Random(3701+candidate_count*100+old_z).shuffle(group)
-        pattern_groups[old_z]=group[::2] if partition=="confirmatory" else group[1::2]
+        if candidate_count==12:
+            cuts=(2,6)
+        else:
+            cuts=(7,21)
+        start,end={"prompt_dev":(0,cuts[0]),"gate":(cuts[0],cuts[1]),"confirmatory":(cuts[1],len(group))}[partition]
+        pattern_groups[old_z]=group[start:end]
     blocks=n_histories//candidate_count
     old_z_schedule=even_offsets[:]; rng.shuffle(old_z_schedule)
     chosen_patterns=[]
@@ -131,7 +168,7 @@ def make_histories(n_histories=144, seed=0, values=None, variables=None, partiti
         vmap={"x":pair[orientation],"z":pair[1-orientation]}
         entities={vmap["x"]:"Nora",vmap["z"]:"Liam"}
         row={"history_id":f"hist{i:06d}","family":"symbolic","variables":[vmap["x"],vmap["z"]],"entities":entities,
-             "order":list(order),"template_id":0,"format_id":0,"old_x":vals[0],"old_z":vals[1],
+             "order":list(order),"prompt_variant":"first_latest","old_x":vals[0],"old_z":vals[1],
              "current_x":vals[2],"current_z":vals[3],"replicate":replicate,"orientation":orientation,
              "variable_pair":tuple(pair),"history_index":i,"replacement_shift":replacement_shift,"partition":partition,
              "split_group":("four_query",tuple(sorted(pair)),tuple(order),orientation,replicate)}
@@ -144,8 +181,10 @@ def expand_history_queries(history):
     for variable in ("x","z"):
         for time in ("current","initial"):
             answer=history[f"{time}_{variable}"] if time=="current" else history[f"old_{variable}"]
-            ex={**history,"example_id":f"{history['history_id']}:{time}_{variable}","query":variable,
+            hid=history["history_id"] if history.get("prompt_variant") in (None,"first_latest") else f"{history['history_id']}:{history['prompt_variant']}"
+            ex={**history,"history_id":hid,"example_id":f"{hid}:{time}_{variable}","query":variable,
                 "query_time":time,"query_id":f"{time}_{variable}","answer":answer}
+            ex["prompt_variant"]=history.get("prompt_variant","first_latest")
             other="z" if variable=="x" else "x"
             ex["roles"]={"target":answer,"old_x":history["old_x"],"current_x":history["current_x"],
                          "old_z":history["old_z"],"current_z":history["current_z"],

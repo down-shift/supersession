@@ -1,63 +1,47 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
-
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-cd "$ROOT"
-
-OUT="${OUT:-outputs/four_query_288}"
-CFG="${CFG:-configs/four_query_288.yaml}"
-TOK="${TOK:-$OUT/token_ids.json}"
-
-if ! command -v nvidia-smi >/dev/null 2>&1; then
-  echo "ERROR: nvidia-smi is unavailable. Install/use an Ubuntu host with the NVIDIA driver and GPU." >&2
-  exit 2
-fi
-nvidia-smi
-
+trap 'status=$?; printf "RUN FAILED (exit %s) at line %s: %s\n" "$status" "$LINENO" "$BASH_COMMAND" >&2' ERR
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"; cd "$ROOT"
+OUT="${OUT:-outputs/four_query_288}"; CFG="${CFG:-configs/four_query_288.yaml}"; TOK="$OUT/token_ids.json"
+command -v nvidia-smi >/dev/null || { echo "ERROR: nvidia-smi is unavailable" >&2; exit 2; }; nvidia-smi
 uv sync --locked --extra model --extra dev
 uv run python - <<'PY'
 import torch
-if not torch.cuda.is_available():
-    raise SystemExit("ERROR: PyTorch cannot access CUDA; calibration requires the configured CUDA INT8 model.")
-print("CUDA device:", torch.cuda.get_device_name(0))
-print("PyTorch CUDA runtime:", torch.version.cuda)
-import bitsandbytes  # noqa: F401
+if not torch.cuda.is_available(): raise SystemExit("PyTorch cannot access CUDA")
+import bitsandbytes
+print("CUDA device:",torch.cuda.get_device_name(0))
 PY
-
 mkdir -p "$OUT"
-if [[ ! -s "$TOK" || "${REVALIDATE_TOKENS:-0}" == "1" ]]; then
-  uv run python scripts/validate_tokens.py --config "$CFG" --design four-query --output "$TOK"
-fi
-uv run python - "$CFG" "$TOK" <<'PY'
-import json, sys, yaml
-config = yaml.safe_load(open(sys.argv[1], encoding="utf8"))
-token_ids = json.load(open(sys.argv[2], encoding="utf8"))["token_ids"]
-expected = int(config["dataset"]["candidate_count"])
-if len(token_ids) != expected:
-    raise SystemExit(f"token_ids.json has {len(token_ids)} values; config requires {expected}")
-print(f"Using {len(token_ids)} validated candidate tokens")
+uv run python scripts/validate_tokens.py --config "$CFG" --design four-query --output "$TOK"
+for variant in first_latest initial_update timestamped; do
+  uv run python scripts/generate_four_query.py --config "$CFG" --token-ids "$TOK" --partition prompt_dev --prompt-variant "$variant" --kind queries --output "$OUT/prompt_dev_${variant}.jsonl"
+  uv run python scripts/audit_four_query.py "$OUT/prompt_dev_${variant}.jsonl"
+  args=(--config "$CFG" --dataset "$OUT/prompt_dev_${variant}.jsonl" --token-ids "$TOK" --output "$OUT/prompt_dev_${variant}.json" --diagnostic-only)
+  [[ -f "$OUT/prompt_dev_${variant}.json.records.jsonl.run.json" ]] && args+=(--resume)
+  uv run python scripts/run_four_query_competence.py "${args[@]}"
+done
+uv run python scripts/analyze_prompt_development.py --config "$CFG" --token-ids "$TOK" --provenance "$OUT/prompt_dev_first_latest.json" \
+  --records "first_latest=$OUT/prompt_dev_first_latest.json.records.jsonl" \
+  --records "initial_update=$OUT/prompt_dev_initial_update.json.records.jsonl" \
+  --records "timestamped=$OUT/prompt_dev_timestamped.json.records.jsonl" --output "$OUT/prompt_selection.json"
+uv run python - "$OUT/prompt_selection.json" <<'PY'
+import json,sys
+x=json.load(open(sys.argv[1])); print("Frozen prompt variant:",x["selected_variant"])
+if not x.get("confirmatory_permitted"): raise SystemExit("prompt development did not authorize confirmatory use")
+json.dump({"token_ids":x["token_ids"],"prompt_variant":x["selected_variant"],"selection_artifact":"prompt_selection.json","model_revision":x["model_revision"],"tokenizer_revision":x["tokenizer_revision"]},open(sys.argv[1].replace("prompt_selection.json","frozen_token_ids.json"),"w"),indent=2)
 PY
-
-uv run python scripts/generate_four_query.py --config "$CFG" --token-ids "$TOK" --calibration --kind queries --output "$OUT/calibration.jsonl"
-uv run python scripts/audit_four_query.py "$OUT/calibration.jsonl"
-CAL_ARGS=(--config "$CFG" --dataset "$OUT/calibration.jsonl" --token-ids "$TOK" --output "$OUT/calibration.json")
-if [[ -f "$OUT/calibration.json.records.jsonl.run.json" ]]; then
-  CAL_ARGS+=(--resume)
-fi
-uv run python scripts/run_four_query_competence.py "${CAL_ARGS[@]}"
-
-uv run python scripts/generate_four_query.py --config "$CFG" --token-ids "$TOK" --kind queries --output "$OUT/behavior_inputs.jsonl"
-uv run python scripts/generate_four_query.py --config "$CFG" --token-ids "$TOK" --kind pairs --output "$OUT/pairs.jsonl"
-uv run python scripts/audit_four_query.py "$OUT/behavior_inputs.jsonl" --exclude-dataset "$OUT/calibration.jsonl"
-uv run python scripts/audit_four_query.py "$OUT/pairs.jsonl" --exclude-dataset "$OUT/calibration.jsonl"
-
-BEHAVIOR_ARGS=(--config "$CFG" --dataset "$OUT/behavior_inputs.jsonl" --token-ids "$TOK" --output "$OUT/behavior.jsonl")
-if [[ -f "$OUT/behavior.jsonl.run.json" ]]; then BEHAVIOR_ARGS+=(--resume); fi
-uv run python scripts/run_behavior.py "${BEHAVIOR_ARGS[@]}"
-
-PAIRS_ARGS=(--config "$CFG" --dataset "$OUT/pairs.jsonl" --token-ids "$TOK" --output "$OUT/pair_behavior.jsonl")
-if [[ -f "$OUT/pair_behavior.jsonl.run.json" ]]; then PAIRS_ARGS+=(--resume); fi
-uv run python scripts/run_behavior.py "${PAIRS_ARGS[@]}"
-
+TOK="$OUT/frozen_token_ids.json"
+uv run python scripts/generate_four_query.py --config "$CFG" --token-ids "$TOK" --partition gate --prompt-variant "$(python -c 'import json,sys;print(json.load(open(sys.argv[1]))["selected_variant"])' "$OUT/prompt_selection.json")" --kind queries --output "$OUT/gate.jsonl"
+uv run python scripts/audit_four_query.py "$OUT/gate.jsonl" --exclude-dataset "$OUT/prompt_dev_first_latest.jsonl" --exclude-dataset "$OUT/prompt_dev_initial_update.jsonl" --exclude-dataset "$OUT/prompt_dev_timestamped.jsonl"
+args=(--config "$CFG" --dataset "$OUT/gate.jsonl" --token-ids "$TOK" --output "$OUT/gate.json")
+[[ -f "$OUT/gate.json.records.jsonl.run.json" ]] && args+=(--resume)
+uv run python scripts/run_four_query_competence.py "${args[@]}"
+VARIANT="$(python -c 'import json,sys;print(json.load(open(sys.argv[1]))["selected_variant"])' "$OUT/prompt_selection.json")"
+uv run python scripts/generate_four_query.py --config "$CFG" --token-ids "$TOK" --partition confirmatory --prompt-variant "$VARIANT" --kind queries --output "$OUT/behavior_inputs.jsonl"
+uv run python scripts/generate_four_query.py --config "$CFG" --token-ids "$TOK" --partition confirmatory --prompt-variant "$VARIANT" --kind pairs --output "$OUT/pairs.jsonl"
+for data in "$OUT/behavior_inputs.jsonl" "$OUT/pairs.jsonl"; do
+  uv run python scripts/audit_four_query.py "$data" --exclude-dataset "$OUT/prompt_dev_first_latest.jsonl" --exclude-dataset "$OUT/prompt_dev_initial_update.jsonl" --exclude-dataset "$OUT/prompt_dev_timestamped.jsonl" --exclude-dataset "$OUT/gate.jsonl"
+done
+args=(--config "$CFG" --dataset "$OUT/behavior_inputs.jsonl" --token-ids "$TOK" --output "$OUT/behavior.jsonl"); [[ -f "$OUT/behavior.jsonl.run.json" ]] && args+=(--resume); uv run python scripts/run_behavior.py "${args[@]}"
+args=(--config "$CFG" --dataset "$OUT/pairs.jsonl" --token-ids "$TOK" --output "$OUT/pair_behavior.jsonl"); [[ -f "$OUT/pair_behavior.jsonl.run.json" ]] && args+=(--resume); uv run python scripts/run_behavior.py "${args[@]}"
 uv run python scripts/analyze_four_query.py --behavior "$OUT/behavior.jsonl" --pairs "$OUT/pair_behavior.jsonl" --output-dir "$OUT/analysis"
-echo "Completed four-query 288-history behavior run. Results: $OUT/analysis/four_query_summary.json"

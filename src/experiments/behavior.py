@@ -14,7 +14,7 @@ def score_example(model,tokenizer,ex,token_ids,device=None,chat=True):
                    "full_vocab_next_token_accuracy":int(greedy_id==token_ids[ex["roles"].get("target",ex["roles"].get("C_q"))])})
     result["roles"]={k:v for k,v in ex["roles"].items()}
     result["candidate_logits"]={value:float(logits[token_id]) for value,token_id in token_ids.items()}
-    for key in ("pair_id","intervention_role","pair_direction","split","family","history_id","query_id","query_time","edited_binding","source_value","replacement_value","answer","order","variable_pair","orientation"):
+    for key in ("pair_id","intervention_role","pair_direction","split","family","history_id","query_id","query_time","prompt_variant","partition","edited_binding","source_value","replacement_value","answer","order","variable_pair","orientation","old_x","old_z","current_x","current_z","variables"):
         if key in ex: result[key]=ex[key]
     return result
 

@@ -27,7 +27,12 @@ def prepare_jsonl_progress(output, dataset, token_ids, config, rows, resume=Fals
             raise ValueError("--resume requires the original .run.json manifest")
         saved = json.loads(manifest.read_text(encoding="utf8"))
         if saved != expected:
-            raise ValueError("cannot resume: dataset, token IDs, or config differ from the original run")
+            mismatched = [key for key in expected if saved.get(key) != expected[key]]
+            raise ValueError(
+                "cannot resume: checkpoint fingerprint differs in "
+                + ", ".join(mismatched)
+                + ". Preserve the old records/manifest and start a fresh output if this is a new run."
+            )
     else:
         if output.exists() or manifest.exists():
             raise FileExistsError(f"{output} already exists; choose a new output path or pass --resume")

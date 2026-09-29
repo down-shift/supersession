@@ -145,7 +145,7 @@ def test_scoring_checkpoint_resumes_and_discards_truncated_final_record(tmp_path
     with output.open("ab") as f: f.write(b'{"example_id":"b"')
     assert prepare_jsonl_progress(output,dataset,token_ids,config,rows,resume=True)=={"a"}
     assert output.read_text()=='{"example_id": "a", "score": 1}\n'
-    with pytest.raises(ValueError,match="config differ"):
+    with pytest.raises(ValueError,match="fingerprint differs in config"):
         prepare_jsonl_progress(output,dataset,token_ids,{"model":{"id":"changed"}},rows,resume=True)
 
 def test_patch_analyzer_supports_x_only_discovery_and_full_heldout(tmp_path):

@@ -1,7 +1,8 @@
 seed: 20260929
 dataset:
+  prompt_dev_histories: 96
+  gate_histories: 192
   n_histories: 288
-  calibration_histories: 192
   candidate_count: 12
   values: [amber, birch, coral, denim, elm, frost, grape, hazel, indigo, jade, khaki, lilac, maple, navy, ochre, pearl, quartz, rust, slate, teal, umber, violet, wheat, zinc, acorn, bronze, cyan, ivory, lemon, mauve, olive, opal, plum, silver, spruce, walnut]
   variables: [[x, z], [p, q], [u, v], [m, n]]
@@ -18,5 +19,5 @@ model:
   chat_template: true
   attn_implementation: sdpa
 thresholds:
-  direct_accuracy: 0.99
-  overwrite_accuracy: 0.99
+  prompt_dev_min_accuracy: 0.98
+  gate_accuracy: 0.99

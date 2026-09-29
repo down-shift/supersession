@@ -169,7 +169,7 @@ Then pass the natural dataset and token IDs to the same behavioral, extraction, 
 - Query position is the last model-input token before answer continuation. Activation storage includes the input embedding at that position and each decoder block output at that position. Patching convention is residual stream **leaving** a selected block, at a selected input position.
 - `B = logit(O_q) - logit(O_d)` is binding-specific obsolete residue; `R = logit(C_q) - logit(C_d)` is the current-binding control; `M` compares the correct value to all three distractor candidates. Accuracy is argmax over the configured candidate vocabulary. Full candidate probabilities and per-role logits are stored.
 - The four-query design fixes history and wording across query variants. Its primary edit score is `[logit(replacement)-logit(source)]_edited - [logit(replacement)-logit(source)]_baseline`; its primary contrast compares that score for current-x versus current-z while holding source, replacement, position, and history fixed. It also records full-vocabulary next-token accuracy, full-vocabulary target rank, candidate rank, and candidate probability.
-- Four-query summaries bootstrap and sign-flip at the `history_id` level. Calibration examples are generated independently and excluded from confirmatory outputs. `audit_four_query.py` fails on duplicate or overlapping concrete histories, incomplete query sets, or role/edit imbalance.
+- Four-query summaries bootstrap and sign-flip at the `history_id` level. Prompt-development and held-out gate histories are generated independently and excluded from confirmatory outputs. `audit_four_query.py` fails on duplicate or overlapping concrete histories, incomplete query sets, or role/edit imbalance.
 - Probe scores are linear decoding performance, not mutual information. Low decoding is not evidence of absence. Decoding is not evidence of causal use. Attention weights are not treated as causal evidence.
 - Input counterfactual effects are controlled prompt interventions, not proof of an internal causal variable. Patch effects establish effects of the tested residual intervention; they do not identify a complete circuit. A small output effect does not show that obsolete information failed to propagate.
 - The main design target is paired obsolete-query versus obsolete-distractor effects under fixed current state, reported both across all trials and alongside aggregate competence. Avoid interpreting a model that fails the configurable direct/overwrite competence gate as showing successful supersession.
@@ -179,3 +179,25 @@ Then pass the natural dataset and token IDs to the same behavioral, extraction, 
 Datasets and per-example behavioral / patch records are JSONL; activations are compressed NPZ chunks. JSON provenance snapshots include timestamp, commit if available, model/tokenizer IDs and resolved revisions, config, seed, data hash, package versions, dtype/device, and chat setting. Behavioral records include exact rendered prompt and query position; token validation output records accepted candidate token IDs and rejects. Do not discard raw records after aggregation.
 
 `run_patching.py` performs both source→target directions for current-query, obsolete-query, and obsolete-distractor value pairs. It batches token positions by layer, saves raw per-layer/per-position logits, and produces the current-binding positive-control heatmap. The optional tokenizer-offset audit requires a fast tokenizer.
+
+## Four-query prompt development, gate, and confirmation
+
+The four-query experiment now separates **prompt development ≠ held-out competence gate ≠ confirmatory experiment**. The previous Qwen3-8B INT8 run failed the pre-set 99% gate (current-x 93.2%, current-z 92.2%, initial-x 58.3%, initial-z 59.4%). Historical-query performance fell as old/current assignments became more separated. No confirmatory result was obtained; this failure is a task-clarity problem, not evidence about mechanistic supersession.
+
+The runner first validates one shared 12-value vocabulary under all three deterministic prompt variants, then scores the same 96 prompt-development histories under each:
+
+- `first_latest` (preferred): plain `x = value` lines; asks which value was assigned first or most recently.
+- `initial_update` (fallback): prefixes old lines with `Initial assignment:` and current lines with `Update:`; asks before any updates or after all updates.
+- `timestamped` (diagnostic only): prefixes lines with `t0:` / `t1:` and asks at the corresponding time. It is never automatically selected for confirmation.
+
+Selection is fixed in advance: choose `first_latest` if every query has at least 98% development accuracy; otherwise choose `initial_update` if every query meets 98%; otherwise stop. Selection is global across x/z and initial/current. The artifact records query accuracies, dataset/config hashes, revisions, frozen token IDs, and whether confirmatory use is allowed.
+
+A fresh 192-history gate is generated with only that frozen variant. Every query (`current_x`, `initial_x`, `current_z`, `initial_z`) must achieve at least 99% **full-vocabulary next-token accuracy**. Gate failures are saved and halt the runner before confirmatory data is generated. Gate examples cannot be used to retune the prompt; any later prompt revision requires a fresh gate partition/seed. Only a passing gate permits the fresh 288-history confirmatory experiment. Prompt-development and gate data are audited against confirmatory histories and excluded from confirmatory analysis. Initial-value queries serve as retention/task controls; current-value queries must also be nearly perfectly solved before mechanistic work. Timestamped lookup is a more explicit diagnostic task and is not equivalent evidence.
+
+Run the full staged Ubuntu workflow (model inference occurs on that host):
+
+```bash
+bash scripts/run_four_query_288_ubuntu.sh
+```
+
+The runner does behavior-only scoring and analysis. It does not run probes or patching. The four-query generation path always uses centralized canonical rendering; legacy syntax/template factors remain limited to older experiment paths.
