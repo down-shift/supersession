@@ -5,6 +5,11 @@ OUT="${OUT:-outputs/four_query_288}"; CFG="${CFG:-configs/four_query_288.yaml}"
 DISCOVERY_N="${DISCOVERY_N:-24}"; ALL_POSITION_N="${ALL_POSITION_N:-12}"; HELDOUT_N="${HELDOUT_N:-96}"
 RUN_HELDOUT="${RUN_HELDOUT:-0}"; PREFIX_AUDIT_N="${PREFIX_AUDIT_N:-2}"; POSITION_BATCH_SIZE="${POSITION_BATCH_SIZE:-16}"
 RUN_TRAJECTORY_ANALYSIS="${RUN_TRAJECTORY_ANALYSIS:-0}"; RUN_ALL_POSITIONS="${RUN_ALL_POSITIONS:-0}"
+ALL_POSITION_VERSION="${ALL_POSITION_VERSION:-v2}"
+if [[ "$RUN_ALL_POSITIONS" == 1 ]]; then
+  [[ "$ALL_POSITION_N" =~ ^[1-9][0-9]*$ && "$ALL_POSITION_N" -le 24 ]] || { echo "ALL_POSITION_N must be between 1 and 24 (the frozen stage-1 discovery set)" >&2; exit 2; }
+  [[ "$RUN_HELDOUT" != 1 ]] || { echo "RUN_ALL_POSITIONS cannot be combined with RUN_HELDOUT; held-out confirmation is frozen" >&2; exit 2; }
+fi
 for f in "$OUT/pairs.jsonl" "$OUT/pair_behavior.jsonl" "$OUT/frozen_token_ids.json" "$OUT/prompt_selection.json" "$OUT/gate.json" "$OUT/analysis/four_query_summary.json"; do
   [[ -s "$f" ]] || { echo "Required frozen behavior artifact missing: $f" >&2; exit 2; }
 done
@@ -33,13 +38,21 @@ if [[ "$RUN_TRAJECTORY_ANALYSIS" == 1 ]]; then
   echo "Trajectory artifacts: $OUT/mechanism/discovery/trajectory_by_layer_site.csv $OUT/mechanism/discovery/trajectory_summary.json $OUT/mechanism/discovery/Rx_by_layer_site.png"
   exit 0
 fi
-DISC="$OUT/mechanism/discovery.jsonl"; args=("${COMMON[@]}" --output "$DISC" --stage discovery --n-histories "$DISCOVERY_N" --cell-set focal --audit-prefix-invariance "$PREFIX_AUDIT_N" --position-batch-size "$POSITION_BATCH_SIZE"); [[ -f "$DISC.run.json" ]] && args+=(--resume)
-uv run python scripts/run_four_query_patching.py "${args[@]}"
-uv run python scripts/analyze_four_query_patching.py --patches "$DISC" --output-dir "$OUT/mechanism/discovery" --stage discovery
+DISC="$OUT/mechanism/discovery.jsonl"
+if [[ "$RUN_ALL_POSITIONS" == 1 ]]; then
+  [[ -s "$OUT/mechanism/discovery/patch_Rx_by_layer_site.csv" && -s "$OUT/mechanism/discovery/discovery_selection.json" ]] || { echo "All-position sweep requires the existing frozen targeted discovery analysis and selection; refusing to rerun discovery." >&2; exit 2; }
+  echo "Using frozen targeted discovery analysis; skipping targeted patch rerun."
+elif [[ -s "$OUT/mechanism/discovery/patch_Rx_by_layer_site.csv" && -s "$OUT/mechanism/discovery/discovery_selection.json" ]]; then
+  echo "Using frozen targeted discovery analysis; skipping targeted patch rerun."
+else
+  args=("${COMMON[@]}" --output "$DISC" --stage discovery --n-histories "$DISCOVERY_N" --cell-set focal --audit-prefix-invariance "$PREFIX_AUDIT_N" --position-batch-size "$POSITION_BATCH_SIZE"); [[ -f "$DISC.run.json" ]] && args+=(--resume)
+  uv run python scripts/run_four_query_patching.py "${args[@]}"
+  uv run python scripts/analyze_four_query_patching.py --patches "$DISC" --output-dir "$OUT/mechanism/discovery" --stage discovery
+fi
 LAYERS="$(uv run python -c 'import json,sys; print(",".join(map(str,json.load(open(sys.argv[1]))["selection_statistic"]["selected_layers"])))' "$OUT/mechanism/discovery/discovery_selection.json")"
 echo "Frozen discovery layers: $LAYERS"
 if [[ "${RUN_ALL_POSITIONS:-0}" == 1 ]]; then
-  ALLDIR="$OUT/mechanism/all_positions_v1"; mkdir -p "$ALLDIR"; ALL="$ALLDIR/patches.jsonl"; args=("${COMMON[@]}" --output "$ALL" --stage discovery --n-histories "$ALL_POSITION_N" --all-positions --cell-set focal --position-batch-size "$POSITION_BATCH_SIZE"); [[ -f "$ALL.run.json" ]] && args+=(--resume)
+  ALLDIR="$OUT/mechanism/all_positions_${ALL_POSITION_VERSION}"; mkdir -p "$ALLDIR"; ALL="$ALLDIR/patches.jsonl"; args=("${COMMON[@]}" --output "$ALL" --stage discovery --n-histories "$ALL_POSITION_N" --all-positions --cell-set focal --position-batch-size "$POSITION_BATCH_SIZE"); [[ -f "$ALL.run.json" ]] && args+=(--resume)
   uv run python scripts/run_four_query_patching.py "${args[@]}"
   uv run python scripts/analyze_four_query_patching.py --patches "$ALL" --output-dir "$ALLDIR/analysis" --stage discovery
   echo "All-position artifacts: $ALL $ALLDIR/analysis/all_positions_Rx.csv $ALLDIR/analysis/all_positions_Rx_by_history.csv $ALLDIR/analysis/all_positions_Rx_semantic.csv $ALLDIR/analysis/all_positions_Rx.png $ALLDIR/analysis/all_positions_Rx_semantic.png $ALLDIR/analysis/all_positions_token_legend.csv"

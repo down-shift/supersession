@@ -14,17 +14,27 @@ def test_trajectory_pairs_history_and_keeps_semantic_sites_distinct(tmp_path):
     assert set(tab.site_role)=={'edited_binding_value','query_variable'}
     assert set(tab.n_histories)=={2}
 
-def test_all_position_pairing_ignores_query_token_identity(tmp_path):
+def test_all_position_pairing_ignores_query_token_identity_and_role_mismatch(tmp_path,monkeypatch):
+    import sys
     rows=[]
-    for q,token,effect in [('current_x','x',5.),('current_z','z',1.)]:
-        for d in ('baseline_to_edited','edited_to_baseline'):
-            rows.append(dict(history_id='h',query_id=q,edited_binding='old_x',site_role='other_position',layer=1,position=7,direction=d,patch_delta_toward_donor=effect,token_text=token))
+    for h in ('h1','h2'):
+      for layer in range(3):
+       for pos in (0,1):
+        for q,token,effect in [('current_x','x',5.),('current_z','z',1.)]:
+         role='final_preanswer' if pos==0 else ('query_variable' if q=='current_x' else 'other_position')
+         for d in ('baseline_to_edited','edited_to_baseline'):
+            rows.append(dict(history_id=h,query_id=q,edited_binding='old_x',site_role=role,layer=layer,position=pos,direction=d,patch_delta_toward_donor=effect,token_id=10 if q=='current_x' else 11,token_text=token))
     f=tmp_path/'raw.jsonl'; f.write_text(''.join(json.dumps(r)+'\n' for r in rows))
     from scripts.analyze_four_query_patching import main
-    # Pairing contract is also represented directly by the analysis key.
-    pivot=pd.DataFrame(rows).groupby(['history_id','layer','position','query_id'],as_index=False).patch_delta_toward_donor.mean()
-    wide=pivot.pivot(index=['history_id','layer','position'],columns='query_id',values='patch_delta_toward_donor')
-    assert wide.loc[('h',1,7),'current_x']-wide.loc[('h',1,7),'current_z']==pytest.approx(4.)
+    out=tmp_path/'analysis'; monkeypatch.setattr(sys,'argv',['analyze_four_query_patching.py','--patches',str(f),'--output-dir',str(out),'--stage','discovery'])
+    main()
+    wide=pd.read_csv(out/'all_positions_Rx_by_history.csv')
+    assert len(wide)==12 and wide.loc[wide.position==1,'R_x_patch'].tolist()==pytest.approx([4.]*6)
+    legend=pd.read_csv(out/'all_positions_token_legend.csv')
+    assert {'token_text_current_x','token_text_current_z','semantic_site_role','rough_rendered_region'}<=set(legend.columns)
+    assert not (out/'discovery_selection.json').exists()
+    summary=json.loads((out/'four_query_patch_summary.json').read_text())
+    assert summary['exploratory'] is True and summary['selection'] is None and summary['per_layer_inference']=='not performed'
 
 def test_margin_decomposition_identity():
     correct_delta=1.25; margin_delta=3.5

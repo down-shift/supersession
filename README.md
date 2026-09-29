@@ -105,7 +105,9 @@ is exploratory and does not declare an onset layer.
 For analysis-only trajectory work on existing discovery artifacts, run
 `RUN_TRAJECTORY_ANALYSIS=1 bash scripts/run_four_query_mechanistic_ubuntu.sh`.
 For a separate exploratory all-position sweep, set `RUN_ALL_POSITIONS=1` and
-`ALL_POSITION_N=12`; its output is isolated under `mechanism/all_positions_v1/`.
+`ALL_POSITION_N=12`; its output is isolated under `mechanism/all_positions_v2/`
+by default. Set `ALL_POSITION_VERSION` to select another fresh output namespace;
+existing manifests are preserved and never silently overwritten.
 
 
 Only after the paired behavioral effect is established, extract query-state

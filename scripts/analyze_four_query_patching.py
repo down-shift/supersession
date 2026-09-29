@@ -9,12 +9,14 @@ from src.utils import save_json
 from src.analysis.metrics import trimmed_mean
 from src.experiments.patching import r_x_patch, symmetric_r_patch
 
-def stats(values,seed=0,n_boot=10000,n_perm=10000):
+def stats(values,seed=0,n_boot=10000,n_perm=10000,inferential=True):
  x=np.asarray(values,dtype=float); x=x[np.isfinite(x)]; n=len(x)
- if not n:return {'n_histories':0,'mean':None,'median':None,'trimmed_mean_10pct':None,'fraction_positive':None,'ci95_cluster_bootstrap':None,'sign_flip_p_two_sided':None}
+ if not n:return {'n_histories':0,'mean':None,'median':None,'trimmed_mean_10pct':None,'fraction_positive':None,'ci95_cluster_bootstrap':None,**({'sign_flip_p_two_sided':None} if inferential else {})}
  rng=np.random.default_rng(seed); boot=np.mean(rng.choice(x,(n_boot,n),replace=True),axis=1)
- observed=abs(float(x.mean())); flips=rng.choice(np.array([-1.,1.]),(n_perm,n)); p=(1+np.sum(np.abs(np.mean(flips*x,axis=1))>=observed))/(n_perm+1)
- return {'n_histories':n,'mean':float(x.mean()),'median':float(np.median(x)),'trimmed_mean_10pct':float(trimmed_mean(x,.1)),'fraction_positive':float(np.mean(x>0)),'ci95_cluster_bootstrap':[float(np.quantile(boot,.025)),float(np.quantile(boot,.975))],'sign_flip_p_two_sided':float(p)}
+ result={'n_histories':n,'mean':float(x.mean()),'median':float(np.median(x)),'trimmed_mean_10pct':float(trimmed_mean(x,.1)),'fraction_positive':float(np.mean(x>0)),'ci95_cluster_bootstrap':[float(np.quantile(boot,.025)),float(np.quantile(boot,.975))]}
+ if inferential:
+  observed=abs(float(x.mean())); flips=rng.choice(np.array([-1.,1.]),(n_perm,n)); result['sign_flip_p_two_sided']=float((1+np.sum(np.abs(np.mean(flips*x,axis=1))>=observed))/(n_perm+1))
+ return result
 
 def main():
  p=argparse.ArgumentParser(); p.add_argument('--patches',required=True); p.add_argument('--output-dir',required=True); p.add_argument('--stage',choices=('discovery','heldout'),required=True); p.add_argument('--seed',type=int,default=20260929); p.add_argument('--selection-site',default='final_preanswer'); p.add_argument('--region-width',type=int,choices=(3,),default=3); a=p.parse_args()
@@ -67,7 +69,7 @@ def main():
     szids=set(c['old_z','initial_z'])&set(c['old_z','current_z'])&set(c['current_z','current_z'])&set(c['current_z','initial_z'])
     sx={h:.5*((c['old_x','initial_x'][h]-c['old_x','current_x'][h])+(c['current_x','current_x'][h]-c['current_x','initial_x'][h])) for h in sxids}
     sz={h:.5*((c['old_z','initial_z'][h]-c['old_z','current_z'][h])+(c['current_z','current_z'][h]-c['current_z','initial_z'][h])) for h in szids}
-    key=f'{role}/layer_{layer}'+(f'/position_{position}' if position is not None else ''); results[key]={'R_x_patch':stats(list(rxs.values()),a.seed),'R_z_patch':stats(list(rzs.values()),a.seed+1),'symmetric_R_patch':stats(list(sym.values()),a.seed+2),'S_x_control':stats(list(sx.values()),a.seed+3),'S_z_control':stats(list(sz.values()),a.seed+4),'cells_present':{f'{b}/{q}':len(v) for (b,q),v in c.items()}}
+    key=f'{role}/layer_{layer}'+(f'/position_{position}' if position is not None else ''); results[key]={'R_x_patch':stats(list(rxs.values()),a.seed,inferential=not allpos),'R_z_patch':stats(list(rzs.values()),a.seed+1,inferential=not allpos),'symmetric_R_patch':stats(list(sym.values()),a.seed+2,inferential=not allpos),'S_x_control':stats(list(sx.values()),a.seed+3,inferential=not allpos),'S_z_control':stats(list(sz.values()),a.seed+4,inferential=not allpos),'cells_present':{f'{b}/{q}':len(v) for (b,q),v in c.items()}}
     perlayer[(role,layer,position)]=rxs
  region_primary={}; region_rows=[]
  correct_diagnostics={}
@@ -102,7 +104,7 @@ def main():
     both=set(rx)&set(rz); sy={h:symmetric_r_patch(rx[h],rz[h]) for h in both}; key=role+(f'/position_{position}' if position is not None else '')
     region_primary[key]={'R_x_patch':stats(list(rx.values()),a.seed),'R_z_patch':stats(list(rz.values()),a.seed+1),'symmetric_R_patch':stats(list(sy.values()),a.seed+2),'frozen_layers':layers}
     for h in both: region_rows.append({'history_id':h,'layer':'selected_region','site_role':role,'position':position,'edited_binding':'symmetric','query_id':'symmetric_R_patch','R_x_patch':rx[h],'R_z_patch':rz[h],'symmetric_R_patch':sy[h]})
- if a.stage=='discovery':
+ if a.stage=='discovery' and not allpos:
   sel={}; siteframe=pivot[(pivot.site_role==a.selection_site)]
   actual_layers=sorted(int(x) for x in siteframe.layer.unique()); by={}
   for layer in actual_layers:
@@ -119,26 +121,29 @@ def main():
   best=max(windows,key=lambda x:(x[0],-x[1]))
   sel={'selection_statistic':{'name':'R_x_patch','formula':'old_x/current_x - old_x/current_z','site':a.selection_site,'window_width':a.region_width,'selected_layers':best[2],'tie_break':'lowest_start_layer'},'per_layer_R_x_patch':{str(l):stats(list(by[l].values()),a.seed) for l in actual_layers},'selected_window_mean_R_x_patch':best[0],'complete_histories_in_window':best[3]}
   save_json(sel,out/'discovery_selection.json')
- summary={'stage':a.stage,'results':results,'selected_region_primary':region_primary if a.stage=='heldout' else None,'correct_answer_diagnostics':correct_diagnostics if a.stage=='heldout' else None,'primary':'R_x_patch at discovery; selected-region symmetric_R_patch at heldout','frozen_layer_aggregation':'mean single-layer patch effect across frozen layers; layers are patched independently, never simultaneously','cells_present':sorted({f"{r.edited_binding}/{r.query_id}" for r in frame.itertuples()}),'bootstrap_unit':'history_id','direction_order':'donor-oriented each direction, then averaged','selection':sel if a.stage=='discovery' else None}
+ summary={'stage':a.stage,'exploratory':allpos,'results':results,'selected_region_primary':region_primary if a.stage=='heldout' else None,'correct_answer_diagnostics':correct_diagnostics if a.stage=='heldout' else None,'primary':'R_x_patch at discovery; selected-region symmetric_R_patch at heldout','frozen_layer_aggregation':'mean single-layer patch effect across frozen layers; layers are patched independently, never simultaneously','cells_present':sorted({f"{r.edited_binding}/{r.query_id}" for r in frame.itertuples()}),'bootstrap_unit':'history_id','direction_order':'donor-oriented each direction, then averaged','selection':sel if a.stage=='discovery' and not allpos else None,'per_layer_inference':'not performed' if allpos else 'existing targeted discovery procedure'}
  save_json(summary,out/'four_query_patch_summary.json' if a.stage=='discovery' else out/'heldout_patch_summary.json')
  if allpos:
   # Absolute position is part of the analysis key; never pool token locations.
   # Token identity can differ between query variants at the same position
   # (especially the queried x/z token), so it must not participate in pairing.
   ps=pivot[pivot.edited_binding=='old_x']
-  wide=ps.pivot(index=['history_id','layer','position','site_role'],columns='query_id',values='effect').reset_index()
+  # Pair solely by history, layer, and absolute position. A token may receive
+  # different semantic labels in the two query variants when tokenization shifts.
+  abs_effect=ps.groupby(['history_id','layer','position','query_id'],as_index=False).effect.mean()
+  wide=abs_effect.pivot(index=['history_id','layer','position'],columns='query_id',values='effect').reset_index()
   wide['R_x_patch']=wide['current_x']-wide['current_z']
+  roles=ps.groupby(['history_id','layer','position','query_id']).site_role.agg(lambda x:'|'.join(sorted(set(map(str,x))))).unstack('query_id').reset_index()
+  roles=roles.rename(columns={q:f'semantic_site_role_{q}' for q in ('current_x','current_z')})
+  wide=wide.merge(roles,on=['history_id','layer','position'],how='left')
   wide.to_csv(out/'all_positions_Rx_by_history.csv',index=False)
-  agg=wide.groupby(['layer','position','site_role']).R_x_patch.agg(['mean','count']).reset_index()
+  agg=wide.groupby(['layer','position']).R_x_patch.agg(['mean','count']).reset_index()
   tokmeta=frame[frame.edited_binding=='old_x'].groupby(['position','query_id'],as_index=False).agg(
    token_id=('token_id',lambda x:'|'.join(map(str,sorted(set(x.dropna()))))),
    token_text=('token_text',lambda x:' | '.join(sorted(set(str(v) for v in x.dropna())))))
   tokwide=tokmeta.pivot(index='position',columns='query_id',values=['token_id','token_text'])
   tokwide.columns=[f'{field}_{query}' for field,query in tokwide.columns]
   agg=agg.merge(tokwide.reset_index(),on='position',how='left')
-  agg['semantic_site_role']=agg.site_role
-  rough={'old_x_value':'initial_x_assignment','old_x_variable':'initial_x_assignment','old_z_value':'initial_z_assignment','old_z_variable':'initial_z_assignment','current_x_value':'current_x_assignment','current_x_variable':'current_x_assignment','current_z_value':'current_z_assignment','current_z_variable':'current_z_assignment','query_variable':'question','final_preanswer':'answer_prefix','edited_binding_value':'assignment_value','same_variable_other_value':'assignment_value','current_assignment_variable':'current_assignment'}
-  agg['rough_rendered_region']=agg.site_role.map(rough).fillna('rendered_text_unclassified')
   agg.to_csv(out/'all_positions_Rx.csv',index=False)
   try:
    from PIL import Image,ImageDraw
@@ -149,15 +154,43 @@ def main():
      t=0 if not np.isfinite(v) else (v-lo)/span; color=(int(40+215*t),int(70+100*(1-abs(2*t-1))),int(255-215*t)); d.rectangle((xi*cw,yi*ch,(xi+1)*cw,(yi+1)*ch),fill=color)
    d.text((8,im.height-45),'x: absolute input token position; y: transformer layer; color: mean history-level R_x_patch',fill='black'); im.save(out/'all_positions_Rx.png')
   except ImportError: pass
-  (out/'all_positions_token_legend.csv').write_text(agg.drop(columns=['mean','count']).drop_duplicates().sort_values('position').to_csv(index=False),encoding='utf8')
+  legend=frame[frame.edited_binding=='old_x'].groupby(['position','query_id'],as_index=False).agg(
+   token_text=('token_text',lambda x:' | '.join(sorted(set(str(v) for v in x.dropna())))),
+   semantic_site_role=('site_role',lambda x:' | '.join(sorted(set(map(str,x.dropna()))))))
+  token_texts=tokmeta.pivot(index='position',columns='query_id',values='token_text')
+  token_texts.columns=[f'token_text_{q}' for q in token_texts.columns]
+  rolewide=legend.pivot(index='position',columns='query_id',values='semantic_site_role')
+  rolewide.columns=[f'semantic_site_role_{q}' for q in rolewide.columns]
+  tokenlegend=token_texts.join(rolewide,how='outer').reset_index()
+  rough={'old_x_value':'initial_x_assignment','old_x_variable':'initial_x_assignment','old_z_value':'initial_z_assignment','old_z_variable':'initial_z_assignment','current_x_value':'current_x_assignment','current_x_variable':'current_x_assignment','current_z_value':'current_z_assignment','current_z_variable':'current_z_assignment','query_variable':'question','final_preanswer':'answer_prefix','edited_binding_value':'assignment_value','same_variable_other_value':'assignment_value','current_assignment_variable':'current_assignment','other_position':'rendered_text_unclassified'}
+  semantic_cols=[c for c in tokenlegend if c.startswith('semantic_site_role_')]
+  tokenlegend['semantic_site_role']=' | '.join([])
+  tokenlegend['rough_rendered_region']='rendered_text_unclassified'
+  for i,row in tokenlegend.iterrows():
+   roles_here=sorted({role for col in semantic_cols if pd.notna(row[col]) for role in str(row[col]).split(' | ') if role!='other_position'})
+   tokenlegend.at[i,'semantic_site_role']=' | '.join(roles_here) if roles_here else 'other_position'
+   regions=sorted({rough.get(role,'rendered_text_unclassified') for role in roles_here})
+   tokenlegend.at[i,'rough_rendered_region']=' | '.join(regions) if regions else 'rendered_text_unclassified'
+  tokenlegend['site_role']=tokenlegend['semantic_site_role']
+  tokenlegend.to_csv(out/'all_positions_token_legend.csv',index=False)
   # Semantic aggregation averages token positions within each semantic role
   # separately for each history and layer before group summaries.
-  sem=wide[wide.site_role.ne('other_position')].groupby(['history_id','layer','site_role'],as_index=False).R_x_patch.mean()
+  semantic_rows=[]
+  for r in wide.itertuples():
+   roles_here=set()
+   for name in ('semantic_site_role_current_x','semantic_site_role_current_z'):
+    value=getattr(r,name,None)
+    if isinstance(value,str): roles_here.update(value.split('|'))
+   for role in roles_here-{'other_position'}:
+    semantic_rows.append({'history_id':r.history_id,'layer':r.layer,'site_role':role,'R_x_patch':r.R_x_patch})
+  sem=pd.DataFrame(semantic_rows).groupby(['history_id','layer','site_role'],as_index=False).R_x_patch.mean()
   sem.to_csv(out/'all_positions_Rx_semantic_by_history.csv',index=False)
   semagg=sem.groupby(['layer','site_role']).R_x_patch.agg(['mean','median','count']).reset_index().rename(columns={'count':'n_histories'})
   semagg.to_csv(out/'all_positions_Rx_semantic.csv',index=False)
-  mapping=wide.groupby(['history_id','site_role']).position.agg(['min','max','nunique']).reset_index()
-  varying=mapping.groupby('site_role').agg(histories=('history_id','nunique'),min_position=('min','min'),max_position=('max','max'),histories_with_multiple_absolute_positions=('nunique',lambda x:int((x>1).sum()))).reset_index()
+  mapping=wide.melt(id_vars=['history_id','layer','position'],value_vars=[c for c in wide if c.startswith('semantic_site_role_')],value_name='site_roles').dropna(subset=['site_roles'])
+  mapping=mapping.assign(site_role=mapping.site_roles.str.split('|')).explode('site_role'); mapping=mapping[mapping.site_role.ne('other_position')]
+  mapping=mapping.drop_duplicates(['history_id','layer','position','site_role'])
+  varying=mapping.groupby('site_role').agg(histories=('history_id','nunique'),min_position=('position','min'),max_position=('position','max'),absolute_positions=('position','nunique')).reset_index()
   (out/'all_positions_semantic_position_mapping.json').write_text(json.dumps({'pairing_key':['history_id','layer','absolute_position'],'token_identity_in_pairing_key':False,'absolute_position_variation_by_role':varying.to_dict('records'),'semantic_aggregation':'within history × layer × semantic_site_role, mean over positions before group mean'},indent=2)+'\n')
   try:
    from PIL import Image,ImageDraw
