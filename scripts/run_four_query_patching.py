@@ -38,7 +38,19 @@ fingerprint['patch_code_sha256']=hashlib.sha256(Path(__file__).read_bytes()+Path
 if a.resume:
     if not manifest.exists(): raise ValueError('--resume requires patch run manifest')
     saved=json.loads(manifest.read_text())
-    if saved!=fingerprint: raise ValueError('cannot resume: patch checkpoint fingerprint differs; use a fresh output path')
+    if saved!=fingerprint:
+        changed=[]
+        for key in sorted(set(saved)|set(fingerprint)):
+            if saved.get(key)!=fingerprint.get(key):
+                old,new=saved.get(key),fingerprint.get(key)
+                if key=='history_ids':
+                    import hashlib
+                    old=json.dumps(old,sort_keys=True); new=json.dumps(new,sort_keys=True)
+                    old=f'n={len(saved.get(key,[]))}, sha256={hashlib.sha256(old.encode()).hexdigest()[:12]}'
+                    new=f'n={len(fingerprint.get(key,[]))}, sha256={hashlib.sha256(new.encode()).hexdigest()[:12]}'
+                changed.append(f'{key}: saved={old!r}, current={new!r}')
+        raise ValueError('cannot resume: patch checkpoint fingerprint differs; checkpoint was left untouched. '
+                         'Use a fresh output path after reviewing changed fields:\n  '+'\n  '.join(changed))
     done=recover_patch_checkpoint(out,completion_log)
 else:
     if out.exists() or manifest.exists(): raise FileExistsError(f'{out} exists; use --resume or a new path')

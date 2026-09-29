@@ -3,9 +3,9 @@ set -Eeuo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"; cd "$ROOT"
 OUT="${OUT:-outputs/four_query_288}"; CFG="${CFG:-configs/four_query_288.yaml}"
 DISCOVERY_N="${DISCOVERY_N:-24}"; ALL_POSITION_N="${ALL_POSITION_N:-12}"; HELDOUT_N="${HELDOUT_N:-96}"
-RUN_HELDOUT="${RUN_HELDOUT:-0}"; PREFIX_AUDIT_N="${PREFIX_AUDIT_N:-2}"; POSITION_BATCH_SIZE="${POSITION_BATCH_SIZE:-16}"
+RUN_HELDOUT="${RUN_HELDOUT:-0}"; PREFIX_AUDIT_N="${PREFIX_AUDIT_N:-2}"; POSITION_BATCH_SIZE="${POSITION_BATCH_SIZE:-4}"
 RUN_TRAJECTORY_ANALYSIS="${RUN_TRAJECTORY_ANALYSIS:-0}"; RUN_ALL_POSITIONS="${RUN_ALL_POSITIONS:-0}"
-ALL_POSITION_VERSION="${ALL_POSITION_VERSION:-v2}"
+ALL_POSITION_VERSION="${ALL_POSITION_VERSION:-v3}"
 if [[ "$RUN_ALL_POSITIONS" == 1 ]]; then
   [[ "$ALL_POSITION_N" =~ ^[1-9][0-9]*$ && "$ALL_POSITION_N" -le 24 ]] || { echo "ALL_POSITION_N must be between 1 and 24 (the frozen stage-1 discovery set)" >&2; exit 2; }
   [[ "$RUN_HELDOUT" != 1 ]] || { echo "RUN_ALL_POSITIONS cannot be combined with RUN_HELDOUT; held-out confirmation is frozen" >&2; exit 2; }
@@ -53,6 +53,7 @@ LAYERS="$(uv run python -c 'import json,sys; print(",".join(map(str,json.load(op
 echo "Frozen discovery layers: $LAYERS"
 if [[ "${RUN_ALL_POSITIONS:-0}" == 1 ]]; then
   ALLDIR="$OUT/mechanism/all_positions_${ALL_POSITION_VERSION}"; mkdir -p "$ALLDIR"; ALL="$ALLDIR/patches.jsonl"; args=("${COMMON[@]}" --output "$ALL" --stage discovery --n-histories "$ALL_POSITION_N" --all-positions --cell-set focal --position-batch-size "$POSITION_BATCH_SIZE"); [[ -f "$ALL.run.json" ]] && args+=(--resume)
+  echo "All-position run: $ALLDIR (position batch size $POSITION_BATCH_SIZE)"
   uv run python scripts/run_four_query_patching.py "${args[@]}"
   uv run python scripts/analyze_four_query_patching.py --patches "$ALL" --output-dir "$ALLDIR/analysis" --stage discovery
   echo "All-position artifacts: $ALL $ALLDIR/analysis/all_positions_Rx.csv $ALLDIR/analysis/all_positions_Rx_by_history.csv $ALLDIR/analysis/all_positions_Rx_semantic.csv $ALLDIR/analysis/all_positions_Rx.png $ALLDIR/analysis/all_positions_Rx_semantic.png $ALLDIR/analysis/all_positions_token_legend.csv"
