@@ -90,6 +90,23 @@ writes a layer by absolute token position map; it does not alter selection.
 The patch runner checkpoints completed history/binding/query pairs and
 requires `--resume` with a matching manifest after interruption.
 
+Each selected layer is patched independently. A summary over frozen layers
+33–35 is the **mean single-layer patch effect across the frozen 33–35 region**;
+the three layers were not patched together. Patching a historical token at a
+late layer cannot change the already-computed final-token representation from
+that same layer. Near-zero historical-token patch effects at late layers
+therefore do not show that the historical token was unimportant earlier. A
+large `final_preanswer` patch at layer 35 intervenes close to the final
+readout representation. The held-out result establishes late residual
+localization and readout-state causality, not the upstream pathway by which
+obsolete identity entered that state. Layer × position trajectory analysis
+is exploratory and does not declare an onset layer.
+
+For analysis-only trajectory work on existing discovery artifacts, run
+`RUN_TRAJECTORY_ANALYSIS=1 bash scripts/run_four_query_mechanistic_ubuntu.sh`.
+For a separate exploratory all-position sweep, set `RUN_ALL_POSITIONS=1` and
+`ALL_POSITION_N=12`; its output is isolated under `mechanism/all_positions_v1/`.
+
 
 Only after the paired behavioral effect is established, extract query-state
 activations and run history-grouped probes. This evaluates the same four slots

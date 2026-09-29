@@ -119,7 +119,7 @@ def main():
   best=max(windows,key=lambda x:(x[0],-x[1]))
   sel={'selection_statistic':{'name':'R_x_patch','formula':'old_x/current_x - old_x/current_z','site':a.selection_site,'window_width':a.region_width,'selected_layers':best[2],'tie_break':'lowest_start_layer'},'per_layer_R_x_patch':{str(l):stats(list(by[l].values()),a.seed) for l in actual_layers},'selected_window_mean_R_x_patch':best[0],'complete_histories_in_window':best[3]}
   save_json(sel,out/'discovery_selection.json')
- summary={'stage':a.stage,'results':results,'selected_region_primary':region_primary if a.stage=='heldout' else None,'correct_answer_diagnostics':correct_diagnostics if a.stage=='heldout' else None,'primary':'R_x_patch at discovery; selected-region symmetric_R_patch at heldout','cells_present':sorted({f"{r.edited_binding}/{r.query_id}" for r in frame.itertuples()}),'bootstrap_unit':'history_id','direction_order':'donor-oriented each direction, then averaged','selection':sel if a.stage=='discovery' else None}
+ summary={'stage':a.stage,'results':results,'selected_region_primary':region_primary if a.stage=='heldout' else None,'correct_answer_diagnostics':correct_diagnostics if a.stage=='heldout' else None,'primary':'R_x_patch at discovery; selected-region symmetric_R_patch at heldout','frozen_layer_aggregation':'mean single-layer patch effect across frozen layers; layers are patched independently, never simultaneously','cells_present':sorted({f"{r.edited_binding}/{r.query_id}" for r in frame.itertuples()}),'bootstrap_unit':'history_id','direction_order':'donor-oriented each direction, then averaged','selection':sel if a.stage=='discovery' else None}
  save_json(summary,out/'four_query_patch_summary.json' if a.stage=='discovery' else out/'heldout_patch_summary.json')
  if allpos:
   # Absolute position is part of the analysis key; never pool token locations.
@@ -128,6 +128,7 @@ def main():
   ps=pivot[pivot.edited_binding=='old_x']
   wide=ps.pivot(index=['history_id','layer','position','site_role'],columns='query_id',values='effect').reset_index()
   wide['R_x_patch']=wide['current_x']-wide['current_z']
+  wide.to_csv(out/'all_positions_Rx_by_history.csv',index=False)
   agg=wide.groupby(['layer','position','site_role']).R_x_patch.agg(['mean','count']).reset_index()
   tokmeta=frame[frame.edited_binding=='old_x'].groupby(['position','query_id'],as_index=False).agg(
    token_id=('token_id',lambda x:'|'.join(map(str,sorted(set(x.dropna()))))),
@@ -135,14 +136,40 @@ def main():
   tokwide=tokmeta.pivot(index='position',columns='query_id',values=['token_id','token_text'])
   tokwide.columns=[f'{field}_{query}' for field,query in tokwide.columns]
   agg=agg.merge(tokwide.reset_index(),on='position',how='left')
+  agg['semantic_site_role']=agg.site_role
+  rough={'old_x_value':'initial_x_assignment','old_x_variable':'initial_x_assignment','old_z_value':'initial_z_assignment','old_z_variable':'initial_z_assignment','current_x_value':'current_x_assignment','current_x_variable':'current_x_assignment','current_z_value':'current_z_assignment','current_z_variable':'current_z_assignment','query_variable':'question','final_preanswer':'answer_prefix','edited_binding_value':'assignment_value','same_variable_other_value':'assignment_value','current_assignment_variable':'current_assignment'}
+  agg['rough_rendered_region']=agg.site_role.map(rough).fillna('rendered_text_unclassified')
   agg.to_csv(out/'all_positions_Rx.csv',index=False)
   try:
-   import os
-   mplconfig=out/'.mplconfig'; mplconfig.mkdir(exist_ok=True); os.environ.setdefault('MPLCONFIGDIR',str(mplconfig))
-   import matplotlib.pyplot as plt
-   mat=agg.pivot(index='layer',columns='position',values='mean').sort_index(); fig,ax=plt.subplots(figsize=(max(10,mat.shape[1]*.25),max(4,mat.shape[0]*.22))); im=ax.imshow(mat,aspect='auto',origin='lower',interpolation='nearest'); ax.set(xlabel='input token position',ylabel='transformer layer'); fig.colorbar(im,ax=ax,label='mean history-level R_x_patch'); fig.tight_layout(); fig.savefig(out/'all_positions_Rx.png',dpi=160); plt.close(fig)
+   from PIL import Image,ImageDraw
+   mat=agg.pivot(index='layer',columns='position',values='mean').sort_index(); vals=mat.to_numpy(dtype=float); lo=float(np.nanmin(vals)); hi=float(np.nanmax(vals)); span=max(1e-12,hi-lo)
+   im=Image.new('RGB',(max(700,mat.shape[1]*14),max(450,mat.shape[0]*10)),'white'); d=ImageDraw.Draw(im); cw=max(1,im.width//mat.shape[1]); ch=max(1,(im.height-60)//mat.shape[0])
+   for yi,row in enumerate(vals):
+    for xi,v in enumerate(row):
+     t=0 if not np.isfinite(v) else (v-lo)/span; color=(int(40+215*t),int(70+100*(1-abs(2*t-1))),int(255-215*t)); d.rectangle((xi*cw,yi*ch,(xi+1)*cw,(yi+1)*ch),fill=color)
+   d.text((8,im.height-45),'x: absolute input token position; y: transformer layer; color: mean history-level R_x_patch',fill='black'); im.save(out/'all_positions_Rx.png')
   except ImportError: pass
   (out/'all_positions_token_legend.csv').write_text(agg.drop(columns=['mean','count']).drop_duplicates().sort_values('position').to_csv(index=False),encoding='utf8')
+  # Semantic aggregation averages token positions within each semantic role
+  # separately for each history and layer before group summaries.
+  sem=wide[wide.site_role.ne('other_position')].groupby(['history_id','layer','site_role'],as_index=False).R_x_patch.mean()
+  sem.to_csv(out/'all_positions_Rx_semantic_by_history.csv',index=False)
+  semagg=sem.groupby(['layer','site_role']).R_x_patch.agg(['mean','median','count']).reset_index().rename(columns={'count':'n_histories'})
+  semagg.to_csv(out/'all_positions_Rx_semantic.csv',index=False)
+  mapping=wide.groupby(['history_id','site_role']).position.agg(['min','max','nunique']).reset_index()
+  varying=mapping.groupby('site_role').agg(histories=('history_id','nunique'),min_position=('min','min'),max_position=('max','max'),histories_with_multiple_absolute_positions=('nunique',lambda x:int((x>1).sum()))).reset_index()
+  (out/'all_positions_semantic_position_mapping.json').write_text(json.dumps({'pairing_key':['history_id','layer','absolute_position'],'token_identity_in_pairing_key':False,'absolute_position_variation_by_role':varying.to_dict('records'),'semantic_aggregation':'within history × layer × semantic_site_role, mean over positions before group mean'},indent=2)+'\n')
+  try:
+   from PIL import Image,ImageDraw
+   im=Image.new('RGB',(1000,520),'white'); d=ImageDraw.Draw(im); roles=list(semagg.site_role.unique()); layers=sorted(semagg.layer.unique()); colors=['#1f77b4','#d62728','#2ca02c','#9467bd','#ff7f0e','#17becf']; ys=[]
+   lo=float(semagg['mean'].min()); hi=float(semagg['mean'].max()); span=max(1e-12,hi-lo); left,right,top,bottom=85,970,30,450
+   for ri,role in enumerate(roles):
+    g=semagg[semagg.site_role==role].sort_values('layer'); pts=[]
+    for r in g.itertuples(): pts.append((left+(r.layer-min(layers))/max(1,max(layers)-min(layers))*(right-left),bottom-(r.mean-lo)/span*(bottom-top)))
+    if len(pts)>1:d.line(pts,fill=colors[ri%len(colors)],width=3)
+    d.text((left+ri*145,bottom+20),role,fill=colors[ri%len(colors)])
+   d.text((left,im.height-25),'Semantic role; mean history-level R_x_patch',fill='black'); im.save(out/'all_positions_Rx_semantic.png')
+  except ImportError: pass
  # compact per-history layer/site table for R contrasts
  outrows=[]
  for (role,layer,position),vals in perlayer.items():

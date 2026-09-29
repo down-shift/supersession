@@ -6,7 +6,8 @@ from tqdm.auto import tqdm
 from src.data.io import read_jsonl
 from src.data.generate import render_example, query_variable_span
 from src.experiments.patching import (patch_sweep, partition_history_ids, focal_cells,
-    canonical_site_role, capture_run, recover_patch_checkpoint, commit_patch_pair)
+    canonical_site_role, recover_patch_checkpoint, commit_patch_pair)
+from src.experiments.prefix_invariance import audit_prefix_invariance
 from src.models.loader import load_model
 from src.utils import load_config, provenance, save_json
 
@@ -57,27 +58,17 @@ for ex in candidates[:min(8,len(candidates))]:
     if previous.get('prompt') != render_example(ex,tok,chat=c['model'].get('chat_template',True)):
         raise ValueError(f'rendered prompt differs from frozen behavioral run for {ex["example_id"]}; stop before patching')
 if a.audit_prefix_invariance:
-    audit=[]; device=next(model.parameters()).device
+    audit=[]
     audit_ids=chosen[:a.audit_prefix_invariance]
     for hid in audit_ids:
-        acts_by_query={}
+        examples={}
         for query in ('current_x','current_z','initial_x','initial_z'):
             pair=allpairs.get(f'{hid}:old_x:{query}')
             if not pair: raise ValueError(f'prefix audit cannot find old_x/{query} for {hid}')
-            ex=pair[0]; rendered=render_example(ex,tok,chat=c['model'].get('chat_template',True)); encoded=tok(rendered,return_tensors='pt',add_special_tokens=False,return_offsets_mapping=True)
-            offsets=encoded.pop('offset_mapping')[0].tolist(); start=rendered.index(ex['old_x']); spans=[i for i,(lo,hi) in enumerate(offsets) if lo<start+len(ex['old_x']) and hi>start]
-            if not spans: raise ValueError(f'prefix audit found no old-value tokens in {query} for {hid}')
-            _,acts=capture_run(model,encoded.to(device)); acts_by_query[query]=(spans,acts)
-        expected_spans=acts_by_query['current_x'][0]
-        if any(acts_by_query[q][0]!=expected_spans for q in ('current_z','initial_x','initial_z')):
-            raise ValueError(f'old-value token positions differ across query variants for {hid}')
-        for layer in acts_by_query['current_x'][1]:
-            reference=acts_by_query['current_x'][1][layer][0,acts_by_query['current_x'][0],:]
-            maximum=0.0
-            for query in ('current_z','initial_x','initial_z'):
-                spans,acts=acts_by_query[query]; diff=(acts[layer][0,spans,:]-reference).abs().max().item(); maximum=max(maximum,diff)
-            audit.append({'history_id':hid,'layer':int(layer),'max_abs_difference':maximum,'passed':maximum<=1e-4})
-    save_json({'tolerance':1e-4,'histories':audit_ids,'per_layer':audit,'passed':all(x['passed'] for x in audit)},str(out)+'.prefix_invariance.json')
+            examples[query]=pair[0]
+        report=audit_prefix_invariance(model,tok,examples,('current_x','current_z','initial_x','initial_z'),chat=c['model'].get('chat_template',True),behavior_records=scored,tolerance=1e-4)
+        audit.extend(dict(history_id=hid,**r) for r in report['per_layer'])
+    save_json({'tolerance':1e-4,'histories':audit_ids,'execution':'shared one-batch right-padded helper','per_layer':audit,'passed':all(x['passed'] for x in audit)},str(out)+'.prefix_invariance.json')
     if any(not x['passed'] for x in audit): raise ValueError('causal-prefix invariance audit exceeded 1e-4')
 try:
  for hid in tqdm(chosen,desc=f'{a.stage} patch histories'):
@@ -101,6 +92,18 @@ try:
     sites['current_assignment_variable']=positions(var_start+len('Update: '),var_start+len('Update: ')+len(var))
     if not sites['current_assignment_variable']: raise ValueError(f'current assignment variable tokenization is empty for {binding}')
     qstart,qend=query_variable_span(donor,text); sites['query_variable']=positions(qstart,qend); sites['final_preanswer']=[len(enc['input_ids'])-1]
+    if a.all_positions:
+     vars_=donor['variables']
+     for key,assignment,var_idx,prefix in (
+      ('old_x_value','Initial assignment:',0,'old_x'),('old_z_value','Initial assignment:',1,'old_z'),
+      ('current_x_value','Update:',0,'current_x'),('current_z_value','Update:',1,'current_z')):
+      value=donor[prefix]
+      marker=assignment+' '+vars_[var_idx]+' = '
+      value_start=text.find(marker)
+      if value_start>=0:
+       variable_start=value_start+len(assignment)+1
+       value_start+=len(marker); sites[key]=positions(value_start,value_start+len(value))
+       sites[key.replace('_value','_variable')]=positions(variable_start,variable_start+len(vars_[var_idx]))
     selected=sorted(set(range(len(enc['input_ids'])) if a.all_positions else (p for ps in sites.values() for p in ps)))
     table=patch_sweep(model,tok,donor,recipient,token_ids,chat=c['model'].get('chat_template',True),positions=selected,layers=layers,position_batch_size=a.position_batch_size)
     direction_counts[label]=len(table)
@@ -119,5 +122,5 @@ try:
    commit_patch_pair(out,completion_log,pair_id,qrows); done.add(pair_id)
 except BaseException:
     raise
-save_json({'provenance':provenance(c,a.pairs),'design':'query-conditioned obsolete-binding residual patching','stage':a.stage,'cells':cells,'cell_set':a.cell_set,'all_positions':a.all_positions,'frozen_layers':layers,'history_ids':chosen,'discovery_history_ids':ids,'heldout_history_ids':held,'prefix_audit_requested':a.audit_prefix_invariance},str(out)+'.provenance.json')
+save_json({'provenance':provenance(c,a.pairs),'design':'query-conditioned obsolete-binding residual patching','stage':a.stage,'analysis_label':'exploratory_all_positions' if a.all_positions else 'targeted_patch','exploratory':bool(a.all_positions),'cells':cells,'cell_set':a.cell_set,'all_positions':a.all_positions,'frozen_layers':layers,'history_ids':chosen,'discovery_history_ids':ids,'heldout_history_ids':held,'prefix_audit_requested':a.audit_prefix_invariance},str(out)+'.provenance.json')
 print(f'saved/resumed patch records at {out}; cells={cells}; histories={len(chosen)}')
