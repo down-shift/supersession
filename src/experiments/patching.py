@@ -2,6 +2,20 @@
 from src.models.hooks import ResidualHooks
 from tqdm.auto import tqdm
 
+def partition_history_ids(history_ids, discovery_size=24, seed=20260929):
+    """Deterministically partition unique history IDs into disjoint stages."""
+    import numpy as np
+    ids=sorted(set(history_ids))
+    if discovery_size<1 or discovery_size>=len(ids): raise ValueError("discovery_size must leave at least one heldout history")
+    np.random.default_rng(seed).shuffle(ids)
+    return ids[:discovery_size],ids[discovery_size:]
+
+def patch_effect_metrics(donor_margin, recipient_margin, patched_margin, epsilon=1e-6):
+    """Compute raw donor-oriented patch change and optional normalized recovery."""
+    denominator=float(donor_margin-recipient_margin)
+    delta=float(patched_margin-recipient_margin)
+    return {"patch_delta_toward_donor":delta,"normalized_recovery":delta/denominator if abs(denominator)>epsilon else None}
+
 def assert_aligned(source_ids,target_ids,expected_differences):
     if len(source_ids)!=len(target_ids): raise ValueError("paired tokenized prompts differ in length")
     actual=[i for i,(a,b) in enumerate(zip(source_ids,target_ids)) if a!=b]
@@ -70,6 +84,6 @@ def patch_sweep(model,tokenizer,source,target,metric_token_ids,chat=True,positio
                 donor_margin=float(s_logits[metric_token_ids[source[role_key]]]-s_logits[metric_token_ids[target[role_key]]])
                 recipient_margin=float(t_logits[metric_token_ids[source[role_key]]]-t_logits[metric_token_ids[target[role_key]]])
                 patched_margin=float(out[metric_token_ids[source[role_key]]]-out[metric_token_ids[target[role_key]]])
-                denominator=donor_margin-recipient_margin
-                rows.append({"layer":layer,"position":position,"patched_logits":{k:float(out[v]) for k,v in metric_token_ids.items()},"source_logits":{k:float(s_logits[v]) for k,v in metric_token_ids.items()},"target_logits":{k:float(t_logits[v]) for k,v in metric_token_ids.items()},"patched_source_minus_target":patched_margin,"source_source_minus_target":donor_margin,"target_source_minus_target":recipient_margin,"patch_delta_toward_donor":patched_margin-recipient_margin,"normalized_recovery":(patched_margin-recipient_margin)/denominator if abs(denominator)>1e-6 else None,"donor_value":source[role_key],"recipient_value":target[role_key],"input_difference_positions":differences,"semantic_role_key":role_key})
+                effect=patch_effect_metrics(donor_margin,recipient_margin,patched_margin)
+                rows.append({"layer":layer,"position":position,"patched_logits":{k:float(out[v]) for k,v in metric_token_ids.items()},"source_logits":{k:float(s_logits[v]) for k,v in metric_token_ids.items()},"target_logits":{k:float(t_logits[v]) for k,v in metric_token_ids.items()},"patched_source_minus_target":patched_margin,"source_source_minus_target":donor_margin,"target_source_minus_target":recipient_margin,**effect,"donor_value":source[role_key],"recipient_value":target[role_key],"input_difference_positions":differences,"semantic_role_key":role_key})
     return rows

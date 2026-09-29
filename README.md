@@ -23,8 +23,9 @@ Configure model ID, exact optional revision, tokenizer, device map, quantization
 ### Four-query matched pilot (new primary design)
 
 This design uses one fixed history to produce current-x, initial-x, current-z,
-and initial-z queries. The pilot config gives 120 histories from the full
-`6 orders × 4 variable-name pairs × 5 replicates` design. Calibration data use
+and initial-z queries. The pilot config gives 144 histories from the full
+`6 orders × 4 variable-name pairs × 2 variable orientations × 3 replicates`
+design. It uses exactly 12 tokenizer-validated values; calibration data use
 an independent seed and must not be included in confirmatory analysis.
 
 ```bash
@@ -55,6 +56,7 @@ layer indices, validate only those layers on disjoint histories (up to 96):
 
 ```bash
 uv run python scripts/run_four_query_patching.py --config configs/four_query_pilot.yaml --pairs outputs/four_query/pairs.jsonl --token-ids outputs/four_query/token_ids.json --output outputs/four_query/patching_heldout.jsonl --stage heldout --layers 12,13,14
+uv run python scripts/analyze_four_query_patching.py --patches outputs/four_query/patching_heldout.jsonl --output-dir outputs/four_query/patch_analysis
 ```
 
 An all-position discovery sweep is optional and limited to 24 histories with

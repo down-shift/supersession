@@ -25,6 +25,13 @@ def js_divergence(p,q,eps=1e-12):
     kl=lambda a,b: np.sum(a*np.log((a+eps)/(b+eps)))
     return float((kl(p,m)+kl(q,m))/2)
 
+def trimmed_mean(values, proportion=.1):
+    x=np.sort(np.asarray(values,dtype=float))
+    if not len(x): return float("nan")
+    if not 0<=proportion<.5: raise ValueError("trim proportion must be in [0, 0.5)")
+    k=int(proportion*len(x))
+    return float(x[k:len(x)-k].mean()) if k else float(x.mean())
+
 def bootstrap_mean_ci(values, groups=None, n_boot=2000, seed=0, alpha=.05):
     values=np.asarray(values,dtype=float)
     if groups is None: groups=np.arange(len(values))

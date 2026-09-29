@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 """Targeted residual patching of a matched old-x edit across all four queries."""
 import argparse,collections,json
-import numpy as np
 from tqdm.auto import tqdm
 from src.data.io import read_jsonl,write_jsonl
-from src.data.generate import render_example
-from src.experiments.patching import patch_sweep
+from src.data.generate import render_example,query_variable_span
+from src.experiments.patching import patch_sweep,partition_history_ids
 from src.models.loader import load_model
 from src.utils import load_config,provenance,save_json
 
@@ -15,14 +14,15 @@ if a.stage=="heldout" and layers is None: raise ValueError("heldout patching req
 if a.all_positions and a.stage!="discovery": raise ValueError("exhaustive position sweeps are restricted to discovery")
 c=load_config(a.config); model,tok=load_model(c); token_ids=json.load(open(a.token_ids))["token_ids"]
 pairs=collections.defaultdict(dict)
+bindings=("old_x","current_x") if a.stage=="discovery" else ("old_x","current_x","old_z","current_z")
 for ex in read_jsonl(a.pairs):
-    if ex["edited_binding"] in ("old_x","current_x"): pairs[ex["pair_id"]][int(ex["pair_direction"])]=ex
+    if ex["edited_binding"] in bindings: pairs[ex["pair_id"]][int(ex["pair_direction"])]=ex
 selected=collections.defaultdict(dict)
 for pair,members in pairs.items():
     if set(members)=={0,1}: selected[members[0]["history_id"]][(members[0]["edited_binding"],members[0]["query_id"])]=members
 output=[]
-history_ids=sorted(selected); np.random.default_rng(a.seed).shuffle(history_ids)
-cut=a.discovery_histories; available=history_ids[:cut] if a.stage=="discovery" else history_ids[cut:]
+discovery_ids,heldout_ids=partition_history_ids(selected,a.discovery_histories,a.seed)
+cut=a.discovery_histories; available=discovery_ids if a.stage=="discovery" else heldout_ids
 limit=a.n_histories if a.n_histories is not None else (min(24,len(available)) if a.stage=="discovery" else min(96,len(available)))
 if a.all_positions and limit>24: raise ValueError("exhaustive position sweeps are limited to 24 discovery histories")
 for hid in tqdm(available[:limit],desc=f"Query-conditioned {a.stage} patches"):
@@ -31,16 +31,15 @@ for hid in tqdm(available[:limit],desc=f"Query-conditioned {a.stage} patches"):
         for direction,(donor,recipient) in enumerate(((members[0],members[1]),(members[1],members[0]))):
             text=render_example(donor,tok,chat=c["model"].get("chat_template",True)); enc=tok(text,add_special_tokens=False,return_offsets_mapping=True); offsets=enc["offset_mapping"]
             def span_positions(start,end): return [i for i,(lo,hi) in enumerate(offsets) if lo<end and hi>start]
-            old=donor["old_x"]; old_start=text.index(old); current=donor["current_x"]; curr_start=text.index(current)
-            if binding=="old_x": sites={"edited_old_x_value":span_positions(old_start,old_start+len(old)),"current_x_value":span_positions(curr_start,curr_start+len(current))}
-            else: sites={"old_x_value":span_positions(old_start,old_start+len(old)),"edited_current_x_value":span_positions(curr_start,curr_start+len(current))}
-            qvar=donor["variables"][0]; qtext=("initial value of "+qvar if donor["query_time"]=="initial" else "current value of "+qvar); qstart=text.rfind(qtext)
-            if qstart<0: raise ValueError(f"cannot locate query variable for {query_id}")
-            vstart=qstart+len(qtext)-len(qvar); sites["query_variable"]=span_positions(vstart,vstart+len(qvar)); sites["final_preanswer"]=[len(enc["input_ids"])-1]
+            variable=binding[-1]; old_key=f"old_{variable}"; current_key=f"current_{variable}"
+            old=donor[old_key]; old_start=text.index(old); current=donor[current_key]; curr_start=text.index(current)
+            if binding==old_key: sites={f"edited_{old_key}_value":span_positions(old_start,old_start+len(old)),f"{current_key}_value":span_positions(curr_start,curr_start+len(current))}
+            else: sites={f"{old_key}_value":span_positions(old_start,old_start+len(old)),f"edited_{current_key}_value":span_positions(curr_start,curr_start+len(current))}
+            vstart,vend=query_variable_span(donor,text); sites["query_variable"]=span_positions(vstart,vend); sites["final_preanswer"]=[len(enc["input_ids"])-1]
             positions=sorted(set(p for group in sites.values() for p in group))
             table=patch_sweep(model,tok,donor,recipient,token_ids,chat=c["model"].get("chat_template",True),positions=None if a.all_positions else positions,layers=layers)
             name_by_position={p:name for name,ps in sites.items() for p in ps}
             for row in table:
                 row.update({"history_id":hid,"query_id":query_id,"edited_binding":binding,"direction":"donor_to_recipient" if direction==0 else "recipient_to_donor","site":name_by_position.get(row["position"],"other"),"donor_value":donor[binding],"recipient_value":recipient[binding],"metric_orientation":"toward activation donor"}); output.append(row)
-write_jsonl(output,a.output); save_json({"provenance":provenance(c,a.pairs),"design":"old-x historical edit and current-x positive-control donor patches compared across matched query variants","stage":a.stage,"all_positions":a.all_positions,"frozen_layers":layers,"discovery_histories":cut,"n_histories":len({r["history_id"] for r in output}),"sites":["edited assignment value","other x assignment value","query_variable","final_preanswer"]},a.output+".provenance.json")
+write_jsonl(output,a.output); save_json({"provenance":provenance(c,a.pairs),"design":"historical and current binding donor patches compared across query variants","stage":a.stage,"bindings":list(bindings),"all_positions":a.all_positions,"frozen_layers":layers,"discovery_histories":cut,"n_histories":len({r["history_id"] for r in output}),"sites":["edited assignment value","other same-variable assignment value","query_variable","final_preanswer"]},a.output+".provenance.json")
 print(f"saved {len(output)} targeted patch records")

@@ -28,20 +28,31 @@ def _render_assignment(var, value, family, template, natural_names, current=Fals
     if template == 1: return f"{var} := {value}"
     return f"Set {var} to {value}."
 
+def render_question(ex):
+    """Return question text and the character span of its queried variable."""
+    fam=ex["family"]; vars=ex["variables"]; names=ex["entities"]
+    variable=ex["query"]; qvar=vars[0] if variable=="x" else vars[1]; time=ex.get("query_time","current")
+    if fam=="natural":
+        label=names[qvar]
+        question=(f"What was {label}'s initial code?" if time=="initial" else f"What is {label}'s current code?")
+        return question,(question.index(label),question.index(label)+len(label))
+    question=(f"What was the initial value of {qvar}?" if time=="initial" else f"What is the current value of {qvar}?")
+    start=question.rindex(qvar)
+    return question,(start,start+len(qvar))
+
+def query_variable_span(ex, rendered_prompt):
+    """Locate the queried variable in a fully rendered (possibly chat) prompt."""
+    question,span=render_question(ex); start=rendered_prompt.rfind(question)
+    if start<0: raise ValueError("rendered prompt does not contain its query text")
+    return start+span[0],start+span[1]
+
 def render_example(ex, tokenizer=None, chat=True):
     fam=ex["family"]; vars=ex["variables"]; names=ex["entities"]
     rel={"O_x":("x","old_x"),"O_z":("z","old_z"),"C_x":("x","current_x"),"C_z":("z","current_z")}
     rows=[]
     for tag in ex["order"]:
         var, key=rel[tag]; rows.append(_render_assignment(vars[0] if var=="x" else vars[1],ex[key],fam,ex["template_id"],names,tag.startswith("C_") and not ex.get("direct",False)))
-    qvar=vars[0] if ex["query"]=="x" else vars[1]
-    time=ex.get("query_time","current")
-    if fam=="natural":
-        question=(f"What was {names[qvar]}'s initial code?" if time=="initial"
-                  else f"What is {names[qvar]}'s current code?")
-    else:
-        question=(f"What was the initial value of {qvar}?" if time=="initial"
-                  else f"What is the current value of {qvar}?")
+    question,_=render_question(ex)
     joiner="\n" if ex.get("format_id",0)==0 else "\n\n"
     # Keep the scored continuation in answer mode: the behavior and activation
     # scripts read logits at the first answer token, so an unconstrained
@@ -71,7 +82,7 @@ def render_example(ex, tokenizer=None, chat=True):
             ) from exc
     return prompt + "\nAnswer:"
 
-def make_histories(n_histories=120, seed=0, values=None, variables=None):
+def make_histories(n_histories=144, seed=0, values=None, variables=None):
     """Create canonical symbolic histories with balanced value roles.
 
     History factors are crossed in six-order × variable-pair × replicate blocks.
@@ -82,25 +93,26 @@ def make_histories(n_histories=120, seed=0, values=None, variables=None):
     values=list(values or ["amber","birch","coral","denim","elm","frost","grape","hazel","indigo","jade","khaki","lilac","maple","navy","ochre","pearl"])
     variables=variables or [["x","z"],["a","b"],["red","blue"],["foo","bar"]]
     orders=legal_orders()
-    if len(values)<8: raise ValueError("four-query design requires at least eight candidate values")
+    if len(values) not in (12,16): raise ValueError("four-query design requires exactly 12 or 16 candidate values")
     if len(set(values))!=len(values): raise ValueError("candidate values must be unique")
-    if n_histories % (len(orders)*len(variables)):
-        raise ValueError("n_histories must be divisible by six legal orders × variable-name pairs")
+    if n_histories % (len(orders)*len(variables)*2):
+        raise ValueError("n_histories must be divisible by six orders × variable pairs × two orientations")
     if len({tuple(v) for v in variables})!=len(variables): raise ValueError("variable-name pairs must be unique")
-    cells=[(o,p,r) for r in range(n_histories//(len(orders)*len(variables))) for o in orders for p in variables]
+    cells=[(o,p,orientation,r) for r in range(n_histories//(len(orders)*len(variables)*2)) for o in orders for p in variables for orientation in (0,1)]
     rng.shuffle(cells)
     rows=[]; stride=len(values)//4
     if len(values)%4: raise ValueError("candidate count must be divisible by four for exact role balancing")
     start_order=list(range(len(values))); rng.shuffle(start_order)
-    for i,(order,pair,replicate) in enumerate(cells):
+    for i,(order,pair,orientation,replicate) in enumerate(cells):
         start=start_order[i % len(values)]
         vals=[values[(start+j*stride)%len(values)] for j in range(4)]
-        vmap={"x":pair[0],"z":pair[1]}
+        vmap={"x":pair[orientation],"z":pair[1-orientation]}
         entities={vmap["x"]:"Nora",vmap["z"]:"Liam"}
         row={"history_id":f"hist{i:06d}","family":"symbolic","variables":[vmap["x"],vmap["z"]],"entities":entities,
              "order":list(order),"template_id":0,"format_id":0,"old_x":vals[0],"old_z":vals[1],
-             "current_x":vals[2],"current_z":vals[3],"replicate":replicate,
-             "split_group":("four_query",tuple(sorted(pair)),tuple(order),replicate)}
+             "current_x":vals[2],"current_z":vals[3],"replicate":replicate,"orientation":orientation,
+             "variable_pair":tuple(pair),"history_index":i,
+             "split_group":("four_query",tuple(sorted(pair)),tuple(order),orientation,replicate)}
         rows.append(row)
     return rows
 
@@ -119,19 +131,24 @@ def expand_history_queries(history):
             rows.append(ex)
     return rows
 
-def matched_history_pairs(history, replacement_offset=1):
+def matched_history_pairs(history, replacement_offset=None):
     """Baseline/edit pairs for each binding, replicated across all four queries."""
     values=history.get("candidate_values")
     if not values: raise ValueError("history must include candidate_values for matched replacements")
     out=[]
-    for binding in ("old_x","old_z","current_x","current_z"):
+    stride=len(values)//4
+    offset_count=min(3,stride-1)
+    if replacement_offset is not None:
+        if not 1<=replacement_offset<stride: raise ValueError("replacement offset would collide with another assignment")
+    for binding_index,binding in enumerate(("old_x","old_z","current_x","current_z")):
         source=history[binding]
-        target=values[(values.index(source)+replacement_offset)%len(values)]
+        offset=replacement_offset or (1+((int(history.get("history_index",0))//len(values)+binding_index)%offset_count))
+        target=values[(values.index(source)+offset)%len(values)]
         untouched={history[k] for k in ("old_x","old_z","current_x","current_z") if k!=binding}
         if target in untouched: raise ValueError(f"replacement for {binding} collides with an unchanged assignment")
         for query in expand_history_queries(history):
             for direction,value in ((0,source),(1,target)):
-                ex={**query,"example_id":f"{history['history_id']}:{binding}:{query['query_id']}:{direction}",
+                ex={**query,"roles":dict(query["roles"]),"example_id":f"{history['history_id']}:{binding}:{query['query_id']}:{direction}",
                     "pair_id":f"{history['history_id']}:{binding}:{query['query_id']}",
                     "pair_direction":direction,"edited_binding":binding,"source_value":source,
                     "replacement_value":target,"intervention_role":binding}
