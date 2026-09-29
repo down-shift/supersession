@@ -37,11 +37,6 @@ def main():
  if not needed.issubset(pivot.columns): raise ValueError('both donor-oriented patch directions are required')
  pivot['mean_donor_oriented_patch_effect']=pivot[list(needed)].mean(axis=1)
  pivot['effect']=pivot['mean_donor_oriented_patch_effect']
- if allpos:
-  tokenmeta=frame.groupby('position',as_index=False).agg(
-   token_id=('token_id',lambda x:'|'.join(map(str,sorted(set(x.dropna()))))),
-   token_text=('token_text',lambda x:' | '.join(sorted(set(str(v) for v in x.dropna())))))
-  pivot=pivot.merge(tokenmeta,on='position',how='left')
  if a.stage=='heldout':
   derived=[]
   groupkeys=['history_id','site_role','layer']+(['position'] if allpos else [])
@@ -75,10 +70,24 @@ def main():
     key=f'{role}/layer_{layer}'+(f'/position_{position}' if position is not None else ''); results[key]={'R_x_patch':stats(list(rxs.values()),a.seed),'R_z_patch':stats(list(rzs.values()),a.seed+1),'symmetric_R_patch':stats(list(sym.values()),a.seed+2),'S_x_control':stats(list(sx.values()),a.seed+3),'S_z_control':stats(list(sz.values()),a.seed+4),'cells_present':{f'{b}/{q}':len(v) for (b,q),v in c.items()}}
     perlayer[(role,layer,position)]=rxs
  region_primary={}; region_rows=[]
+ correct_diagnostics={}
  if a.stage=='heldout':
   regionkeys=['history_id','edited_binding','query_id','site_role']+(['position'] if allpos else [])
   grouped=pivot.groupby(regionkeys,dropna=False).effect.agg(['mean','count']).reset_index()
   if not grouped.empty and not (grouped['count']==len(layers)).all(): raise ValueError('held-out data are incomplete across the frozen layer region')
+  diagnostic_fields=('patch_correct_logit_delta','patch_correct_margin_delta')
+  if set(diagnostic_fields).issubset(frame.columns):
+   dx=frame[frame.edited_binding.isin(['old_x','old_z'])]
+   dg=dx.groupby(['history_id','edited_binding','query_id','site_role','direction','layer'],dropna=False)[list(diagnostic_fields)].mean().reset_index()
+   dg=dg.groupby(['history_id','edited_binding','query_id','site_role','direction'],dropna=False)[list(diagnostic_fields)].mean().reset_index()
+   dg.to_csv(out/'heldout_correct_answer_diagnostics_by_history.csv',index=False)
+   for keys_,g in dg.groupby(['edited_binding','query_id','site_role','direction'],dropna=False):
+    label='/'.join(str(x) for x in keys_)
+    correct_diagnostics[label]={}
+    for field in diagnostic_fields:
+     values=g[field].dropna().to_numpy()
+     correct_diagnostics[label][field]=stats(values,a.seed)
+     correct_diagnostics[label][field+'_absolute']=stats(np.abs(values),a.seed)
   for role in sorted(set(grouped.site_role)):
    subset=grouped[grouped.site_role==role]
    positions_for_role=sorted(int(x) for x in subset.position.unique()) if allpos else [None]
@@ -110,21 +119,30 @@ def main():
   best=max(windows,key=lambda x:(x[0],-x[1]))
   sel={'selection_statistic':{'name':'R_x_patch','formula':'old_x/current_x - old_x/current_z','site':a.selection_site,'window_width':a.region_width,'selected_layers':best[2],'tie_break':'lowest_start_layer'},'per_layer_R_x_patch':{str(l):stats(list(by[l].values()),a.seed) for l in actual_layers},'selected_window_mean_R_x_patch':best[0],'complete_histories_in_window':best[3]}
   save_json(sel,out/'discovery_selection.json')
- summary={'stage':a.stage,'results':results,'selected_region_primary':region_primary if a.stage=='heldout' else None,'primary':'R_x_patch at discovery; selected-region symmetric_R_patch at heldout','cells_present':sorted({f"{r.edited_binding}/{r.query_id}" for r in frame.itertuples()}),'bootstrap_unit':'history_id','direction_order':'donor-oriented each direction, then averaged','selection':sel if a.stage=='discovery' else None}
+ summary={'stage':a.stage,'results':results,'selected_region_primary':region_primary if a.stage=='heldout' else None,'correct_answer_diagnostics':correct_diagnostics if a.stage=='heldout' else None,'primary':'R_x_patch at discovery; selected-region symmetric_R_patch at heldout','cells_present':sorted({f"{r.edited_binding}/{r.query_id}" for r in frame.itertuples()}),'bootstrap_unit':'history_id','direction_order':'donor-oriented each direction, then averaged','selection':sel if a.stage=='discovery' else None}
  save_json(summary,out/'four_query_patch_summary.json' if a.stage=='discovery' else out/'heldout_patch_summary.json')
  if allpos:
   # Absolute position is part of the analysis key; never pool token locations.
-  hx=frame[frame.edited_binding=='old_x']; g=hx.groupby(['layer','position','token_id','token_text','site_role'],dropna=False).patch_delta_toward_donor.mean().reset_index()
-  # form R at history level then aggregate by (layer,position)
-  ps=pivot[pivot.edited_binding=='old_x']; wide=ps.pivot(index=['history_id','layer','position','token_id','token_text','site_role'],columns='query_id',values='effect').reset_index()
-  wide['R_x_patch']=wide['current_x']-wide['current_z']; agg=wide.groupby(['layer','position','token_id','token_text','site_role']).R_x_patch.agg(['mean','count']).reset_index(); agg.to_csv(out/'all_positions_Rx.csv',index=False)
+  # Token identity can differ between query variants at the same position
+  # (especially the queried x/z token), so it must not participate in pairing.
+  ps=pivot[pivot.edited_binding=='old_x']
+  wide=ps.pivot(index=['history_id','layer','position','site_role'],columns='query_id',values='effect').reset_index()
+  wide['R_x_patch']=wide['current_x']-wide['current_z']
+  agg=wide.groupby(['layer','position','site_role']).R_x_patch.agg(['mean','count']).reset_index()
+  tokmeta=frame[frame.edited_binding=='old_x'].groupby(['position','query_id'],as_index=False).agg(
+   token_id=('token_id',lambda x:'|'.join(map(str,sorted(set(x.dropna()))))),
+   token_text=('token_text',lambda x:' | '.join(sorted(set(str(v) for v in x.dropna())))))
+  tokwide=tokmeta.pivot(index='position',columns='query_id',values=['token_id','token_text'])
+  tokwide.columns=[f'{field}_{query}' for field,query in tokwide.columns]
+  agg=agg.merge(tokwide.reset_index(),on='position',how='left')
+  agg.to_csv(out/'all_positions_Rx.csv',index=False)
   try:
    import os
    mplconfig=out/'.mplconfig'; mplconfig.mkdir(exist_ok=True); os.environ.setdefault('MPLCONFIGDIR',str(mplconfig))
    import matplotlib.pyplot as plt
    mat=agg.pivot(index='layer',columns='position',values='mean').sort_index(); fig,ax=plt.subplots(figsize=(max(10,mat.shape[1]*.25),max(4,mat.shape[0]*.22))); im=ax.imshow(mat,aspect='auto',origin='lower',interpolation='nearest'); ax.set(xlabel='input token position',ylabel='transformer layer'); fig.colorbar(im,ax=ax,label='mean history-level R_x_patch'); fig.tight_layout(); fig.savefig(out/'all_positions_Rx.png',dpi=160); plt.close(fig)
   except ImportError: pass
-  (out/'all_positions_token_legend.csv').write_text(agg[['position','token_id','token_text','site_role']].drop_duplicates().sort_values('position').to_csv(index=False),encoding='utf8')
+  (out/'all_positions_token_legend.csv').write_text(agg.drop(columns=['mean','count']).drop_duplicates().sort_values('position').to_csv(index=False),encoding='utf8')
  # compact per-history layer/site table for R contrasts
  outrows=[]
  for (role,layer,position),vals in perlayer.items():

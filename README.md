@@ -56,7 +56,9 @@ baseline/edit members for each of the four bindings under every query. Run
 calibration first and stop if full-vocabulary next-token accuracy misses the
 configured threshold. The behavior-frozen mechanistic workflow is separate from prompt development,
 gating, and behavioral confirmation. It expects the completed
-`outputs/four_query_288` artifacts and never reruns those stages:
+`outputs/four_query_288` artifacts and never reruns those stages. By default it
+runs targeted discovery, audits prefix invariance on two histories, prints the
+selected layers, and stops for review:
 
 ```bash
 bash scripts/run_four_query_mechanistic_ubuntu.sh
@@ -77,8 +79,11 @@ Discovery uses 24 deterministic histories and focal cells. It chooses the
 contiguous three-layer window with the largest history-level
 `R_x_patch = effect(old_x,current_x) - effect(old_x,current_z)` at
 `final_preanswer`; ties go to the lowest starting layer. Freeze the emitted
-layers before held-out validation on up to 96 disjoint histories. Held-out
-primary is `symmetric_R_patch = 0.5 * (R_x_patch + R_z_patch)`. Temporal
+layers before held-out validation on up to 96 disjoint histories. Set
+`RUN_HELDOUT=1` to run that phase in the same invocation. Set
+`RUN_ALL_POSITIONS=1` for the optional exploratory map and
+`POSITION_BATCH_SIZE=4` (or another positive value) to reduce position batch
+memory. Held-out primary is `symmetric_R_patch = 0.5 * (R_x_patch + R_z_patch)`. Temporal
 `S_x/S_z` contrasts are sanity controls only. `--cell-set full` enables the
 exhaustive cell set. Optional `--all-positions` discovery is exploratory and
 writes a layer by absolute token position map; it does not alter selection.

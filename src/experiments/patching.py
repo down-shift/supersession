@@ -55,6 +55,60 @@ def r_x_patch(old_x_current_x, old_x_current_z):
 def symmetric_r_patch(r_x, r_z):
     return .5*(float(r_x)+float(r_z))
 
+def _read_complete_jsonl(path):
+    """Read JSONL, safely dropping only an interrupted final partial line."""
+    import json
+    from pathlib import Path
+    path=Path(path)
+    if not path.exists(): return []
+    raw=path.read_bytes()
+    if raw and not raw.endswith(b'\n'):
+        cut=raw.rfind(b'\n')+1
+        raw=raw[:cut]; path.write_bytes(raw)
+    result=[]
+    for i,line in enumerate(raw.splitlines()):
+        try: result.append(json.loads(line))
+        except json.JSONDecodeError as exc: raise ValueError(f'invalid JSONL record at {path}:{i+1}') from exc
+    return result
+
+def recover_patch_checkpoint(output, completion_log):
+    """Trust only explicit markers whose complete pair row count is present.
+
+    Any output rows written before a marker are removed and their pair is
+    returned as incomplete so the runner recomputes it.
+    """
+    import json, os
+    from pathlib import Path
+    output=Path(output); completion_log=Path(completion_log)
+    rows=_read_complete_jsonl(output); markers=_read_complete_jsonl(completion_log)
+    counts={}
+    for row in rows: counts[row['pair_id']]=counts.get(row['pair_id'],0)+1
+    complete={m['pair_id'] for m in markers if counts.get(m['pair_id'],0)==m.get('row_count')}
+    keep=[r for r in rows if r['pair_id'] in complete]
+    if len(keep)!=len(rows):
+        tmp=Path(str(output)+'.repair')
+        tmp.write_text(''.join(json.dumps(r,sort_keys=True)+'\n' for r in keep),encoding='utf8')
+        os.replace(tmp,output)
+    good_markers=[m for m in markers if m['pair_id'] in complete]
+    if len(good_markers)!=len(markers):
+        tmp=Path(str(completion_log)+'.repair')
+        tmp.write_text(''.join(json.dumps(m,sort_keys=True)+'\n' for m in good_markers),encoding='utf8')
+        os.replace(tmp,completion_log)
+    return complete
+
+def commit_patch_pair(output, completion_log, pair_id, rows):
+    """Durably append a whole pair, then its explicit completion marker."""
+    import json
+    from pathlib import Path
+    output=Path(output); completion_log=Path(completion_log)
+    with output.open('a',encoding='utf8') as f:
+        for row in rows: f.write(json.dumps(row,sort_keys=True)+'\n')
+        f.flush(); __import__('os').fsync(f.fileno())
+    marker={'pair_id':pair_id,'row_count':len(rows)}
+    with completion_log.open('a',encoding='utf8') as f:
+        f.write(json.dumps(marker,sort_keys=True)+'\n')
+        f.flush(); __import__('os').fsync(f.fileno())
+
 def assert_aligned(source_ids,target_ids,expected_differences):
     if len(source_ids)!=len(target_ids): raise ValueError("paired tokenized prompts differ in length")
     actual=[i for i,(a,b) in enumerate(zip(source_ids,target_ids)) if a!=b]

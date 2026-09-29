@@ -6,6 +6,7 @@ import subprocess
 import sys
 from pathlib import Path
 
+import numpy as np
 import pytest
 
 from src.analysis.metrics import trimmed_mean
@@ -192,9 +193,10 @@ def test_all_position_patch_analysis_keeps_absolute_positions_separate(tmp_path)
     for hid in ("h1","h2"):
         for query,value in (("current_x",4.),("current_z",1.)):
             for layer in (0,1,2):
-                for position,role in ((7,"other_position"),(8,"other_position"),(9,"final_preanswer")):
+                for position,role in ((7,"other_position"),(8,"query_variable"),(9,"final_preanswer")):
                     for direction in ("baseline_to_edited","edited_to_baseline"):
-                        rows.append({"history_id":hid,"edited_binding":"old_x","query_id":query,"direction":direction,"site_role":role,"site":role,"position":position,"token_id":position+100,"token_text":f"tok{position}","layer":layer,"patch_delta_toward_donor":value+position/100})
+                        toktext=('x' if query=='current_x' else 'z') if position==8 else f'tok{position}'
+                        rows.append({"history_id":hid,"edited_binding":"old_x","query_id":query,"direction":direction,"site_role":role,"site":role,"position":position,"token_id":position+100+(query=='current_z' if position==8 else 0),"token_text":toktext,"layer":layer,"patch_delta_toward_donor":value+position/100})
     patches=tmp_path/"positions.jsonl"; patches.write_text("".join(json.dumps(r)+"\n" for r in rows))
     out=tmp_path/"analysis"; out.mkdir(); env={**os.environ,"PYTHONPATH":str(Path(__file__).resolve().parents[1]),"MPLBACKEND":"Agg","MPLCONFIGDIR":str(tmp_path/"mpl")}
     subprocess.run([sys.executable,str(script),"--patches",str(patches),"--output-dir",str(out),"--stage","discovery"],check=True,env=env,capture_output=True,text=True)
@@ -203,4 +205,7 @@ def test_all_position_patch_analysis_keeps_absolute_positions_separate(tmp_path)
     assert set(matrix.position)=={7,8,9}
     assert len(matrix)==9  # three layers × three absolute positions
     assert set(matrix['count'])=={2}
-    assert set(pd.read_csv(out/"all_positions_token_legend.csv").site_role)=={"other_position","final_preanswer"}
+    assert set(pd.read_csv(out/"all_positions_token_legend.csv").site_role)=={"other_position","query_variable","final_preanswer"}
+    at_query=matrix[matrix.position==8]
+    assert np.isfinite(at_query['mean']).all()
+    assert set(at_query.token_text_current_x)=={'x'} and set(at_query.token_text_current_z)=={'z'}

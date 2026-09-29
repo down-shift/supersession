@@ -3,6 +3,7 @@ set -Eeuo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"; cd "$ROOT"
 OUT="${OUT:-outputs/four_query_288}"; CFG="${CFG:-configs/four_query_288.yaml}"
 DISCOVERY_N="${DISCOVERY_N:-24}"; ALL_POSITION_N="${ALL_POSITION_N:-12}"; HELDOUT_N="${HELDOUT_N:-96}"
+RUN_HELDOUT="${RUN_HELDOUT:-0}"; PREFIX_AUDIT_N="${PREFIX_AUDIT_N:-2}"; POSITION_BATCH_SIZE="${POSITION_BATCH_SIZE:-16}"
 for f in "$OUT/pairs.jsonl" "$OUT/pair_behavior.jsonl" "$OUT/frozen_token_ids.json" "$OUT/prompt_selection.json" "$OUT/gate.json" "$OUT/analysis/four_query_summary.json"; do
   [[ -s "$f" ]] || { echo "Required frozen behavior artifact missing: $f" >&2; exit 2; }
 done
@@ -24,16 +25,20 @@ PY
 uv sync --locked --extra model --extra dev
 COMMON=(--config "$CFG" --pairs "$OUT/pairs.jsonl" --token-ids "$OUT/frozen_token_ids.json")
 mkdir -p "$OUT/mechanism"
-DISC="$OUT/mechanism/discovery.jsonl"; args=("${COMMON[@]}" --output "$DISC" --stage discovery --n-histories "$DISCOVERY_N" --cell-set focal); [[ -f "$DISC.run.json" ]] && args+=(--resume)
+DISC="$OUT/mechanism/discovery.jsonl"; args=("${COMMON[@]}" --output "$DISC" --stage discovery --n-histories "$DISCOVERY_N" --cell-set focal --audit-prefix-invariance "$PREFIX_AUDIT_N" --position-batch-size "$POSITION_BATCH_SIZE"); [[ -f "$DISC.run.json" ]] && args+=(--resume)
 uv run python scripts/run_four_query_patching.py "${args[@]}"
 uv run python scripts/analyze_four_query_patching.py --patches "$DISC" --output-dir "$OUT/mechanism/discovery" --stage discovery
 LAYERS="$(uv run python -c 'import json,sys; print(",".join(map(str,json.load(open(sys.argv[1]))["selection_statistic"]["selected_layers"])))' "$OUT/mechanism/discovery/discovery_selection.json")"
 echo "Frozen discovery layers: $LAYERS"
 if [[ "${RUN_ALL_POSITIONS:-0}" == 1 ]]; then
-  ALL="$OUT/mechanism/all_positions.jsonl"; args=("${COMMON[@]}" --output "$ALL" --stage discovery --n-histories "$ALL_POSITION_N" --all-positions --cell-set focal); [[ -f "$ALL.run.json" ]] && args+=(--resume)
+  ALL="$OUT/mechanism/all_positions.jsonl"; args=("${COMMON[@]}" --output "$ALL" --stage discovery --n-histories "$ALL_POSITION_N" --all-positions --cell-set focal --position-batch-size "$POSITION_BATCH_SIZE"); [[ -f "$ALL.run.json" ]] && args+=(--resume)
   uv run python scripts/run_four_query_patching.py "${args[@]}"
   uv run python scripts/analyze_four_query_patching.py --patches "$ALL" --output-dir "$OUT/mechanism/all_positions" --stage discovery
 fi
-HELD="$OUT/mechanism/heldout.jsonl"; args=("${COMMON[@]}" --output "$HELD" --stage heldout --n-histories "$HELDOUT_N" --layers "$LAYERS" --cell-set focal); [[ -f "$HELD.run.json" ]] && args+=(--resume)
+if [[ "$RUN_HELDOUT" != 1 ]]; then
+  echo "Stopped after discovery. Review $OUT/mechanism/discovery; set RUN_HELDOUT=1 to run held-out confirmation with the frozen selected layers."
+  exit 0
+fi
+HELD="$OUT/mechanism/heldout.jsonl"; args=("${COMMON[@]}" --output "$HELD" --stage heldout --n-histories "$HELDOUT_N" --layers "$LAYERS" --cell-set focal --position-batch-size "$POSITION_BATCH_SIZE"); [[ -f "$HELD.run.json" ]] && args+=(--resume)
 uv run python scripts/run_four_query_patching.py "${args[@]}"
 uv run python scripts/analyze_four_query_patching.py --patches "$HELD" --output-dir "$OUT/mechanism/heldout" --stage heldout

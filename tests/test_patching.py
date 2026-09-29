@@ -20,6 +20,21 @@ def test_focal_cells_and_canonical_roles():
     assert r_x_patch(4.5,1.25)==pytest.approx(3.25)
     assert symmetric_r_patch(3.25,2.75)==pytest.approx(3.)
 
+def test_patch_resume_requires_complete_pair_marker_and_discards_half_second_direction(tmp_path):
+    import json
+    from src.experiments.patching import commit_patch_pair,recover_patch_checkpoint
+    output=tmp_path/'patches.jsonl'; markers=tmp_path/'patches.complete.jsonl'
+    commit_patch_pair(output,markers,'complete',[{'pair_id':'complete','direction':'baseline_to_edited','row':i} for i in range(2)]+[{'pair_id':'complete','direction':'edited_to_baseline','row':i} for i in range(2)])
+    # Simulates a crash after both direction labels appeared, but halfway
+    # through the second direction's requested layer/position records.
+    with output.open('a') as f:
+        f.write(json.dumps({'pair_id':'interrupted','direction':'baseline_to_edited','row':0})+'\n')
+        f.write(json.dumps({'pair_id':'interrupted','direction':'edited_to_baseline','row':0})+'\n')
+    done=recover_patch_checkpoint(output,markers)
+    assert done=={'complete'}
+    rows=[json.loads(line) for line in output.read_text().splitlines()]
+    assert {row['pair_id'] for row in rows}=={'complete'}
+
 def test_torch_patching_is_lazy_and_clear_architecture_errors():
     # This package must remain importable/testable without torch on data-only hosts.
     import src.models.hooks
