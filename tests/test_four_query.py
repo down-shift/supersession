@@ -148,6 +148,17 @@ def test_scoring_checkpoint_resumes_and_discards_truncated_final_record(tmp_path
     with pytest.raises(ValueError,match="fingerprint differs in config"):
         prepare_jsonl_progress(output,dataset,token_ids,{"model":{"id":"changed"}},rows,resume=True)
 
+def test_checkpoint_token_metadata_migration_requires_explicit_verified_match(tmp_path):
+    dataset=tmp_path/"data.jsonl"; dataset.write_text('{"example_id":"a"}\n')
+    token_ids=tmp_path/"tokens.json"; token_ids.write_text('{"token_ids":{"elm":1},"timestamp":"new"}')
+    output=tmp_path/"scores.jsonl"; config={"model":{"id":"test"}}; rows=[{"example_id":"a"}]
+    prepare_jsonl_progress(output,dataset,token_ids,config,rows)
+    manifest=tmp_path/"scores.jsonl.run.json"
+    saved=json.loads(manifest.read_text()); saved["token_ids_sha256"]="old-metadata-hash"; manifest.write_text(json.dumps(saved))
+    with pytest.raises(ValueError,match="token_ids_sha256"):
+        prepare_jsonl_progress(output,dataset,token_ids,config,rows,resume=True)
+    assert prepare_jsonl_progress(output,dataset,token_ids,config,rows,resume=True,allow_token_ids_rehash=True)==set()
+
 def test_patch_analyzer_supports_x_only_discovery_and_full_heldout(tmp_path):
     script=Path(__file__).resolve().parents[1]/"scripts/analyze_four_query_patching.py"
     rows=[]

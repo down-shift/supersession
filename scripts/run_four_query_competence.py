@@ -10,10 +10,15 @@ from src.analysis.prompt_development import summarize_errors,gate_allows_confirm
 from src.models.loader import load_model
 from src.utils import load_config,provenance,save_json
 
-p=argparse.ArgumentParser(); p.add_argument("--config",default="configs/four_query_288.yaml"); p.add_argument("--dataset",required=True); p.add_argument("--token-ids",required=True); p.add_argument("--output",required=True); p.add_argument("--records-output",help="per-example checkpoint JSONL (default: OUTPUT.records.jsonl)"); p.add_argument("--resume",action="store_true"); p.add_argument("--diagnostic-only",action="store_true",help="score and summarize without applying the held-out gate"); a=p.parse_args()
+p=argparse.ArgumentParser(); p.add_argument("--config",default="configs/four_query_288.yaml"); p.add_argument("--dataset",required=True); p.add_argument("--token-ids",required=True); p.add_argument("--output",required=True); p.add_argument("--records-output",help="per-example checkpoint JSONL (default: OUTPUT.records.jsonl)"); p.add_argument("--resume",action="store_true"); p.add_argument("--diagnostic-only",action="store_true",help="score and summarize without applying the held-out gate"); p.add_argument("--compatible-token-map",help="frozen prompt-selection JSON; permits metadata-only token file hash migration when maps match exactly"); a=p.parse_args()
 c=load_config(a.config); ids=json.load(open(a.token_ids))["token_ids"]
 rows=read_jsonl(a.dataset); records_output=a.records_output or a.output+".records.jsonl"
-completed=prepare_jsonl_progress(records_output,a.dataset,a.token_ids,c,rows,resume=a.resume)
+token_map_verified=False
+if a.compatible_token_map:
+    frozen=json.load(open(a.compatible_token_map)).get("token_ids")
+    if frozen != ids: raise ValueError("compatible token map does not exactly match the frozen prompt-selection artifact")
+    token_map_verified=True
+completed=prepare_jsonl_progress(records_output,a.dataset,a.token_ids,c,rows,resume=a.resume,allow_token_ids_rehash=token_map_verified)
 model,tok=load_model(c); todo=[r for r in rows if str(r["example_id"]) not in completed]
 for row in tqdm(todo,desc=f"Calibration scoring ({len(completed)} already saved)"):
     scored=score_example(model,tok,row,ids,chat=c["model"].get("chat_template",True))

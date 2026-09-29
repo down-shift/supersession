@@ -12,12 +12,17 @@ import bitsandbytes
 print("CUDA device:",torch.cuda.get_device_name(0))
 PY
 mkdir -p "$OUT"
-uv run python scripts/validate_tokens.py --config "$CFG" --design four-query --output "$TOK"
+if [[ ! -s "$TOK" || "${REVALIDATE_TOKENS:-0}" == "1" ]]; then
+  uv run python scripts/validate_tokens.py --config "$CFG" --design four-query --output "$TOK"
+else
+  echo "Reusing existing validated candidate token IDs: $TOK"
+fi
 for variant in first_latest initial_update timestamped; do
   uv run python scripts/generate_four_query.py --config "$CFG" --token-ids "$TOK" --partition prompt_dev --prompt-variant "$variant" --kind queries --output "$OUT/prompt_dev_${variant}.jsonl"
   uv run python scripts/audit_four_query.py "$OUT/prompt_dev_${variant}.jsonl"
   args=(--config "$CFG" --dataset "$OUT/prompt_dev_${variant}.jsonl" --token-ids "$TOK" --output "$OUT/prompt_dev_${variant}.json" --diagnostic-only)
   [[ -f "$OUT/prompt_dev_${variant}.json.records.jsonl.run.json" ]] && args+=(--resume)
+  if [[ -f "$OUT/prompt_dev_${variant}.json.records.jsonl.run.json" && -s "$OUT/prompt_selection.json" ]]; then args+=(--compatible-token-map "$OUT/prompt_selection.json"); fi
   uv run python scripts/run_four_query_competence.py "${args[@]}"
 done
 uv run python scripts/analyze_prompt_development.py --config "$CFG" --token-ids "$TOK" --provenance "$OUT/prompt_dev_first_latest.json" \
@@ -31,12 +36,13 @@ if not x.get("confirmatory_permitted"): raise SystemExit("prompt development did
 json.dump({"token_ids":x["token_ids"],"prompt_variant":x["selected_variant"],"selection_artifact":"prompt_selection.json","model_revision":x["model_revision"],"tokenizer_revision":x["tokenizer_revision"]},open(sys.argv[1].replace("prompt_selection.json","frozen_token_ids.json"),"w"),indent=2)
 PY
 TOK="$OUT/frozen_token_ids.json"
-uv run python scripts/generate_four_query.py --config "$CFG" --token-ids "$TOK" --partition gate --prompt-variant "$(python -c 'import json,sys;print(json.load(open(sys.argv[1]))["selected_variant"])' "$OUT/prompt_selection.json")" --kind queries --output "$OUT/gate.jsonl"
+uv run python scripts/generate_four_query.py --config "$CFG" --token-ids "$TOK" --partition gate --prompt-variant "$(uv run python -c 'import json,sys;print(json.load(open(sys.argv[1]))["selected_variant"])' "$OUT/prompt_selection.json")" --kind queries --output "$OUT/gate.jsonl"
 uv run python scripts/audit_four_query.py "$OUT/gate.jsonl" --exclude-dataset "$OUT/prompt_dev_first_latest.jsonl" --exclude-dataset "$OUT/prompt_dev_initial_update.jsonl" --exclude-dataset "$OUT/prompt_dev_timestamped.jsonl"
 args=(--config "$CFG" --dataset "$OUT/gate.jsonl" --token-ids "$TOK" --output "$OUT/gate.json")
 [[ -f "$OUT/gate.json.records.jsonl.run.json" ]] && args+=(--resume)
+if [[ -f "$OUT/gate.json.records.jsonl.run.json" && -s "$OUT/prompt_selection.json" ]]; then args+=(--compatible-token-map "$OUT/prompt_selection.json"); fi
 uv run python scripts/run_four_query_competence.py "${args[@]}"
-VARIANT="$(python -c 'import json,sys;print(json.load(open(sys.argv[1]))["selected_variant"])' "$OUT/prompt_selection.json")"
+VARIANT="$(uv run python -c 'import json,sys;print(json.load(open(sys.argv[1]))["selected_variant"])' "$OUT/prompt_selection.json")"
 uv run python scripts/generate_four_query.py --config "$CFG" --token-ids "$TOK" --partition confirmatory --prompt-variant "$VARIANT" --kind queries --output "$OUT/behavior_inputs.jsonl"
 uv run python scripts/generate_four_query.py --config "$CFG" --token-ids "$TOK" --partition confirmatory --prompt-variant "$VARIANT" --kind pairs --output "$OUT/pairs.jsonl"
 for data in "$OUT/behavior_inputs.jsonl" "$OUT/pairs.jsonl"; do

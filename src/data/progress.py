@@ -12,7 +12,7 @@ def _sha256(path):
     return h.hexdigest()
 
 
-def prepare_jsonl_progress(output, dataset, token_ids, config, rows, resume=False):
+def prepare_jsonl_progress(output, dataset, token_ids, config, rows, resume=False, allow_token_ids_rehash=False):
     """Validate/create a run manifest and return IDs already checkpointed."""
     output = Path(output)
     manifest = Path(str(output) + ".run.json")
@@ -28,11 +28,22 @@ def prepare_jsonl_progress(output, dataset, token_ids, config, rows, resume=Fals
         saved = json.loads(manifest.read_text(encoding="utf8"))
         if saved != expected:
             mismatched = [key for key in expected if saved.get(key) != expected[key]]
-            raise ValueError(
-                "cannot resume: checkpoint fingerprint differs in "
-                + ", ".join(mismatched)
-                + ". Preserve the old records/manifest and start a fresh output if this is a new run."
-            )
+            if allow_token_ids_rehash and mismatched == ["token_ids_sha256"]:
+                # A caller may enable this only after verifying the current
+                # token map against a frozen selection artifact. Older run
+                # manifests hashed the entire JSON file, including volatile
+                # provenance metadata.
+                manifest.write_text(json.dumps(expected, sort_keys=True, indent=2) + "\n", encoding="utf8")
+                saved = expected
+                mismatched = []
+            if not mismatched:
+                pass
+            else:
+                raise ValueError(
+                    "cannot resume: checkpoint fingerprint differs in "
+                    + ", ".join(mismatched)
+                    + ". Preserve the old records/manifest and start a fresh output if this is a new run."
+                )
     else:
         if output.exists() or manifest.exists():
             raise FileExistsError(f"{output} already exists; choose a new output path or pass --resume")
