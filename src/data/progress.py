@@ -23,8 +23,8 @@ def prepare_jsonl_progress(output, dataset, token_ids, config, rows, resume=Fals
     }
     output.parent.mkdir(parents=True, exist_ok=True)
     if resume:
-        if not manifest.exists() or not output.exists():
-            raise ValueError("--resume requires an existing output JSONL and its .run.json manifest")
+        if not manifest.exists():
+            raise ValueError("--resume requires the original .run.json manifest")
         saved = json.loads(manifest.read_text(encoding="utf8"))
         if saved != expected:
             raise ValueError("cannot resume: dataset, token IDs, or config differ from the original run")
@@ -38,7 +38,7 @@ def prepare_jsonl_progress(output, dataset, token_ids, config, rows, resume=Fals
         raise ValueError("input dataset contains duplicate example_id values")
     expected_id_set = set(expected_ids)
     completed = {}
-    if resume:
+    if resume and output.exists():
         # Ignore and remove a potentially truncated final line from an interrupted write.
         raw = output.read_bytes()
         last_newline = raw.rfind(b"\n")

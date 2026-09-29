@@ -56,6 +56,12 @@ baseline/edit members for each of the four bindings under every query. Run
 calibration first and stop if full-vocabulary next-token accuracy misses the
 configured threshold. For discovery patching after the behavior result:
 
+On Ubuntu with an NVIDIA GPU, `bash scripts/run_four_query_288_ubuntu.sh`
+runs the 288-history behavior sequence end to end. It checks CUDA access,
+uses the locked dependencies, stops at a failed calibration gate, and resumes
+scoring from matching checkpoints. Set `REVALIDATE_TOKENS=1` to regenerate
+the token file.
+
 ```bash
 uv run python scripts/run_four_query_patching.py --config configs/four_query_pilot.yaml --pairs outputs/four_query/pairs.jsonl --token-ids outputs/four_query/token_ids.json --output outputs/four_query/patching.jsonl --stage discovery
 uv run python scripts/analyze_four_query_patching.py --patches outputs/four_query/patching.jsonl --output-dir outputs/four_query/patch_analysis_discovery --stage discovery
