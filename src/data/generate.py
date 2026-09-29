@@ -82,36 +82,58 @@ def render_example(ex, tokenizer=None, chat=True):
             ) from exc
     return prompt + "\nAnswer:"
 
-def make_histories(n_histories=144, seed=0, values=None, variables=None):
+def make_histories(n_histories=144, seed=0, values=None, variables=None, partition="confirmatory"):
     """Create canonical symbolic histories with balanced value roles.
 
     History factors are crossed in six-order × variable-pair × replicate blocks.
-    Values are assigned by role on a cyclic schedule; each role is balanced to
-    within one across histories and each history has four distinct values.
+    Each value block uses a distinct assignment pattern and a permutation of
+    the candidate vocabulary, so all four assignment roles remain balanced.
+    Calibration and confirmatory patterns occupy disjoint namespaces.
     """
     rng=random.Random(seed)
     values=list(values or ["amber","birch","coral","denim","elm","frost","grape","hazel","indigo","jade","khaki","lilac","maple","navy","ochre","pearl"])
-    variables=variables or [["x","z"],["a","b"],["red","blue"],["foo","bar"]]
+    variables=variables or [["x","z"],["p","q"],["u","v"],["m","n"]]
     orders=legal_orders()
     if len(values) not in (12,16): raise ValueError("four-query design requires exactly 12 or 16 candidate values")
     if len(set(values))!=len(values): raise ValueError("candidate values must be unique")
+    if partition not in ("confirmatory","calibration"): raise ValueError("partition must be confirmatory or calibration")
     if n_histories % (len(orders)*len(variables)*2):
         raise ValueError("n_histories must be divisible by six orders × variable pairs × two orientations")
+    if n_histories % len(values): raise ValueError("n_histories must be divisible by the candidate count for exact role balancing")
     if len({tuple(v) for v in variables})!=len(variables): raise ValueError("variable-name pairs must be unique")
     cells=[(o,p,orientation,r) for r in range(n_histories//(len(orders)*len(variables)*2)) for o in orders for p in variables for orientation in (0,1)]
     rng.shuffle(cells)
-    rows=[]; stride=len(values)//4
-    if len(values)%4: raise ValueError("candidate count must be divisible by four for exact role balancing")
-    start_order=list(range(len(values))); rng.shuffle(start_order)
+    rows=[]; candidate_count=len(values)
+    even_offsets=list(range(2,candidate_count,2))
+    pattern_groups={}
+    for old_z in even_offsets:
+        group=[(old_z,current_x,current_z)
+               for current_x,current_z in itertools.permutations([x for x in even_offsets if x!=old_z],2)]
+        random.Random(3701+candidate_count*100+old_z).shuffle(group)
+        pattern_groups[old_z]=group[::2] if partition=="confirmatory" else group[1::2]
+    blocks=n_histories//candidate_count
+    old_z_schedule=even_offsets[:]; rng.shuffle(old_z_schedule)
+    chosen_patterns=[]
+    for block in range(blocks):
+        old_z=old_z_schedule[block%len(old_z_schedule)]
+        available=pattern_groups[old_z]
+        if not available: raise ValueError("too many histories for distinct value patterns in this partition")
+        chosen_patterns.append(available.pop())
+    rng.shuffle(chosen_patterns)
+    value_rows=[]
+    for block,(old_z,current_x,current_z) in enumerate(chosen_patterns):
+        starts=list(range(candidate_count)); rng.shuffle(starts)
+        replacement_shift=(1,3,5)[block%3]
+        for start in starts:
+            value_rows.append(([values[(start+offset)%candidate_count] for offset in (0,old_z,current_x,current_z)],replacement_shift))
     for i,(order,pair,orientation,replicate) in enumerate(cells):
-        start=start_order[i % len(values)]
-        vals=[values[(start+j*stride)%len(values)] for j in range(4)]
+        vals,replacement_shift=value_rows[i]
         vmap={"x":pair[orientation],"z":pair[1-orientation]}
         entities={vmap["x"]:"Nora",vmap["z"]:"Liam"}
         row={"history_id":f"hist{i:06d}","family":"symbolic","variables":[vmap["x"],vmap["z"]],"entities":entities,
              "order":list(order),"template_id":0,"format_id":0,"old_x":vals[0],"old_z":vals[1],
              "current_x":vals[2],"current_z":vals[3],"replicate":replicate,"orientation":orientation,
-             "variable_pair":tuple(pair),"history_index":i,
+             "variable_pair":tuple(pair),"history_index":i,"replacement_shift":replacement_shift,"partition":partition,
              "split_group":("four_query",tuple(sorted(pair)),tuple(order),orientation,replicate)}
         rows.append(row)
     return rows
@@ -136,14 +158,12 @@ def matched_history_pairs(history, replacement_offset=None):
     values=history.get("candidate_values")
     if not values: raise ValueError("history must include candidate_values for matched replacements")
     out=[]
-    stride=len(values)//4
-    offset_count=min(3,stride-1)
-    if replacement_offset is not None:
-        if not 1<=replacement_offset<stride: raise ValueError("replacement offset would collide with another assignment")
-    for binding_index,binding in enumerate(("old_x","old_z","current_x","current_z")):
+    shift=replacement_offset if replacement_offset is not None else history.get("replacement_shift")
+    if shift is None: raise ValueError("history is missing its balanced replacement_shift")
+    if shift not in (1,3,5): raise ValueError("replacement shift must be one of the balanced odd offsets")
+    for binding in ("old_x","old_z","current_x","current_z"):
         source=history[binding]
-        offset=replacement_offset or (1+((int(history.get("history_index",0))//len(values)+binding_index)%offset_count))
-        target=values[(values.index(source)+offset)%len(values)]
+        target=values[(values.index(source)+shift)%len(values)]
         untouched={history[k] for k in ("old_x","old_z","current_x","current_z") if k!=binding}
         if target in untouched: raise ValueError(f"replacement for {binding} collides with an unchanged assignment")
         for query in expand_history_queries(history):
@@ -158,6 +178,9 @@ def matched_history_pairs(history, replacement_offset=None):
                     if binding==f"{query['query_time']}_{query['query']}" or (query["query_time"]=="initial" and binding==f"old_{query['query']}"):
                         ex["answer"]=target
                     ex["roles"]["target"]=ex["answer"]
+                other="z" if query["query"]=="x" else "x"
+                ex["roles"]["query_old"]=ex[f"old_{query['query']}"]
+                ex["roles"]["other_old"]=ex[f"old_{other}"]
                 out.append(ex)
     return out
 

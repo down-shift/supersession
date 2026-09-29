@@ -3,10 +3,25 @@
 import argparse,collections
 from src.data.io import read_jsonl
 
-p=argparse.ArgumentParser(); p.add_argument("dataset"); p.add_argument("--role-tolerance",type=int,default=1); p.add_argument("--transition-tolerance",type=int,default=1); p.add_argument("--min-targets-per-source",type=int,default=2); a=p.parse_args()
+p=argparse.ArgumentParser(); p.add_argument("dataset"); p.add_argument("--exclude-dataset",help="fail if a concrete history also occurs in this dataset"); p.add_argument("--role-tolerance",type=int,default=1); p.add_argument("--transition-tolerance",type=int,default=1); p.add_argument("--min-targets-per-source",type=int,default=2); a=p.parse_args()
 rows=read_jsonl(a.dataset); by_history=collections.defaultdict(list)
+if not rows: raise SystemExit("dataset is empty")
 for r in rows: by_history[r["history_id"]].append(r)
 is_pairs="pair_id" in rows[0] if rows else False
+def history_key(r):
+    return (tuple(r["variables"]),tuple(r["order"]),*(r[k] for k in ("old_x","old_z","current_x","current_z")))
+keys={}
+for hist,members in by_history.items():
+    baseline=next((r for r in members if not is_pairs or r["pair_direction"]==0),None)
+    if baseline is None: raise SystemExit(f"{hist} has no baseline record")
+    key=history_key(baseline)
+    if key in keys: raise SystemExit(f"duplicate concrete histories: {keys[key]} and {hist}")
+    keys[key]=hist
+if a.exclude_dataset:
+    excluded=read_jsonl(a.exclude_dataset)
+    excluded_keys={history_key(r) for r in excluded if "pair_id" not in r or r["pair_direction"]==0}
+    overlap=keys.keys() & excluded_keys
+    if overlap: raise SystemExit(f"{len(overlap)} concrete histories overlap {a.exclude_dataset}")
 if is_pairs:
     by_pair=collections.defaultdict(list); sources=collections.Counter(); targets=collections.Counter(); transitions=collections.Counter(); target_sets=collections.defaultdict(set)
     seen_edit=set()

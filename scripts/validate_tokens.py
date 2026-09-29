@@ -7,7 +7,11 @@ from src.data.token_validation import validate_candidate_vocabulary,validate_ass
 p=argparse.ArgumentParser(); p.add_argument("--config",default="configs/pilot.yaml"); p.add_argument("--family",choices=["symbolic","natural"],default="symbolic"); p.add_argument("--design",choices=["legacy","four-query"],default="legacy"); p.add_argument("--output",default="outputs/pilot/token_ids.json"); a=p.parse_args()
 c=load_config(a.config); m=c["model"]; ident=m.get("tokenizer_id") or m["id"]; rev=m.get("tokenizer_revision") or m.get("revision"); tok=AutoTokenizer.from_pretrained(ident,revision=rev); d=c["dataset"]
 if a.design=="four-query":
- histories=make_histories(min(d["n_histories"],max(48,len(d["variables"])*12)),c["seed"],d["values"],d["variables"])
+ if len(d["values"])<16: raise ValueError("four-query validation needs a raw proposal pool of at least 16 values")
+ # History values here provide representative prompt structure only. Every
+ # candidate is tested as a continuation, then selected values are used below
+ # to regenerate the actual assignment histories before patch-alignment audit.
+ histories=make_histories(min(d["n_histories"],max(48,len(d["variables"])*12)),c["seed"],d["values"][:16],d["variables"])
  examples=[q for h in histories for q in expand_history_queries(h)]
  assignment_audit=None
 else:

@@ -1,5 +1,10 @@
 from collections import Counter,defaultdict
+import json
+import os
 import re
+import subprocess
+import sys
+from pathlib import Path
 
 import pytest
 
@@ -37,6 +42,21 @@ def test_four_queries_orientation_order_value_balance_and_unique_assignments():
     for key in ("old_x","old_z","current_x","current_z"):
         assert Counter(h[key] for h in histories)==Counter({v:12 for v in VALUES})
 
+def test_calibration_and_confirmatory_histories_are_unique_and_disjoint():
+    confirm=dataset()
+    calibration=make_histories(192,seed=10041,values=VALUES,variables=VARIABLES,partition="calibration")
+    def identity(h):
+        return (tuple(h["variables"]),tuple(h["order"]),h["old_x"],h["old_z"],h["current_x"],h["current_z"])
+    confirm_keys={identity(h) for h in confirm}; calibration_keys={identity(h) for h in calibration}
+    assert len(confirm_keys)==144
+    assert len(calibration_keys)==192
+    assert confirm_keys.isdisjoint(calibration_keys)
+    index={value:i for i,value in enumerate(VALUES)}
+    offsets=lambda rows:{(index[h["old_z"]]-index[h["old_x"]])%len(VALUES) for h in rows}
+    assert offsets(confirm)==offsets(calibration)==set(range(2,len(VALUES),2))
+    for role in ("old_x","old_z","current_x","current_z"):
+        assert Counter(h[role] for h in calibration)==Counter({v:16 for v in VALUES})
+
 def test_matched_pairs_have_independent_roles_and_correct_answers_for_every_cell():
     for h in dataset()[:12]:
         pairs=matched_history_pairs(h)
@@ -58,6 +78,10 @@ def test_matched_pairs_have_independent_roles_and_correct_answers_for_every_cell
             assert edit[binding]==edit["replacement_value"]
             assert base["roles"][binding]==base[binding]
             assert edit["roles"][binding]==edit[binding]
+            queried=edit["query"]
+            other="z" if queried=="x" else "x"
+            assert edit["roles"]["query_old"]==edit[f"old_{queried}"]
+            assert edit["roles"]["other_old"]==edit[f"old_{other}"]
             for other in ("old_x","old_z","current_x","current_z"):
                 if other!=binding: assert base[other]==edit[other]
             assert base["roles"]["target"]==base_answer  # editing must not mutate its sibling
@@ -109,3 +133,31 @@ def test_patch_effect_orientation_is_donor_relative_in_both_directions():
     assert reverse["patch_delta_toward_donor"]==5
     assert forward["normalized_recovery"]==pytest.approx(.5)
     assert patch_effect_metrics(1,1+1e-9,2)["normalized_recovery"] is None
+
+def test_patch_analyzer_supports_x_only_discovery_and_full_heldout(tmp_path):
+    script=Path(__file__).resolve().parents[1]/"scripts/analyze_four_query_patching.py"
+    rows=[]
+    for hid in ("h1","h2"):
+        for binding in ("old_x","current_x","old_z","current_z"):
+            for query in ("current_x","initial_x","current_z","initial_z"):
+                for layer in (0,1,2):
+                    for direction in ("donor_to_recipient","recipient_to_donor"):
+                        rows.append({"history_id":hid,"edited_binding":binding,"query_id":query,"direction":direction,"site":"final_preanswer","layer":layer,"patch_delta_toward_donor":10. if (binding,query) in {("old_x","initial_x"),("current_x","current_x"),("old_z","initial_z"),("current_z","current_z")} else 1.})
+    patches=tmp_path/"patches.jsonl"
+    patches.write_text("".join(json.dumps(r)+"\n" for r in rows),encoding="utf8")
+    patches_x=tmp_path/"patches_x.jsonl"
+    patches_x.write_text("".join(json.dumps(r)+"\n" for r in rows if r["edited_binding"] in ("old_x","current_x")),encoding="utf8")
+    env={**os.environ,"PYTHONPATH":str(Path(__file__).resolve().parents[1])}
+    discovery=tmp_path/"discovery"; discovery.mkdir()
+    subprocess.run([sys.executable,str(script),"--patches",str(patches_x),"--output-dir",str(discovery),"--stage","discovery"],check=True,env=env,capture_output=True,text=True)
+    d=json.loads((discovery/"four_query_patch_summary.json").read_text())
+    assert d["bindings"]==["current_x","old_x"]
+    assert "S_x" in d["results"]["final_preanswer/layer_0"]["temporal_contrasts"]
+    assert "S_z" not in d["results"]["final_preanswer/layer_0"]["temporal_contrasts"]
+    assert d["prespecified_discovery_layer_selection"]["selected_layers"]==[0,1,2]
+    heldout=tmp_path/"heldout"; heldout.mkdir()
+    subprocess.run([sys.executable,str(script),"--patches",str(patches),"--output-dir",str(heldout),"--stage","heldout"],check=True,env=env,capture_output=True,text=True)
+    h=json.loads((heldout/"four_query_patch_summary.json").read_text())
+    contrasts=h["results"]["final_preanswer/layer_0"]["temporal_contrasts"]
+    assert set(h["bindings"])=={"old_x","current_x","old_z","current_z"}
+    assert {"S_x","S_z","symmetric_obsolete_query_relevance"}.issubset(contrasts)

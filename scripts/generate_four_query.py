@@ -14,7 +14,7 @@ values=list(json.load(open(a.token_ids))["token_ids"])
 if len(values)!=int(d.get("candidate_count",12)): raise ValueError("token_ids.json must contain exactly dataset.candidate_count experimental values")
 count=d.get("calibration_histories",192) if a.calibration else d["n_histories"]
 seed=c["seed"]+1000003 if a.calibration else c["seed"]
-histories=make_histories(count,seed,values,d["variables"])
+histories=make_histories(count,seed,values,d["variables"],partition="calibration" if a.calibration else "confirmatory")
 for h in histories: h["candidate_values"]=values
 histories=grouped_split(histories,d.get("splits",[.7,.15,.15]),seed)
 if a.kind=="histories": rows=histories

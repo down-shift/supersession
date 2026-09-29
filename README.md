@@ -25,17 +25,20 @@ Configure model ID, exact optional revision, tokenizer, device map, quantization
 This design uses one fixed history to produce current-x, initial-x, current-z,
 and initial-z queries. The pilot config gives 144 histories from the full
 `6 orders × 4 variable-name pairs × 2 variable orientations × 3 replicates`
-design. It uses exactly 12 tokenizer-validated values; calibration data use
-an independent seed and must not be included in confirmatory analysis.
+design. It uses exactly 12 tokenizer-validated values. Calibration and
+confirmatory histories use disjoint value-pattern namespaces, and neither set
+contains duplicate histories. Calibration data must not enter confirmatory
+analysis.
 
 ```bash
 uv run python scripts/validate_tokens.py --config configs/four_query_pilot.yaml --design four-query --output outputs/four_query/token_ids.json
 uv run python scripts/generate_four_query.py --config configs/four_query_pilot.yaml --token-ids outputs/four_query/token_ids.json --calibration --kind queries --output outputs/four_query/calibration.jsonl
+uv run python scripts/audit_four_query.py outputs/four_query/calibration.jsonl
 uv run python scripts/run_four_query_competence.py --config configs/four_query_pilot.yaml --dataset outputs/four_query/calibration.jsonl --token-ids outputs/four_query/token_ids.json --output outputs/four_query/calibration.json
 uv run python scripts/generate_four_query.py --config configs/four_query_pilot.yaml --token-ids outputs/four_query/token_ids.json --kind queries --output outputs/four_query/behavior_inputs.jsonl
 uv run python scripts/generate_four_query.py --config configs/four_query_pilot.yaml --kind pairs --token-ids outputs/four_query/token_ids.json --output outputs/four_query/pairs.jsonl
-uv run python scripts/audit_four_query.py outputs/four_query/behavior_inputs.jsonl
-uv run python scripts/audit_four_query.py outputs/four_query/pairs.jsonl
+uv run python scripts/audit_four_query.py outputs/four_query/behavior_inputs.jsonl --exclude-dataset outputs/four_query/calibration.jsonl
+uv run python scripts/audit_four_query.py outputs/four_query/pairs.jsonl --exclude-dataset outputs/four_query/calibration.jsonl
 uv run python scripts/run_behavior.py --config configs/four_query_pilot.yaml --dataset outputs/four_query/behavior_inputs.jsonl --token-ids outputs/four_query/token_ids.json --output outputs/four_query/behavior.jsonl
 uv run python scripts/run_behavior.py --config configs/four_query_pilot.yaml --dataset outputs/four_query/pairs.jsonl --token-ids outputs/four_query/token_ids.json --output outputs/four_query/pair_behavior.jsonl
 uv run python scripts/analyze_four_query.py --behavior outputs/four_query/behavior.jsonl --pairs outputs/four_query/pair_behavior.jsonl --output-dir outputs/four_query/analysis
@@ -44,19 +47,22 @@ uv run python scripts/analyze_four_query.py --behavior outputs/four_query/behavi
 `generate_four_query.py --kind histories` writes one record per history;
 `queries` expands each into the four fixed query conditions; `pairs` creates
 baseline/edit members for each of the four bindings under every query. Run
-calibration first and stop if unrestricted greedy answer accuracy misses the
+calibration first and stop if full-vocabulary next-token accuracy misses the
 configured threshold. For discovery patching after the behavior result:
 
 ```bash
 uv run python scripts/run_four_query_patching.py --config configs/four_query_pilot.yaml --pairs outputs/four_query/pairs.jsonl --token-ids outputs/four_query/token_ids.json --output outputs/four_query/patching.jsonl --stage discovery
+uv run python scripts/analyze_four_query_patching.py --patches outputs/four_query/patching.jsonl --output-dir outputs/four_query/patch_analysis_discovery --stage discovery
 ```
 
-The default discovery stage uses 24 histories. After inspecting it and freezing
-layer indices, validate only those layers on disjoint histories (up to 96):
+The default discovery stage uses 24 histories. Its analyzer prespecifies the
+selection rule: at `final_preanswer`, select the contiguous three-layer window
+with the largest discovery `S_x` (lowest start layer breaks ties). Freeze those
+indices, then validate only that region on disjoint histories (up to 96):
 
 ```bash
 uv run python scripts/run_four_query_patching.py --config configs/four_query_pilot.yaml --pairs outputs/four_query/pairs.jsonl --token-ids outputs/four_query/token_ids.json --output outputs/four_query/patching_heldout.jsonl --stage heldout --layers 12,13,14
-uv run python scripts/analyze_four_query_patching.py --patches outputs/four_query/patching_heldout.jsonl --output-dir outputs/four_query/patch_analysis
+uv run python scripts/analyze_four_query_patching.py --patches outputs/four_query/patching_heldout.jsonl --output-dir outputs/four_query/patch_analysis --stage heldout
 ```
 
 An all-position discovery sweep is optional and limited to 24 histories with
@@ -150,8 +156,8 @@ Then pass the natural dataset and token IDs to the same behavioral, extraction, 
 
 - Query position is the last model-input token before answer continuation. Activation storage includes the input embedding at that position and each decoder block output at that position. Patching convention is residual stream **leaving** a selected block, at a selected input position.
 - `B = logit(O_q) - logit(O_d)` is binding-specific obsolete residue; `R = logit(C_q) - logit(C_d)` is the current-binding control; `M` compares the correct value to all three distractor candidates. Accuracy is argmax over the configured candidate vocabulary. Full candidate probabilities and per-role logits are stored.
-- The four-query design fixes history and wording across query variants. Its primary edit score is `[logit(replacement)-logit(source)]_edited - [logit(replacement)-logit(source)]_baseline`; its primary contrast compares that score for current-x versus current-z while holding source, replacement, position, and history fixed. It also records unrestricted greedy correctness, full-vocabulary target rank, candidate rank, and candidate probability.
-- Four-query summaries bootstrap and sign-flip at the `history_id` level. Calibration examples are generated independently and excluded from confirmatory outputs. `audit_four_query.py` fails on incomplete query sets or role/edit imbalance.
+- The four-query design fixes history and wording across query variants. Its primary edit score is `[logit(replacement)-logit(source)]_edited - [logit(replacement)-logit(source)]_baseline`; its primary contrast compares that score for current-x versus current-z while holding source, replacement, position, and history fixed. It also records full-vocabulary next-token accuracy, full-vocabulary target rank, candidate rank, and candidate probability.
+- Four-query summaries bootstrap and sign-flip at the `history_id` level. Calibration examples are generated independently and excluded from confirmatory outputs. `audit_four_query.py` fails on duplicate or overlapping concrete histories, incomplete query sets, or role/edit imbalance.
 - Probe scores are linear decoding performance, not mutual information. Low decoding is not evidence of absence. Decoding is not evidence of causal use. Attention weights are not treated as causal evidence.
 - Input counterfactual effects are controlled prompt interventions, not proof of an internal causal variable. Patch effects establish effects of the tested residual intervention; they do not identify a complete circuit. A small output effect does not show that obsolete information failed to propagate.
 - The main design target is paired obsolete-query versus obsolete-distractor effects under fixed current state, reported both across all trials and alongside aggregate competence. Avoid interpreting a model that fails the configurable direct/overwrite competence gate as showing successful supersession.
