@@ -14,7 +14,7 @@ def validate_candidate_vocabulary(tokenizer, contexts, candidates, chat=True):
         ids=set(); ok=True
         for ex in contexts:
             prompt=__import__("src.data.generate",fromlist=["render_example"]).render_example(ex,tokenizer,chat=chat)
-            try: ids.add(continuation_token_id(tokenizer,prompt," "+value))
+            try: ids.add(continuation_token_id(tokenizer,prompt,value))
             except ValueError: ok=False; break
         if ok and len(ids)==1: valid[value]=ids.pop()
         else: rejected[value]="not stable single-token continuation across exact prompts"

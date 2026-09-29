@@ -38,11 +38,33 @@ def render_example(ex, tokenizer=None, chat=True):
     if fam=="natural": question=f"What is {names[qvar]}'s current code?"
     else: question=f"What is the current value of {qvar}?"
     joiner="\n" if ex.get("format_id",0)==0 else "\n\n"
-    prompt=joiner.join(rows)+joiner+question+"\nAnswer:"
-    if tokenizer is None: return prompt
+    # Keep the scored continuation in answer mode: the behavior and activation
+    # scripts read logits at the first answer token, so an unconstrained
+    # explanation (or a reasoning preamble) would be scored as the answer.
+    prompt=joiner.join(rows)+joiner+question+"\nRespond with only the value, with no explanation."
+    if tokenizer is None: return prompt+"\nAnswer: "
     if chat and getattr(tokenizer,"chat_template",None):
-        return tokenizer.apply_chat_template([{"role":"user","content":prompt}],tokenize=False,add_generation_prompt=True)
-    return prompt
+        # Qwen3 chat templates enable the thinking mode by default. That puts
+        # the next-token measurement inside a reasoning segment rather than at
+        # the answer. Pass this explicitly so every pipeline stage uses the
+        # same answer-mode prefix.
+        try:
+            rendered = tokenizer.apply_chat_template(
+                [{"role":"user","content":prompt}],
+                tokenize=False,
+                add_generation_prompt=True,
+                enable_thinking=False,
+            )
+            # Use an assistant-side answer prefix so scoring starts exactly
+            # where a value is expected, rather than assuming a leading space
+            # after the assistant header.
+            return rendered + "Answer: "
+        except TypeError as exc:
+            raise RuntimeError(
+                "The tokenizer chat template must accept enable_thinking=False "
+                "for next-token answer scoring"
+            ) from exc
+    return prompt + "\nAnswer: "
 
 def make_contexts(n=48, seed=0, values=None, variables=None, family="symbolic"):
     rng=random.Random(seed); values=values or ["amber","birch","coral","denim","elm","frost","grape","hazel","indigo","jade","khaki","lilac","maple","navy","ochre","pearl"]
