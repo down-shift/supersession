@@ -70,6 +70,12 @@ Full primary-model run (includes the preceding stages):
 bash scripts/run_pipeline.sh configs/primary.yaml outputs/primary
 ```
 
+For a behavioral replication that fully crosses order, query, syntax, and whitespace five times, and does not spend GPU time on probes or patching:
+
+```bash
+bash scripts/run_behavioral_replication.sh configs/behavioral_replication.yaml outputs/behavioral_replication
+```
+
 Natural-language replication uses the same paired abstract task and tokenizer checks:
 
 ```bash

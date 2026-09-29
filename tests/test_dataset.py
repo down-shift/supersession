@@ -14,6 +14,18 @@ def test_precedence_distinct_roles_query_balance_and_order_balance():
         q=r["query"]; d="z" if q=="x" else "x"
         assert r["roles"]=={"O_q":r[f"old_{q}"],"C_q":r[f"current_{q}"],"O_d":r[f"old_{d}"],"C_d":r[f"current_{d}"]}
 
+def test_order_query_template_and_format_are_crossed():
+    rows=make_contexts(72,seed=11)
+    observed=Counter((tuple(r["order"]),r["query"],r["template_id"],r["format_id"]) for r in rows)
+    expected=Counter({(order,query,template,fmt):1
+                      for order in legal_orders()
+                      for query in ("x","z")
+                      for template in range(3)
+                      for fmt in range(2)})
+    assert observed==expected
+    assert Counter(tuple(sorted(r["variables"])) for r in rows)=={
+        ("x","z"):24,("a","b"):24,("blue","red"):24}
+
 def test_group_split_does_not_leak():
     rows=grouped_split(make_contexts(120,seed=7),seed=9)
     seen={s:set(tuple(r["split_group"]) for r in rows if r["split"]==s) for s in ("train","validation","test")}

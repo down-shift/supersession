@@ -11,6 +11,7 @@
 ## Design assumptions
 
 - Four symbolic assignment events use all six legal line orders, with old-before-current precedence for each variable. Variable names are randomly remapped to abstract query/distractor roles; literal `x` is not assigned a semantic privilege.
+- A pilot audit found that the earlier generator tied order, query, template, and whitespace to the same example index. The generator now crosses all `6 × 2 × 3 × 2` order/query/template/format cells once per 72 contexts and balances variable-name pairs independently. Earlier pilot results remain exploratory; paired `O_q` versus `O_d` interventions were within context, but the pilot did not independently sample prompt factors. `configs/behavioral_replication.yaml` freezes a 360-context follow-up with a new seed.
 - The split group key is `(task family, unordered variable-name pair, exact legal line-order pattern)`. Counterfactual members share the base context split. Dataset values are drawn without replacement within each context.
 - Token validation is performed over the exact rendered prompt/chat prefix followed by the proposed answer continuation. It checks both one-token continuation and unchanged prefix tokenization. Accepted value-to-token-ID mapping is written separately.
 - Activation storage is query-position only, chunked, and half-precision. The embedding/pre-block-0 vector and each block output are distinct entries. Patching targets block output, never modifies the obsolete token representation retrospectively.

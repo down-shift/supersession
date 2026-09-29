@@ -72,16 +72,34 @@ def make_contexts(n=48, seed=0, values=None, variables=None, family="symbolic"):
     if len(values)<4: raise ValueError("at least four candidate values are required")
     if n<6: raise ValueError("n_contexts must cover all six legal orderings")
     rows=[]; orders=legal_orders()
-    for i in tqdm(range(n),desc="Generating contexts"):
-        pair=variables[i%len(variables)]; order=orders[i%6]; vals=rng.sample(values,4)
+    # Each six-example block balances order, query, template, and formatting.
+    # The twelve blocks form the complete 6 x 2 x 3 x 2 factorial design.
+    factors=[]
+    while len(factors)<n:
+        blocks=list(range(12)); rng.shuffle(blocks)
+        for block in blocks:
+            cells=[]
+            for order_index in range(6):
+                template_format=(order_index+block)%6
+                cells.append((
+                    order_index,
+                    "x" if (order_index+block//6)%2==0 else "z",
+                    template_format//2,
+                    template_format%2,
+                ))
+            rng.shuffle(cells)
+            factors.extend(cells)
+            if len(factors)>=n: break
+    pair_indices=[i%len(variables) for i in range(n)]
+    rng.shuffle(pair_indices)
+    for i,(order_index,query,template_id,format_id) in tqdm(enumerate(factors[:n]),total=n,desc="Generating contexts"):
+        pair=variables[pair_indices[i]]; order=orders[order_index]; vals=rng.sample(values,4)
         # Randomly map named variables to abstract x/z on every context.
         chosen=list(pair); rng.shuffle(chosen); vmap={"x":chosen[0],"z":chosen[1]}
-        query="x" if i%2==0 else "z"
         mapping={"old_x":vals[0],"old_z":vals[1],"current_x":vals[2],"current_z":vals[3]}
-        entities={vmap["x"]:"Nora","x":"Nora","z":"Liam"}
         # Natural entity names are assigned relative to actual variables below.
         entities={vmap["x"]:"Nora",vmap["z"]:"Liam"}
-        ex={"example_id":f"ctx{i:06d}","family":family,"variables":[vmap["x"],vmap["z"]],"entities":entities,"order":list(order),"query":query,"template_id":i%3,"format_id":i%2,"old_x":mapping["old_x"],"old_z":mapping["old_z"],"current_x":mapping["current_x"],"current_z":mapping["current_z"],"roles":{}}
+        ex={"example_id":f"ctx{i:06d}","family":family,"variables":[vmap["x"],vmap["z"]],"entities":entities,"order":list(order),"query":query,"template_id":template_id,"format_id":format_id,"old_x":mapping["old_x"],"old_z":mapping["old_z"],"current_x":mapping["current_x"],"current_z":mapping["current_z"],"roles":{}}
         q=query; d="z" if q=="x" else "x"
         ex["roles"]={"O_q":mapping[f"old_{q}"],"C_q":mapping[f"current_{q}"],"O_d":mapping[f"old_{d}"],"C_d":mapping[f"current_{d}"]}
         ex["split_group"]=(family,tuple(sorted(pair)),tuple(order))
@@ -91,6 +109,11 @@ def make_contexts(n=48, seed=0, values=None, variables=None, family="symbolic"):
 def counterfactual_pair(context, role, a, b):
     if role not in {"O_q","C_q","O_d","C_d"}: raise ValueError(role)
     if a==b: raise ValueError("counterfactual values must differ")
+    if len(set(context["roles"].values()))!=4:
+        raise ValueError("base context must have four distinct role values")
+    unchanged=set(context["roles"].values())-{context["roles"][role]}
+    if a in unchanged or b in unchanged:
+        raise ValueError("counterfactual values must not collide with unchanged role values")
     q=context["query"]; d="z" if q=="x" else "x"; axis={"O_q":("old",q),"C_q":("current",q),"O_d":("old",d),"C_d":("current",d)}[role]
     pair=[]
     for val in (a,b):
