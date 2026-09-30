@@ -28,6 +28,7 @@ def test_competence_gate_summary_is_cellwise_and_fails_at_below_99_percent():
              'candidate_accuracy':1,'target_rank':1,'candidate_target_rank':1} for r in dataset]
     report=summarize_gate(dataset,scores)
     assert report['gate_pass'] and len(report['status_cells'])==4
+    assert len(report['query_orientation_diagnostics'])==16
     assert all(r['n_histories']==24 and r['n_scored_prompts']==48 for r in report['status_cells'])
     scores[0]['full_vocab_next_token_accuracy']=0
     report=summarize_gate(dataset,scores)

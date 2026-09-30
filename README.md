@@ -281,14 +281,14 @@ The validator records accepted and rejected candidates, one-token continuation c
 
 ### Counterbalanced irrelevant and independent-status follow-ups
 
-The existing `controls.jsonl` and `status.jsonl` remain unchanged. Generate separate fresh-history datasets for counterbalanced unassigned mention slots and independently accepted/rejected x/z updates:
+The existing `controls.jsonl` and `status.jsonl` remain unchanged. Generate a separate fresh-history dataset for counterbalanced unassigned mention slots. The saved independent-status data is a pre-gate artifact:
 
 ```bash
 uv run python scripts/generate_supersession_experiments.py --kind controls_counterbalanced --values configs/supersession_values.json --token-ids outputs/four_query_288/frozen_token_ids.json --output outputs/supersession/controls_counterbalanced.jsonl --seed 20260930
 uv run python scripts/run_supersession_behavior.py --config configs/four_query_288.yaml --dataset outputs/supersession/controls_counterbalanced.jsonl --token-ids outputs/four_query_288/frozen_token_ids.json --output outputs/supersession/controls_counterbalanced_behavior.jsonl
 uv run python scripts/analyze_supersession_behavior.py --dataset outputs/supersession/controls_counterbalanced.jsonl --behavior outputs/supersession/controls_counterbalanced_behavior.jsonl --kind controls_counterbalanced --output-dir outputs/supersession/controls_counterbalanced_analysis
 
-uv run python scripts/generate_supersession_experiments.py --kind status_2x2 --values configs/supersession_values.json --token-ids outputs/four_query_288/frozen_token_ids.json --output outputs/supersession/status_2x2.jsonl --seed 20260931
+# Existing pre-gate data only; new status_2x2 generation requires a passing frozen gate.
 uv run python scripts/run_supersession_behavior.py --config configs/four_query_288.yaml --dataset outputs/supersession/status_2x2.jsonl --token-ids outputs/four_query_288/frozen_token_ids.json --output outputs/supersession/status_2x2_behavior.jsonl
 uv run python scripts/analyze_supersession_behavior.py --dataset outputs/supersession/status_2x2.jsonl --behavior outputs/supersession/status_2x2_behavior.jsonl --kind status_2x2 --output-dir outputs/supersession/status_2x2_analysis
 ```
@@ -310,21 +310,36 @@ uv run python scripts/analyze_named_head_profiles.py --patches outputs/four_quer
 
 The named profile requires complete stale, historical, and current query cells for the same 24 discovery histories. It does not inspect or consume the mechanistic reserve.
 
-### Status 2×2 competence gate and order audit
+### Status 2×2 prompt redevelopment and frozen competence gate
 
-Run a separate 24-history, accuracy-only gate before creating confirmatory 2×2 histories. The gate records task accuracy and target ranks only; any cell below 99% is a prompt-design failure. Gate scoring must run on the configured model host:
+The original competence gate failed, and the saved `status_2x2.jsonl` is pre-gate data. Preserve both. The original orientation swap balances literal names but leaves semantic x in the first update block. New prompts keep literal x/z fixed and cross both update orders **within every history**, independently of status, query, and wording. Initial assignments remain x then z; initial assignment order is not separately varied.
 
-```bash
-uv run python scripts/generate_supersession_experiments.py --kind status_2x2_gate --n 24 --seed 20261001 --values configs/supersession_values.json --token-ids outputs/four_query_288/frozen_token_ids.json --output outputs/supersession/status_2x2_competence_gate.jsonl
-uv run python scripts/run_status_2x2_gate.py --config configs/four_query_288.yaml --dataset outputs/supersession/status_2x2_competence_gate.jsonl --token-ids outputs/four_query_288/frozen_token_ids.json --output outputs/supersession/status_2x2_competence_gate_scores.jsonl
-uv run python scripts/analyze_status_2x2_gate.py --dataset outputs/supersession/status_2x2_competence_gate.jsonl --behavior outputs/supersession/status_2x2_competence_gate_scores.jsonl --output-dir outputs/supersession/status_2x2_competence_gate_analysis
-```
+Three wording variants attach acceptance directly to each update: `bracketed` (`x -> value [ACCEPTED]`), `inline_status` (`Update x = value; status: ACCEPTED.`), and `action_labels` (`ACCEPT update: x = value`). None states the final binding. Prompt development uses 24 disposable fresh histories (1,152 unedited prompts); the selected wording gets a second, fresh 24-history frozen gate (384 prompts). These stages report **only full-vocabulary accuracy and target-rank mean/max**, per `prompt_variant × status × query × update_order`. They save no candidate logits and compute no causal R.
 
-The generator audits update-block order. Orientation 0 maps semantic x to literal x in the first block position; orientation 1 maps semantic x to literal z in the first position. The saved 96-history `status_2x2.jsonl` has 48 histories in each literal order per status cell, but it predates this gate; preserve it as a pre-gate artifact and do not treat it as confirmatory. After the gate passes, create a fresh final dataset at a new path with a new seed:
+Run scoring commands on the model host. Generation and analysis are CPU-only. Outputs are immutable; use fresh paths for another development round. The scorer supports `--resume` and fingerprints data, config, token map, exact model/tokenizer revisions, and code.
 
 ```bash
-uv run python scripts/generate_supersession_experiments.py --kind status_2x2 --n 96 --seed 20261002 --values configs/supersession_values.json --token-ids outputs/four_query_288/frozen_token_ids.json --output outputs/supersession/status_2x2_confirmatory.jsonl
+# Disposable prompt development: all three variants on identical fresh histories.
+uv run python scripts/generate_status_prompt_stage.py --stage development --n 24 --seed 20261010 --values configs/supersession_values.json --token-ids outputs/four_query_288/frozen_token_ids.json --output outputs/supersession/status_prompt_dev_v2.jsonl
+uv run python scripts/run_status_2x2_gate.py --config configs/four_query_288.yaml --dataset outputs/supersession/status_prompt_dev_v2.jsonl --token-ids outputs/four_query_288/frozen_token_ids.json --output outputs/supersession/status_prompt_dev_v2_scores.jsonl
+uv run python scripts/analyze_status_prompt_gate.py --dataset outputs/supersession/status_prompt_dev_v2.jsonl --behavior outputs/supersession/status_prompt_dev_v2_scores.jsonl --output-dir outputs/supersession/status_prompt_dev_v2_report
+
+# Choose using the competence table only; replace bracketed if another wording wins.
+SELECTED_VARIANT=bracketed
+uv run python scripts/analyze_status_prompt_gate.py --dataset outputs/supersession/status_prompt_dev_v2.jsonl --behavior outputs/supersession/status_prompt_dev_v2_scores.jsonl --select-variant "$SELECTED_VARIANT" --output-dir outputs/supersession/status_prompt_dev_v2_selection
+
+# Freeze one wording, then test it on fresh histories with a separate seed.
+uv run python scripts/generate_status_prompt_stage.py --stage frozen_gate --n 24 --seed 20261011 --selection outputs/supersession/status_prompt_dev_v2_selection/selection.json --values configs/supersession_values.json --token-ids outputs/four_query_288/frozen_token_ids.json --output outputs/supersession/status_frozen_gate_v2.jsonl
+uv run python scripts/run_status_2x2_gate.py --config configs/four_query_288.yaml --dataset outputs/supersession/status_frozen_gate_v2.jsonl --token-ids outputs/four_query_288/frozen_token_ids.json --output outputs/supersession/status_frozen_gate_v2_scores.jsonl
+uv run python scripts/analyze_status_prompt_gate.py --dataset outputs/supersession/status_frozen_gate_v2.jsonl --behavior outputs/supersession/status_frozen_gate_v2_scores.jsonl --output-dir outputs/supersession/status_frozen_gate_v2_analysis
+
+# Run only after the fresh frozen gate passes; creates 96 fresh paired histories.
+uv run python scripts/generate_status_prompt_stage.py --stage confirmatory --n 96 --seed 20261012 --frozen-gate outputs/supersession/status_frozen_gate_v2_analysis/frozen_gate.json --values configs/supersession_values.json --token-ids outputs/four_query_288/frozen_token_ids.json --output outputs/supersession/status_2x2_confirmatory_v2.jsonl
 ```
+
+Frozen approval requires **100% accuracy and maximum target rank 1 in every one of the 16 status/query/order cells**. One error fails. Generation recomputes competence from hashed source records and validates selection, template, model/tokenizer revisions, config, token map, and fresh gate histories. Missing, failed, old-format, changed, or development-only artifacts cannot authorize confirmatory generation. The original `generate_supersession_experiments.py --kind status_2x2` entry point now requires `--frozen-gate` and routes to the same guard. Final paired data crosses both update orders (12,288 records); no confirmatory generation or model run has been performed during this implementation. Order-aware causal analysis of that new format is outside this prompt-gating task; the existing causal analyzer remains for legacy datasets.
+
+Each stage excludes concrete histories and seeds from the existing `status.jsonl`, `status_2x2.jsonl`, and original competence gate when present, plus its selection/gate predecessors. Add `--exclude-dataset PATH` for other previous development rounds or copied artifacts. No mechanistic partition is read. A new prompt-development attempt after a failed frozen gate needs fresh histories, seeds, and output paths; do not tune wording on the frozen gate and then reuse it.
 
 Audit whether the existing accepted/rejected asymmetry tracks literal variable names or block position using only saved status records:
 

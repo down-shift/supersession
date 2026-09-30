@@ -27,7 +27,7 @@ def summarize_gate(dataset, scores, threshold=.99):
         if row['full_vocab_next_token_accuracy'] not in (0,1) or row['candidate_accuracy'] not in (0,1):
             raise ValueError('gate accuracy fields must be binary')
         groups[row['condition']].append(row)
-    result=[]
+    result=[]; query_diagnostics=[]
     for condition,rows in groups.items():
         if len(rows)!=48 or len({r['history_id'] for r in rows})!=24 or {r['query'] for r in rows}!={'x','z'}:
             raise ValueError(f'{condition} gate cell must have 48 query examples from all 24 histories')
@@ -38,9 +38,22 @@ def summarize_gate(dataset, scores, threshold=.99):
             'target_rank_mean':float(np.mean([r['target_rank'] for r in rows])),
             'target_rank_median':float(np.median([r['target_rank'] for r in rows])),
             'candidate_target_rank_mean':float(np.mean([r['candidate_target_rank'] for r in rows]))})
+        strata={}
+        for row in rows:
+            literal=row['variables'][0 if row['query']=='x' else 1]
+            position='first' if row['query']=='x' else 'second'
+            strata.setdefault((row['query'],int(row['orientation']),literal,position),[]).append(row)
+        for (query,orientation,literal,position),members in sorted(strata.items()):
+            query_diagnostics.append({'status_cell':condition,'query_role':query,'literal_variable':literal,
+                'block_position':position,'orientation':orientation,'n_histories':len(members),
+                'full_vocab_accuracy':float(np.mean([r['full_vocab_next_token_accuracy'] for r in members])),
+                'candidate_accuracy':float(np.mean([r['candidate_accuracy'] for r in members])),
+                'target_rank_mean':float(np.mean([r['target_rank'] for r in members])),
+                'target_rank_median':float(np.median([r['target_rank'] for r in members]))})
     failed=[r['status_cell'] for r in result if r['full_vocab_accuracy'] < threshold]
     return {'threshold':threshold,'failure_rule':'any status cell below threshold is a prompt-design failure',
-            'gate_pass':not failed,'failure_cells':failed,'status_cells':result}
+            'gate_pass':not failed,'failure_cells':failed,'status_cells':result,
+            'query_orientation_diagnostics':query_diagnostics}
 
 
 def main():
@@ -60,6 +73,7 @@ def main():
                     'provenance':provenance({},a.dataset)})
     out.mkdir(parents=True,exist_ok=True)
     pd.DataFrame(summary['status_cells']).to_csv(out/'status_cell_competence.csv',index=False)
+    pd.DataFrame(summary['query_orientation_diagnostics']).to_csv(out/'status_query_orientation_diagnostics.csv',index=False)
     save_json(summary,out/'competence_gate.json')
     if summary['gate_pass']:
         print(f'competence gate PASSED: every status cell >= {a.threshold:.1%}')

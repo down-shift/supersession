@@ -19,8 +19,16 @@ def main():
     p.add_argument('--output', required=True)
     p.add_argument('--n', type=int, help='number of histories (defaults: 96, or fixed 24 for status_2x2_gate)')
     p.add_argument('--seed', type=int)
+    p.add_argument('--frozen-gate', help='passing frozen competence artifact required for new status_2x2 confirmatory data')
     p.add_argument('--depths', default='0,1,2,4,8')
     a = p.parse_args()
+    if a.kind == 'status_2x2':
+        if not a.frozen_gate or not a.token_ids:
+            raise ValueError('status_2x2 generation requires --frozen-gate and --token-ids; use generate_status_prompt_stage.py for redevelopment')
+        from scripts.generate_status_prompt_stage import generate_stage
+        generate_stage('confirmatory', a.values, a.token_ids, a.output, a.n, a.seed,
+                       frozen_gate_path=a.frozen_gate)
+        return
     seed = a.seed if a.seed is not None else (20261001 if a.kind == 'status_2x2_gate' else 73021)
     n = a.n if a.n is not None else (24 if a.kind == 'status_2x2_gate' else 96)
     if a.kind == 'status_2x2_gate' and n != 24:

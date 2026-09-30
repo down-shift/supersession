@@ -339,7 +339,11 @@ def test_generate_score_analyze_commands_end_to_end_with_scoring_stub(tmp_path, 
     token_map.write_text(json.dumps({'token_ids': IDS, 'model_revision': 'a'*40, 'tokenizer_revision': 'a'*40}))
     config.write_text('seed: 7\nmodel:\n  id: toy\n  revision: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\n  tokenizer_revision: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\n  chat_template: false\n')
     monkeypatch.setattr(sys, 'argv', ['generate', '--kind', kind, '--values', str(values), '--token-ids', str(token_map), '--n', '2', '--output', str(dataset)])
-    generator.main()
+    if kind == 'status_2x2':
+        # Preserved legacy analysis scaffolding; new confirmatory CLI is gated.
+        write_jsonl(generate_behavior_pairs(kind, 2, VALUES, 73021), dataset)
+    else:
+        generator.main()
     rows = read_jsonl(dataset)
     assert all('unvalidated' not in r['candidate_values'] for r in rows)
     model = scoring_stub()

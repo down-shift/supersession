@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Resumable task-competence scoring only for the 24-history status_2x2 gate."""
+"""Resumable accuracy/rank scoring for legacy gates and new prompt development."""
 import argparse, hashlib, json, re
 from pathlib import Path
 
@@ -8,6 +8,7 @@ from tqdm.auto import tqdm
 from src.data.io import read_jsonl, sha256_file
 from src.data.progress import prepare_jsonl_progress, append_jsonl_record
 from src.data.supersession_behavior import (audit_status_2x2_gate_dataset, render_behavior_example)
+from src.data.status_prompt_gate import audit_prompt_dataset
 from src.data.token_validation import continuation_token_id
 from src.models.loader import load_model
 from src.utils import load_config, provenance, save_json
@@ -58,6 +59,10 @@ def score_gate(model, tokenizer, rows, token_ids, output, completed, chat):
                 'candidate_accuracy':int(candidate_argmax==target_id),
                 'target_rank':1+int((logits>target).sum().item()),
                 'candidate_target_rank':1+int((candidate_logits>target).sum().item())}
+        if 'prompt_stage' in row:
+            # New wording selection reports only full-vocabulary accuracy and rank.
+            result.pop('candidate_accuracy')
+            result.pop('candidate_target_rank')
         append_jsonl_record(output,result)
 
 
@@ -66,7 +71,10 @@ def main():
     p.add_argument('--config',default='configs/four_query_288.yaml'); p.add_argument('--dataset',required=True)
     p.add_argument('--token-ids',required=True); p.add_argument('--output',required=True); p.add_argument('--resume',action='store_true')
     a=p.parse_args(); config=load_config(a.config); rows=read_jsonl(a.dataset)
-    audit_status_2x2_gate_dataset(rows)
+    if rows and 'prompt_stage' in rows[0]:
+        audit_prompt_dataset(rows)
+    else:
+        audit_status_2x2_gate_dataset(rows)
     token_doc=json.loads(Path(a.token_ids).read_text()); token_ids=token_doc['token_ids']
     if not a.resume and any(Path(str(a.output)+suffix).exists() for suffix in ('','.run.json','.provenance.json')):
         raise FileExistsError(f'{a.output} exists; select a fresh output or use --resume')
@@ -80,7 +88,7 @@ def main():
         if frozen and frozen!=config.get('resolved_'+key): raise ValueError(f'validated token-map {key} differs from loaded model')
     chat=config['model'].get('chat_template',True)
     token_audit=validate_gate_tokens(rows,tokenizer,token_ids,chat)
-    code_paths=[Path(__file__),Path('src/data/supersession_behavior.py'),Path('src/data/progress.py'),Path('src/data/token_validation.py'),Path('src/models/loader.py')]
+    code_paths=[Path(__file__),Path('src/data/supersession_behavior.py'),Path('src/data/status_prompt_gate.py'),Path('src/data/progress.py'),Path('src/data/token_validation.py'),Path('src/models/loader.py')]
     code_sha=hashlib.sha256(b''.join(x.read_bytes() for x in code_paths)).hexdigest()
     fingerprint_config={**config,'status_2x2_gate':{'purpose':'task_accuracy_and_target_ranks_only','code_sha256':code_sha,
         'config_sha256':sha256_file(a.config),'chat':chat,'python':provenance(config,a.dataset)['python'],
@@ -90,9 +98,10 @@ def main():
     if a.resume and completed and not sidecar.exists(): raise ValueError('gate checkpoint provenance missing; preserve it and use a fresh path')
     if not sidecar.exists():
         save_json({**provenance(config,a.dataset),'purpose':'competence_gate_only','experiment_kind':'status_2x2',
-                   'dataset_sha256':sha256_file(a.dataset),'config_sha256':sha256_file(a.config),
+                   'dataset_sha256':sha256_file(a.dataset),'dataset_seed':rows[0]['seed'],
+                   'prompt_stage':rows[0].get('prompt_stage'),'config_sha256':sha256_file(a.config),
                    'token_map_sha256':sha256_file(a.token_ids),'code_sha256':code_sha,
-                   'token_alignment_audit':token_audit,'outputs':['full_vocab_next_token_accuracy','candidate_accuracy','target_rank','candidate_target_rank'],
+                   'token_alignment_audit':token_audit,'outputs':(['full_vocab_next_token_accuracy','target_rank'] if 'prompt_stage' in rows[0] else ['full_vocab_next_token_accuracy','candidate_accuracy','target_rank','candidate_target_rank']),
                    'causal_effects_computed':False},sidecar)
     score_gate(model,tokenizer,rows,token_ids,a.output,completed,chat)
     print(f'scored/resumed {len(rows)} competence-gate prompts; {len(completed)} loaded from checkpoint')

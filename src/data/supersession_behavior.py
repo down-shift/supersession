@@ -213,6 +213,14 @@ def audit_status_2x2_gate_dataset(rows):
 
 def render_behavior_example(ex, tokenizer=None, chat=True):
     """Render exclusively from explicit semantic values and condition metadata."""
+    if ex.get('experiment_kind') == 'status_focal':
+        from src.data.status_focal import render
+        prompt = render(ex)
+        return _answer_prefix(prompt, tokenizer, chat)
+    if 'prompt_variant' in ex:
+        from src.data.status_prompt_gate import prompt_text
+        prompt = prompt_text(ex)
+        return _answer_prefix(prompt, tokenizer, chat)
     kind, condition, values = ex['experiment_kind'], ex['condition'], ex['semantic_values']
     x, z = ex['variables']
     variables = {'x': x, 'z': z}
@@ -238,6 +246,10 @@ def render_behavior_example(ex, tokenizer=None, chat=True):
     else:
         raise ValueError('chains and mixed/unknown experiments are not supported')
     prompt = '\n'.join(lines + [question, 'Respond with only the value, with no explanation.'])
+    return _answer_prefix(prompt, tokenizer, chat)
+
+
+def _answer_prefix(prompt, tokenizer, chat):
     if tokenizer is not None and chat and getattr(tokenizer, 'chat_template', None):
         try:
             return tokenizer.apply_chat_template([{'role': 'user', 'content': prompt}], tokenize=False,
@@ -270,6 +282,11 @@ def _context_expected(base, condition):
 
 def audit_behavior_dataset(rows, kind=None):
     """Fail closed on incomplete cells, mismatched pairs, or ambiguous roles."""
+    if rows and any('prompt_variant' in r for r in rows):
+        if kind not in (None, 'status_2x2'):
+            raise ValueError('prompt variants are only supported for status_2x2')
+        from src.data.status_prompt_gate import audit_final_dataset
+        return audit_final_dataset(rows)
     if not rows:
         raise ValueError('dataset is empty')
     kinds = {r.get('experiment_kind') for r in rows}
