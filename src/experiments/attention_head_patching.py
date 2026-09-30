@@ -57,6 +57,13 @@ def validate_head_sets(head_sets,dimensions):
     return checked
 
 
+def pair_direction_examples(members):
+    """Return frozen baseline/edited examples by explicit pair-direction key."""
+    if not isinstance(members,dict) or set(members)!={0,1}:
+        raise ValueError(f"paired examples must be keyed by pair_direction 0 and 1, got {sorted(members) if isinstance(members,dict) else type(members).__name__}")
+    return members[0],members[1]
+
+
 class HeadInputHook:
     """Capture or replace one/more query-head results before Qwen3 ``o_proj``."""
     def __init__(self,attention,query_heads,head_dim,source=None,position=None,head_sets_per_row=None):

@@ -6,7 +6,8 @@ from tqdm.auto import tqdm
 from src.data.io import read_jsonl
 from src.data.generate import render_example
 from src.experiments.attention_head_patching import (capture_head_layers, patch_head_batch_logits,
-    patch_head_set_logits, validate_qwen3_attention_heads, validate_head_sets, donor_oriented_margin_effect)
+    patch_head_set_logits, validate_qwen3_attention_heads, validate_head_sets, donor_oriented_margin_effect,
+    pair_direction_examples)
 from src.experiments.patching import commit_patch_pair, recover_patch_checkpoint
 from src.models.loader import load_model
 from src.utils import load_config, provenance, save_json
@@ -107,7 +108,7 @@ def encode(ex): return tok(render_example(ex,tok,chat=c['model'].get('chat_templ
 
 for hid in tqdm(chosen,desc=f'{a.stage} head-patching histories'):
   for binding,query in cells:
-    base,edited=histories[hid][(binding,query)]
+    base,edited=pair_direction_examples(histories[hid][(binding,query)])
     for layer in layers if a.stage=='discovery' else [None]:
         set_key='joint_'+','.join(f'L{l}H{h}' for l,h in frozen_heads) if a.stage=='reserve' else None
         pair_id=f'{base["pair_id"]}:heads:{set_key}' if set_key else f'{base["pair_id"]}:headscan:L{layer}'

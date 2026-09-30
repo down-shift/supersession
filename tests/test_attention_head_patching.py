@@ -76,6 +76,14 @@ def test_head_indexing_uses_query_heads_under_gqa_and_rejects_unsupported_models
         validate_qwen3_attention_heads(unsupported)
 
 
+def test_pair_direction_examples_never_unpacks_mapping_keys():
+    from src.experiments.attention_head_patching import pair_direction_examples
+    baseline={'example_id':'baseline'}; edited={'example_id':'edited'}
+    assert pair_direction_examples({0:baseline,1:edited})==(baseline,edited)
+    with pytest.raises(ValueError,match='pair_direction 0 and 1'):
+        pair_direction_examples({0:baseline,1:edited,2:{}})
+
+
 def test_donor_oriented_patch_effect_is_positive_toward_donor_in_both_directions():
     import numpy as np
     from src.experiments.attention_head_patching import donor_oriented_margin_effect
