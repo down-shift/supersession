@@ -110,7 +110,8 @@ def test_duplicated_concrete_history_rejected():
 def test_cli_checkpoint_analysis_and_full_generation_require_recomputed_pilot(tmp_path,monkeypatch):
     from src.data.io import read_jsonl, sha256_file
     from src.data.version_chain import template_hash, render
-    from scripts.generate_version_chain import main as generate_main, verified_pilot
+    from scripts.generate_version_chain import main as generate_main
+    from src.analysis.version_chain_gate import verified_pilot
     import scripts.run_version_chain as runner
     from scripts.analyze_version_chain import main as analyze_main
     config = tmp_path/'config.yaml'
@@ -169,3 +170,14 @@ def test_cli_checkpoint_analysis_and_full_generation_require_recomputed_pilot(tm
     report.write_text(json.dumps(forged))
     with pytest.raises(ValueError,match='recomputation'):
         verified_pilot(report,config,tokens)
+    # Direct CLI execution must reach the full-run guard without importing scripts as a package.
+    import os
+    import subprocess
+    import sys
+    result = subprocess.run([sys.executable,'scripts/run_version_chain.py',
+        '--config',str(config),'--dataset',str(full),'--token-ids',str(tokens),
+        '--output',str(tmp_path/'full_scores.jsonl')],
+        env={**os.environ,'PYTHONPATH':''},capture_output=True,text=True)
+    assert result.returncode != 0
+    assert 'pilot artifact changed or is missing' in result.stderr
+    assert "No module named 'scripts'" not in result.stderr

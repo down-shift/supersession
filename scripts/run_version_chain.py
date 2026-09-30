@@ -32,7 +32,7 @@ def main():
     if any(dp.get(k) != v for k,v in bindings.items()):
         raise ValueError('dataset provenance/freshness mismatch')
     if rows[0]['stage'] == 'full':
-        from scripts.generate_version_chain import verified_pilot
+        from src.analysis.version_chain_gate import verified_pilot
         pilot_path = dp.get('pilot_audit_path')
         if not pilot_path or sha256_file(pilot_path) != dp.get('pilot_audit_sha256'):
             raise ValueError('full dataset passing pilot artifact changed or is missing')
@@ -58,7 +58,7 @@ def main():
     if td.get('chat_template_sha256') != chat_hash:
         raise ValueError('token map chat template differs')
     paths = [__file__,'src/data/version_chain.py','src/experiments/behavior.py',
-             'src/analysis/metrics.py','src/data/token_validation.py','src/data/progress.py','src/models/loader.py']
+             'src/analysis/metrics.py','src/analysis/version_chain.py','src/analysis/version_chain_gate.py','src/data/token_validation.py','src/data/progress.py','src/models/loader.py']
     code_hash = hashlib.sha256(b''.join(Path(p).read_bytes() for p in paths)).hexdigest()
     run = provenance(c,a.dataset)
     fp = {**c,'version_chain':{**bindings,'code_sha256':code_hash,
