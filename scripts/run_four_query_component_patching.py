@@ -88,7 +88,11 @@ else:
     if out.exists() or manifest.exists(): raise FileExistsError(f'{out} exists; use --resume or choose a fresh path')
     manifest.write_text(json.dumps(fingerprint,indent=2)+'\n'); out.touch(); completion.touch(); done=set()
 token_doc=json.loads(Path(a.token_ids).read_text()); token_ids=token_doc['token_ids']
-model,tok=load_model(c); blocks=validate_qwen3_blocks(model)
+model,tok=load_model(c)
+expected_revision='b968826d9c46dd6066d109eabc6255188de91218'
+if c.get('resolved_model_revision') != expected_revision or c.get('resolved_tokenizer_revision') != expected_revision:
+    raise ValueError(f'frozen model/tokenizer revision mismatch: model={c.get("resolved_model_revision")}, tokenizer={c.get("resolved_tokenizer_revision")}; expected {expected_revision}')
+blocks=validate_qwen3_blocks(model)
 if max(layers)>=len(blocks): raise ValueError(f'requested layer {max(layers)} but model has {len(blocks)} layers')
 behavior=Path(a.pairs).with_name('pair_behavior.jsonl')
 if not behavior.exists(): raise ValueError(f'frozen rendered-prompt audit requires {behavior}')

@@ -66,16 +66,14 @@ class ComponentHook:
                 kwargs = kwargs or {}
                 if args:
                     x = args[0]
-                    is_kw = False
+                    new_args = (self._apply(x), *args[1:])
                 elif "hidden_states" in kwargs:
-                    x, is_kw = kwargs["hidden_states"], True
+                    kw = dict(kwargs)
+                    kw["hidden_states"] = self._apply(kw["hidden_states"])
+                    return (args, kw)
                 else:
                     raise RuntimeError("Qwen3 decoder block pre-hook did not receive hidden_states")
-                y = self._apply(x)
-                if is_kw:
-                    kw = dict(kwargs); kw["hidden_states"] = y
-                    return (args, kw)
-                return (y, *args[1:])
+                return (new_args, dict(kwargs)) if kwargs is not None else new_args
             try:
                 self.handle = module.register_forward_pre_hook(hook, with_kwargs=True)
             except TypeError:
