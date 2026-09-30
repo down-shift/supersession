@@ -63,3 +63,52 @@ def test_identity_patch_matches_unpatched_and_current_binding_toy_changes_metric
     patched=patched_logits(model,target,source_acts[0],0,0)[0]
     natural_margin=float(base[0]-base[1]); patched_margin=float(patched[0]-patched[1])
     assert patched_margin>natural_margin
+
+def test_qwen3_component_hooks_capture_and_patch_only_named_tensor_and_block_output_matches_existing():
+    torch=pytest.importorskip("torch")
+    from types import SimpleNamespace
+    from src.experiments.component_patching import ComponentHook, capture_component, patch_component_logits
+    from src.experiments.patching import capture_run, patched_logits
+    class Scale(torch.nn.Module):
+        def __init__(self,scale): super().__init__(); self.scale=scale
+        def forward(self,x): return x*self.scale
+    class Block(torch.nn.Module):
+        def __init__(self):
+            super().__init__(); self.input_layernorm=torch.nn.Identity(); self.self_attn=Scale(2); self.post_attention_layernorm=torch.nn.Identity(); self.mlp=Scale(3)
+        def forward(self,hidden_states,**kwargs):
+            residual=hidden_states; hidden_states=self.self_attn(self.input_layernorm(hidden_states)); hidden_states=residual+hidden_states
+            residual=hidden_states; hidden_states=self.mlp(self.post_attention_layernorm(hidden_states)); return (residual+hidden_states,)
+    class Toy(torch.nn.Module):
+        def __init__(self):
+            super().__init__(); self.config=SimpleNamespace(model_type='qwen3',num_hidden_layers=1); self.layers=torch.nn.ModuleList([Block()]); self.embed=torch.nn.Embedding(3,2); self.head=torch.nn.Linear(2,2,bias=False)
+            with torch.no_grad(): self.embed.weight.copy_(torch.tensor([[1.,0.],[0.,1.],[2.,2.]])); self.head.weight.copy_(torch.eye(2))
+        def forward(self,input_ids,use_cache=False):
+            x=self.embed(input_ids)
+            for block in self.layers: x=block(x)[0]
+            return SimpleNamespace(logits=self.head(x))
+    model=Toy().eval(); source={'input_ids':torch.tensor([[0,2]])}; target={'input_ids':torch.tensor([[1,2]])}; pos=1
+    # Component captures are exactly the values entering/leaving their named module.
+    expected={'residual_input':model.embed(source['input_ids']),'attention_output':model.layers[0].self_attn(model.embed(source['input_ids'])),'mlp_output':model.layers[0].mlp(model.embed(source['input_ids'])+2*model.embed(source['input_ids'])),'block_output':model.layers[0](model.embed(source['input_ids']))[0]}
+    factors={'residual_input':12.,'attention_output':4.,'mlp_output':1.,'block_output':1.}
+    baseline=model(**target).logits[0,-1]
+    for component in ('residual_input','attention_output','mlp_output','block_output'):
+        _,captured=capture_component(model,source,0,component)
+        assert torch.equal(captured,expected[component])
+        donor=captured.clone(); donor[:,pos,:]+=1
+        result=patch_component_logits(model,target,0,component,donor,pos)
+        # The output change equals the component's exact downstream residual path.
+        assert torch.allclose(result-baseline,torch.tensor([factors[component],factors[component]]),atol=1e-6)
+        assert torch.equal(captured,expected[component])
+    _,acts=capture_run(model,source)
+    via_existing=patched_logits(model,target,acts[0],0,pos)[0]
+    via_component=patch_component_logits(model,target,0,'block_output',acts[0],pos)
+    assert torch.equal(via_existing,via_component)
+
+def test_component_hook_rejects_unsupported_architecture_clearly():
+    torch=pytest.importorskip("torch")
+    from types import SimpleNamespace
+    from src.experiments.component_patching import validate_qwen3_blocks
+    class Unsupported(torch.nn.Module):
+        def __init__(self): super().__init__(); self.config=SimpleNamespace(model_type='llama',num_hidden_layers=0); self.layers=torch.nn.ModuleList()
+    with pytest.raises(RuntimeError,match='expected config.model_type=.qwen3.'):
+        validate_qwen3_blocks(Unsupported())
