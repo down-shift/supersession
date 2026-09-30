@@ -13,6 +13,8 @@ from src.utils import load_config, provenance, save_json
 p=argparse.ArgumentParser()
 p.add_argument('--config',default='configs/four_query_288.yaml'); p.add_argument('--pairs',required=True); p.add_argument('--token-ids',required=True)
 p.add_argument('--partition-file',required=True); p.add_argument('--output',required=True)
+p.add_argument('--discovery-ids',help='existing frozen discovery CSV/JSONL; defaults beside --pairs')
+p.add_argument('--heldout-ids',help='existing frozen held-out CSV/JSONL; defaults beside --pairs')
 p.add_argument('--stage',choices=('discovery','reserve'),default='discovery')
 p.add_argument('--layers',default='25-35',help='discovery layer list/range, e.g. 25-35')
 p.add_argument('--components',default=','.join(COMPONENTS)); p.add_argument('--component',choices=COMPONENTS); p.add_argument('--layer',type=int)
@@ -38,7 +40,23 @@ histories=collections.defaultdict(dict)
 for members in pairs.values():
     if set(members)=={0,1}:
         x=members[0]; histories[x['history_id']][(x['edited_binding'],x['query_id'])]=members
-part=json.loads(Path(a.partition_file).read_text()); part_ids=part['history_ids']
+partition_path=Path(a.partition_file)
+if not partition_path.exists():
+    from scripts.freeze_mechanistic_partitions import ids_in, partition_sets
+    out_root=Path(a.pairs).parent
+    discovery_path=Path(a.discovery_ids) if a.discovery_ids else out_root/'mechanism/discovery/patch_Rx_by_layer_site.csv'
+    heldout_path=Path(a.heldout_ids) if a.heldout_ids else out_root/'mechanism/heldout/heldout_R_by_history.csv'
+    missing=[str(path) for path in (discovery_path,heldout_path) if not path.is_file()]
+    if missing:
+        raise FileNotFoundError(f'partition artifact is missing at {partition_path}, and cannot be reconstructed without existing frozen stage-1 ID sources: {missing}. Supply --discovery-ids/--heldout-ids or run the existing partition-freeze command first; no histories were repartitioned.')
+    confirm_doc=read_jsonl(a.pairs)
+    confirm=sorted(set(str(row['history_id']) for row in confirm_doc if row.get('partition','confirmatory')=='confirmatory'))
+    discovery_ids=ids_in(discovery_path); heldout_ids=ids_in(heldout_path)
+    discovery_set,heldout_set,reserve_set=partition_sets(confirm,discovery_ids,heldout_ids)
+    reserve_ids=sorted(reserve_set)
+    partition_doc={'source_artifacts':{'confirmatory_pairs':a.pairs,'stage1_discovery':str(discovery_path),'stage1_heldout':str(heldout_path)},'counts':{'confirmatory':len(confirm),'stage1_discovery':len(discovery_ids),'stage1_heldout':len(heldout_ids),'unused_mechanistic_reserve':len(reserve_ids)},'sha256':{'confirmatory':hashlib.sha256('\n'.join(confirm).encode()).hexdigest(),'stage1_discovery':hashlib.sha256('\n'.join(discovery_ids).encode()).hexdigest(),'stage1_heldout':hashlib.sha256('\n'.join(heldout_ids).encode()).hexdigest(),'unused_mechanistic_reserve':hashlib.sha256('\n'.join(reserve_ids).encode()).hexdigest()},'history_ids':{'confirmatory':confirm,'stage1_discovery':discovery_ids,'stage1_heldout':heldout_ids,'unused_mechanistic_reserve':reserve_ids}}
+    partition_path.parent.mkdir(parents=True,exist_ok=True); partition_path.write_text(json.dumps(partition_doc,indent=2)+'\n')
+part=json.loads(partition_path.read_text()); part_ids=part['history_ids']
 confirm=set(part_ids['confirmatory']); discovery=set(part_ids['stage1_discovery']); heldout=set(part_ids['stage1_heldout']); reserve=set(part_ids['unused_mechanistic_reserve'])
 if discovery&heldout or discovery&reserve or heldout&reserve or discovery|heldout|reserve!=confirm:
     raise ValueError('mechanistic partition artifact is not a disjoint cover of confirmatory histories')
