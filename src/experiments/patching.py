@@ -25,15 +25,17 @@ def version_selection_diagnostics(baseline_logits, patched_logits, current_value
       'baseline_current_logit':float(baseline_logits[current_id]),'baseline_old_logit':float(baseline_logits[old_id]),
       'patched_current_logit':float(patched_logits[current_id]),'patched_old_logit':float(patched_logits[old_id])}
 
-def validity_decision_margin(logits, valid_value, obsolete_value, token_ids):
-    """D = logit(valid current value) - logit(invalid/obsolete competitor)."""
-    return float(logits[token_ids[valid_value]]) - float(logits[token_ids[obsolete_value]])
+def focal_status_margin(logits, proposed_value, initial_value, token_ids):
+    """S = logit(proposed_focal) - logit(initial_focal)."""
+    return float(logits[token_ids[proposed_value]])-float(logits[token_ids[initial_value]])
 
-def validity_patch_delta(recipient_logits, patched_logits, valid_value, obsolete_value, token_ids):
-    """Return D and ΔD_patch = D_patched - D_recipient."""
-    before=validity_decision_margin(recipient_logits,valid_value,obsolete_value,token_ids)
-    after=validity_decision_margin(patched_logits,valid_value,obsolete_value,token_ids)
-    return {'D_recipient':before,'D_patched':after,'delta_D_patch':after-before}
+def focal_status_patch_delta(recipient_logits,patched_logits,proposed_value,initial_value,token_ids,donor_applied):
+    """Return raw ΔS and donor-oriented ΔS; positive donor-oriented values move toward donor status."""
+    before=focal_status_margin(recipient_logits,proposed_value,initial_value,token_ids)
+    after=focal_status_margin(patched_logits,proposed_value,initial_value,token_ids)
+    delta=after-before
+    return {'S_recipient':before,'S_patched':after,'delta_S_patch':delta,
+            'donor_oriented_delta_S_patch':delta if donor_applied else -delta}
 
 def identity_transfer_effect(baseline_logits, edited_logits, source_value, replacement_value, token_ids):
     """Counterfactual value identity transfer E, with fixed replacement-source orientation."""

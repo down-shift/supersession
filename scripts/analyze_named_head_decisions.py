@@ -12,22 +12,22 @@ FIELDS=('baseline_current_minus_old','patched_current_minus_old','patch_delta_cu
 def summarize(rows,seed=20261001,n_boot=10000):
     f=pd.DataFrame(rows); required={'history_id','layer','head','edited_binding','direction',*FIELDS}
     if not required<=set(f): raise ValueError(f'missing fields: {sorted(required-set(f))}')
-    if {(int(x),int(y)) for x,y in zip(f.layer,f.head)}!=set(NAMED): raise ValueError('expected six named heads')
+    if {(int(x),int(y)) for x,y in zip(f['layer'],f['head'])}!=set(NAMED): raise ValueError('expected six named heads')
     # Collapse positions and donor directions within history before treating histories as independent.
     keys=['history_id','layer','head','edited_binding']
     h=f.groupby(keys,as_index=False)[list(FIELDS)].mean()
-    h['axis']=h.edited_binding.str[-1]
-    if not set(h.axis)<=set('xz'): raise ValueError('edited binding must identify x/z')
+    h['axis']=h['edited_binding'].str[-1]
+    if not set(h['axis'])<=set('xz'): raise ValueError('edited binding must identify x/z')
     metrics={'patch_delta_current_minus_old':'patch decision margin change',
       'patched_current_change':'patched minus baseline current logit',
       'patched_obsolete_change':'patched minus baseline obsolete logit'}
-    h['patched_current_change']=h.patched_current_logit-h.baseline_current_logit
-    h['patched_obsolete_change']=h.patched_old_logit-h.baseline_old_logit
+    h['patched_current_change']=h['patched_current_logit']-h['baseline_current_logit']
+    h['patched_obsolete_change']=h['patched_old_logit']-h['baseline_old_logit']
     records=[]
     for (layer,head),g in h.groupby(['layer','head'],sort=True):
         rec={'layer':int(layer),'head':int(head),'role':NAMED[(int(layer),int(head))],'n_histories':g.history_id.nunique()}
         for metric in metrics:
-            for axis,part in [('x',g[g.axis=='x']),('z',g[g.axis=='z']),('symmetric',g.groupby('history_id')[metric].mean().reset_index())]:
+            for axis,part in [('x',g[g['axis']=='x']),('z',g[g['axis']=='z']),('symmetric',g.groupby('history_id')[metric].mean().reset_index())]:
                 vals=part[metric].to_numpy(float)
                 ci=bootstrap_mean_ci(vals,n_boot=n_boot,seed=seed+int(layer)*100+int(head)*7+len(metric)+len(axis))
                 rec[f'{metric}_{axis}_mean']=float(vals.mean()); rec[f'{metric}_{axis}_median']=float(np.median(vals))
