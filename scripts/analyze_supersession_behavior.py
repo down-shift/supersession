@@ -8,7 +8,7 @@ from pathlib import Path
 import pandas as pd
 from src.data.io import read_jsonl, sha256_file
 from src.analysis.supersession_behavior import (audited_effects, history_contrasts, summarize_histories,
-                                               competence, DEFINITIONS)
+                                               status_2x2_contrasts, competence, DEFINITIONS)
 from src.utils import provenance, save_json
 
 
@@ -16,7 +16,7 @@ def main():
     p = argparse.ArgumentParser()
     p.add_argument('--dataset', required=True)
     p.add_argument('--behavior', required=True)
-    p.add_argument('--kind', choices=('controls', 'status'), required=True)
+    p.add_argument('--kind', choices=('controls', 'status', 'controls_counterbalanced', 'status_2x2'), required=True)
     p.add_argument('--output-dir', required=True)
     p.add_argument('--seed', type=int, default=73021)
     p.add_argument('--bootstrap-draws', type=int, default=2000)
@@ -32,7 +32,7 @@ def main():
     if manifest.exists() and json.loads(manifest.read_text())['dataset_sha256'] != sha256_file(a.dataset):
         raise ValueError('scoring manifest dataset hash differs from analysis dataset')
     effects = audited_effects(dataset, scored, a.kind)
-    histories = history_contrasts(effects, a.kind)
+    histories = status_2x2_contrasts(effects) if a.kind == 'status_2x2' else history_contrasts(effects, a.kind)
     comp = competence(scored, effects, a.competence_threshold)
     results = {key: summarize_histories([h[key] for h in histories], a.seed, a.bootstrap_draws)
                for key in histories[0] if key != 'history_id'}
@@ -43,6 +43,10 @@ def main():
                'bootstrap_draws': a.bootstrap_draws, 'results': results, 'competence': comp,
                'low_competence_conditions': sorted({r['condition'] for r in comp if r['low_competence']}),
                'competence_weighting': 'all scored pair members; identical baselines repeated across independent edits',
+               'status_2x2_estimand': ('For x, average [R(proposed_x | YY)-R(proposed_x | NY)] and [R(proposed_x | YN)-R(proposed_x | NN)]; z is symmetric. Each R is E(identity_transfer | query edited variable) minus E(identity_transfer | other query).'
+                                      if a.kind == 'status_2x2' else None),
+               'counterbalanced_slot_estimand': ('Within each history, average each irrelevant edit/query effect over unassigned_slot_order xz and zx before computing x/z relevance contrasts.'
+                                                 if a.kind == 'controls_counterbalanced' else None),
                'provenance': {**provenance({'seed': a.seed}, a.dataset), 'behavior_sha256': sha256_file(a.behavior),
                               'analysis_code_sha256': hashlib.sha256(Path(__file__).read_bytes()+Path('src/analysis/supersession_behavior.py').read_bytes()+Path('src/analysis/metrics.py').read_bytes()).hexdigest(),
                               'scoring_provenance': json.loads(scoring_provenance.read_text()) if scoring_provenance.exists() else None}}

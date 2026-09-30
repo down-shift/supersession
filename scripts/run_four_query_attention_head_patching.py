@@ -20,6 +20,7 @@ p.add_argument('--reserve-subpartition',help='frozen JSON from freeze_head_reser
 p.add_argument('--stage',choices=('discovery','reserve'),default='discovery')
 p.add_argument('--layers',default='32-35',help='discovery layer list/range; default includes transition control layer 35')
 p.add_argument('--heads',help='reserve only: manually frozen comma-separated LAYER:QUERY_HEAD pairs, e.g. 32:7,34:12')
+p.add_argument('--profile-heads',help='discovery only: named exploratory heads LAYER:QUERY_HEAD,...')
 p.add_argument('--head-batch-size',type=int,default=4); p.add_argument('--resume',action='store_true')
 a=p.parse_args()
 
@@ -44,10 +45,14 @@ def parse_head_pairs(value):
 
 if a.head_batch_size<1: raise ValueError('--head-batch-size must be positive')
 if a.stage=='discovery':
-    layers=parse_layers(a.layers); frozen_heads=None
+    frozen_heads=None
+    profile_heads=parse_head_pairs(a.profile_heads) if a.profile_heads else None
+    layers=sorted({layer for layer,_ in profile_heads}) if profile_heads else parse_layers(a.layers)
     if not set(layers).issubset({32,33,34,35}): raise ValueError('discovery head scan is restricted to transition layers 32-35; do not scan all model layers')
     if a.heads: raise ValueError('--heads is reserved for manually frozen reserve confirmation')
 else:
+    if a.profile_heads: raise ValueError('--profile-heads is discovery-only')
+    profile_heads=None
     frozen_heads=parse_head_pairs(a.heads); layers=sorted({layer for layer,_ in frozen_heads})
 
 c=load_config(a.config); pairs=collections.defaultdict(dict)
@@ -91,7 +96,8 @@ out=Path(a.output); manifest=Path(str(out)+'.run.json'); completion=Path(str(out
 def sha(path): return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 try: commit=__import__('subprocess').check_output(['git','rev-parse','HEAD'],text=True,stderr=__import__('subprocess').DEVNULL).strip()
 except Exception: commit=None
-fingerprint={'pairs_sha256':sha(a.pairs),'token_map_sha256':sha(a.token_ids),'partition_sha256':sha(a.partition_file),'reserve_subpartition_sha256':sha(a.reserve_subpartition) if a.reserve_subpartition else None,'config_sha256':sha(a.config),'model_id':c['model']['id'],'stage':a.stage,'history_ids':chosen,'cells':cells,'layers':layers,'frozen_head_pairs':frozen_heads,'head_batch_size':a.head_batch_size,'git_commit':commit,'code_sha256':hashlib.sha256(Path(__file__).read_bytes()+Path(__import__('src.experiments.attention_head_patching',fromlist=['__file__']).__file__).read_bytes()).hexdigest()}
+head_module_path=Path(__import__('src.experiments.attention_head_patching',fromlist=['__file__']).__file__)
+fingerprint={'pairs_sha256':sha(a.pairs),'token_map_sha256':sha(a.token_ids),'partition_sha256':sha(a.partition_file),'reserve_subpartition_sha256':sha(a.reserve_subpartition) if a.reserve_subpartition else None,'config_sha256':sha(a.config),'model_id':c['model']['id'],'stage':a.stage,'history_ids':chosen,'cells':cells,'layers':layers,'frozen_head_pairs':frozen_heads,'profile_heads':profile_heads,'head_batch_size':a.head_batch_size,'git_commit':commit,'code_sha256':hashlib.sha256(Path(__file__).read_bytes()+head_module_path.read_bytes()).hexdigest()}
 if a.resume:
     if not manifest.exists(): raise ValueError('--resume requires an existing head-patching run manifest')
     saved=json.loads(manifest.read_text())
@@ -109,6 +115,8 @@ blocks,dimensions=validate_qwen3_attention_heads(model)
 if max(layers)>=len(blocks): raise ValueError(f'requested layer {max(layers)} but model has {len(blocks)} layers')
 if a.stage=='reserve':
     validate_head_sets({layer:[head for l,head in frozen_heads if l==layer] for layer in layers},dimensions)
+elif profile_heads:
+    validate_head_sets({layer:[head for l,head in profile_heads if l==layer] for layer in layers},dimensions)
 behavior=Path(a.pairs).with_name('pair_behavior.jsonl')
 if not behavior.exists(): raise FileNotFoundError(f'frozen rendered-prompt audit requires {behavior}')
 scored={r['example_id']:r for r in read_jsonl(behavior)}
@@ -136,15 +144,16 @@ for hid in tqdm(chosen,desc=f'{a.stage} head-patching histories'):
             position=rin['input_ids'].shape[1]-1
             if a.stage=='discovery':
                 qheads,kvheads,head_dim=dimensions[layer]
-                for start in range(0,qheads,a.head_batch_size):
-                    head_ids=list(range(start,min(start+a.head_batch_size,qheads)))
+                available=[h for l,h in profile_heads if l==layer] if profile_heads else list(range(qheads))
+                for start in range(0,len(available),a.head_batch_size):
+                    head_ids=available[start:start+a.head_batch_size]
                     patched=patch_head_batch_logits(model,rin,layer,donor_acts[layer],head_ids,position).cpu()
-                    for row,head in enumerate(head_ids):
-                        effect=donor_oriented_margin_effect(donor_logits,recipient_logits,patched[row],donor[binding],recipient[binding],token_ids)
+                    for head_row,head in enumerate(head_ids):
+                        effect=donor_oriented_margin_effect(donor_logits,recipient_logits,patched[head_row],donor[binding],recipient[binding],token_ids)
                         row={'pair_id':pair_id,'history_id':hid,'edited_binding':binding,'query_id':query,'layer':layer,'head':head,'query_head_index':head,'num_attention_heads':qheads,'num_key_value_heads':kvheads,'head_dim':head_dim,'position':position,'site_role':'final_preanswer','direction':label,'donor_value':donor[binding],'recipient_value':recipient[binding],**effect}
                         if query.startswith('current_') and binding.startswith('old_'):
                             old_value=recipient[binding]; current_value=recipient['answer']
-                            row.update(version_selection_diagnostics(recipient_logits,patched[row],current_value,old_value,token_ids))
+                            row.update(version_selection_diagnostics(recipient_logits,patched[head_row],current_value,old_value,token_ids))
                             row.update({'donor_old_value':donor[binding],'recipient_old_value_used':old_value})
                         rows.append(row)
             else:
@@ -159,5 +168,5 @@ for hid in tqdm(chosen,desc=f'{a.stage} head-patching histories'):
                 rows.append(row)
         commit_patch_pair(out,completion,pair_id,rows); done.add(pair_id)
 
-save_json({'provenance':provenance(c,a.pairs),'stage':a.stage,'analysis_label':'exploratory_individual_attention_head_scan' if a.stage=='discovery' else 'manually_frozen_reserve_head_set_confirmation','exploratory':a.stage=='discovery','history_ids':chosen,'layers':layers,'cells':cells,'frozen_head_pairs':frozen_heads,'head_indexing':'query-head index along the Qwen3 attention output [batch, sequence, query_heads, head_dim]; GQA repeats KV heads into query heads before attention output is formed','tensor_patched':'self_attn.o_proj pre-hook input reshaped from [batch, sequence, num_attention_heads*head_dim] to [batch, sequence, num_attention_heads, head_dim]; selected head slice replaced before o_proj','model_config':{'num_attention_heads':dimensions[0][0],'num_key_value_heads':dimensions[0][1],'head_dim':dimensions[0][2]},'attention_weights_used_as_evidence':False},str(out)+'.provenance.json')
+save_json({'provenance':provenance(c,a.pairs),'stage':a.stage,'analysis_label':'named_exploratory_functional_profile' if profile_heads else ('exploratory_individual_attention_head_scan' if a.stage=='discovery' else 'manually_frozen_reserve_head_set_confirmation'),'exploratory':a.stage=='discovery','history_ids':chosen,'layers':layers,'cells':cells,'frozen_head_pairs':frozen_heads,'profile_heads':profile_heads,'head_indexing':'query-head index along the Qwen3 attention output [batch, sequence, query_heads, head_dim]; GQA repeats KV heads into query heads before attention output is formed','tensor_patched':'self_attn.o_proj pre-hook input reshaped from [batch, sequence, num_attention_heads*head_dim] to [batch, sequence, num_attention_heads, head_dim]; selected head slice replaced before o_proj','model_config':{'num_attention_heads':dimensions[0][0],'num_key_value_heads':dimensions[0][1],'head_dim':dimensions[0][2]},'attention_weights_used_as_evidence':False},str(out)+'.provenance.json')
 print(f'saved/resumed {a.stage} attention-head patch records at {out}; histories={len(chosen)}, layers={layers}, head pairs={frozen_heads if frozen_heads else "all query heads"}')

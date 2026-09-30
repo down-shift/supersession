@@ -11,7 +11,9 @@ from collections import defaultdict
 
 SCHEMA = 'supersession_behavior_v1'
 FIELDS = ('initial_x', 'initial_z', 'proposed_x', 'proposed_z')
-CONDITIONS = {'controls': ('live', 'superseded', 'irrelevant'), 'status': ('accepted', 'rejected')}
+CONDITIONS = {'controls': ('live', 'superseded', 'irrelevant'),
+              'controls_counterbalanced': ('live', 'superseded', 'irrelevant', 'irrelevant_counterbalanced'),
+              'status': ('accepted', 'rejected'), 'status_2x2': ('YY', 'YN', 'NY', 'NN')}
 
 
 def _derived(row):
@@ -39,13 +41,15 @@ def generate_behavior_pairs(kind, n, values, seed=73021):
     are fixed across query and status/condition for the same variable.
     """
     if kind not in CONDITIONS:
-        raise ValueError('behavior scoring supports only controls and status')
+        raise ValueError('unsupported behavioral dataset kind')
     values = list(values)
     if (len(values) < 5 or any(not isinstance(v, str) or not v for v in values)
             or len(set(values)) != len(values)):
         raise ValueError('at least five distinct candidate values are required')
     if n < 1:
         raise ValueError('n must be positive')
+    if kind == 'status_2x2' and n % 2:
+        raise ValueError('status_2x2 requires an even history count to counterbalance literal update-block order')
     if n > len(values)*(len(values)-1)*(len(values)-2)*(len(values)-3):
         raise ValueError('too many distinct histories for this candidate pool')
     rng = random.Random(seed)
@@ -62,20 +66,30 @@ def generate_behavior_pairs(kind, n, values, seed=73021):
         hid = f'{kind}{index:06d}'
         variables = ['x', 'z'] if index % 2 == 0 else ['z', 'x']
         for condition in CONDITIONS[kind]:
-            proposed_current = condition in ('superseded', 'irrelevant', 'accepted')
-            current_fields = {v: f'{"proposed" if proposed_current else "initial"}_{v}' for v in ('x', 'z')}
-            obsolete_fields = {v: f'initial_{v}' for v in ('x', 'z')} if condition in ('superseded', 'accepted') else {}
-            important = FIELDS if condition != 'live' else FIELDS[:2]
+            is_control = kind in ('controls', 'controls_counterbalanced')
+            if kind == 'status_2x2':
+                accepted = {'x': condition[0] == 'Y', 'z': condition[1] == 'Y'}
+            else:
+                new_is_current = condition in ('superseded', 'irrelevant', 'irrelevant_counterbalanced', 'accepted')
+                accepted = {'x': new_is_current, 'z': new_is_current}
+            current_fields = {v: f'{"proposed" if accepted[v] else "initial"}_{v}' for v in ('x', 'z')}
+            obsolete_fields = {v: f'initial_{v}' for v in ('x', 'z') if accepted[v] and condition in ('superseded', 'accepted', 'YY', 'YN', 'NY')}
+            important = FIELDS[:2] if condition == 'live' else FIELDS
             statuses = {}
             for field in important:
-                if kind == 'controls':
-                    if field.startswith('initial'):
-                        statuses[field] = {'live': 'live_current', 'superseded': 'superseded_initial', 'irrelevant': 'irrelevant_occurrence'}[condition]
-                    else:
-                        statuses[field] = 'accepted_current' if condition == 'superseded' else 'live_current'
+                v = field[-1]
+                if is_control:
+                    if condition == 'live': status = 'live_current'
+                    elif condition == 'superseded': status = 'superseded_initial' if field.startswith('initial') else 'accepted_current'
+                    elif field.startswith('initial'): status = 'irrelevant_occurrence'
+                    else: status = 'live_current'
+                elif kind == 'status':
+                    status = ('accepted_current' if field.startswith('proposed') else 'superseded_initial') if condition == 'accepted' else ('rejected_update' if field.startswith('proposed') else 'accepted_current')
                 else:
-                    statuses[field] = ('accepted_current' if field.startswith('proposed') else 'superseded_initial') if condition == 'accepted' else ('rejected_update' if field.startswith('proposed') else 'accepted_current')
-            fields_to_edit = FIELDS[:2] if kind == 'controls' else FIELDS
+                    status = ('accepted_current' if field.startswith('proposed') else 'superseded_initial') if accepted[v] else ('rejected_update' if field.startswith('proposed') else 'accepted_current')
+                statuses[field] = status
+            fields_to_edit = FIELDS[:2] if is_control else FIELDS
+            slot_orders = ('xz', 'zx') if condition == 'irrelevant_counterbalanced' else (None,)
             context = {'schema': SCHEMA, 'experiment_kind': kind, 'history_id': hid, 'condition': condition,
                        'seed': seed, 'history_index': index, 'variables': variables, 'orientation': index % 2,
                        'matching_values': original, 'replacement_values': replacements,
@@ -84,18 +98,117 @@ def generate_behavior_pairs(kind, n, values, seed=73021):
                        'candidate_values': values}
             if kind == 'status':
                 context.update(update_accepted=condition == 'accepted', status='YES' if condition == 'accepted' else 'NO')
-            for field in fields_to_edit:
-                variable = field[-1]  # Schema field identifier, never prompt text.
-                for query in ('x', 'z'):
-                    pid = f'{hid}:{condition}:{field}:current_{query}'
-                    base = _derived({**copy.deepcopy(context), 'pair_id': pid, 'pair_direction': 0,
-                                     'example_id': f'{pid}:0', 'query': query, 'query_id': f'current_{query}',
-                                     'edited_field': field, 'edited_variable': variable,
-                                     'edit_status': statuses[field], 'source_value': original[field],
-                                     'replacement_value': replacements[field]})
-                    rows.extend((base, edited_member(base)))
+            if kind == 'status_2x2':
+                context.update(update_accepted_by_variable=accepted, status_by_variable={v: ('accepted' if accepted[v] else 'rejected') for v in ('x', 'z')}, status=condition)
+            for slot_order in slot_orders:
+                for field in fields_to_edit:
+                    variable = field[-1]
+                    for query in ('x', 'z'):
+                        pid = f'{hid}:{condition}:{field}:current_{query}' + (f':slots_{slot_order}' if slot_order else '')
+                        base = _derived({**copy.deepcopy(context), 'pair_id': pid, 'pair_direction': 0,
+                                         'example_id': f'{pid}:0', 'query': query, 'query_id': f'current_{query}',
+                                         'edited_field': field, 'edited_variable': variable, 'unassigned_slot_order': slot_order,
+                                         'edit_status': statuses[field], 'source_value': original[field],
+                                         'replacement_value': replacements[field]})
+                        rows.extend((base, edited_member(base)))
     audit_behavior_dataset(rows, kind)
+    if kind == 'status_2x2':
+        audit_status_2x2_update_order(rows)
     return rows
+
+
+def audit_status_2x2_update_order(rows):
+    """Require literal x/z update-block order to be balanced within each status cell."""
+    histories = {}
+    for row in rows:
+        if row.get('experiment_kind') != 'status_2x2':
+            raise ValueError('update-order audit requires status_2x2 records')
+        key = (row['history_id'], row['condition'])
+        signature = (tuple(row['variables']), int(row['orientation']))
+        if key in histories and histories[key] != signature:
+            raise ValueError('status cell changes literal update-block order within a history')
+        histories[key] = signature
+    if not histories:
+        raise ValueError('no status_2x2 history/order records found')
+    by_condition = defaultdict(lambda: defaultdict(int))
+    per_history = defaultdict(dict)
+    for (hid, condition), (variables, orientation) in histories.items():
+        if orientation not in (0, 1) or variables not in (('x','z'),('z','x')):
+            raise ValueError('unsupported orientation or literal variable order')
+        if (orientation == 0 and variables != ('x','z')) or (orientation == 1 and variables != ('z','x')):
+            raise ValueError('orientation does not match literal variable order')
+        first_literal = variables[0]
+        by_condition[condition][first_literal] += 1
+        per_history[hid][condition] = first_literal
+    expected_conditions = {'YY','YN','NY','NN'}
+    if any(set(cells) != expected_conditions for cells in per_history.values()):
+        raise ValueError('each history must include all four independent status cells')
+    for condition, counts in by_condition.items():
+        if counts.get('x',0) != counts.get('z',0):
+            raise ValueError(f'update-block order is not balanced for {condition}: {dict(counts)}')
+    return {condition: dict(counts) for condition, counts in sorted(by_condition.items())}
+
+
+def generate_status_2x2_gate(n, values, seed):
+    """Generate 8 unedited task prompts per history, without paired-edit records."""
+    if n != 24:
+        raise ValueError('status_2x2 competence gate is fixed at 24 fresh histories')
+    paired = generate_behavior_pairs('status_2x2', n, values, seed)
+    rows = []
+    keep = {'schema','history_id','history_index','seed','orientation','variables','condition','status',
+            'status_by_variable','update_accepted_by_variable','matching_values','candidate_values',
+            'semantic_values','semantic_status','current_fields','obsolete_fields','current_x','current_z',
+            'query','query_id','answer','roles'}
+    selected = [r for r in paired if r['pair_direction'] == 0 and r['edited_field'] == 'initial_x']
+    for source in selected:
+        row = {key: source[key] for key in keep}
+        row['history_id'] = f"status2x2gate{source['history_index']:06d}"
+        row.update(experiment_kind='status_2x2', record_type='status_2x2_competence_gate',
+                   example_id=f"{row['history_id']}:{source['condition']}:{source['query']}")
+        rows.append(row)
+    audit_status_2x2_gate_dataset(rows)
+    audit_status_2x2_update_order(rows)
+    return rows
+
+
+def audit_status_2x2_gate_dataset(rows):
+    if len(rows) != 24*4*2:
+        raise ValueError('status_2x2 competence gate must have exactly 24 histories × four cells × two queries')
+    histories = defaultdict(dict); ids = set()
+    for row in rows:
+        if row.get('record_type') != 'status_2x2_competence_gate' or row.get('experiment_kind') != 'status_2x2':
+            raise ValueError('gate dataset contains non-gate examples')
+        if any(key in row for key in ('edited_field','pair_id','pair_direction','source_value','replacement_value','identity_transfer')):
+            raise ValueError('gate rows must not include counterfactual edit or causal-effect fields')
+        if row.get('condition') not in ('YY','YN','NY','NN') or row.get('query') not in ('x','z'):
+            raise ValueError('invalid gate status/query cell')
+        if row['example_id'] in ids: raise ValueError('duplicate gate example_id')
+        ids.add(row['example_id'])
+        accepted={v:row['condition'][i]=='Y' for i,v in enumerate(('x','z'))}
+        expected_status={v:('accepted' if accepted[v] else 'rejected') for v in ('x','z')}
+        if row.get('status_by_variable')!=expected_status or row.get('update_accepted_by_variable')!={v:accepted[v] for v in ('x','z')}:
+            raise ValueError('gate semantic status metadata disagrees with status cell')
+        if row['current_fields']!={v:f'{"proposed" if accepted[v] else "initial"}_{v}' for v in ('x','z')}:
+            raise ValueError('gate current binding metadata mismatch')
+        expected_answer=row['semantic_values'][row['current_fields'][row['query']]]
+        if row['answer']!=expected_answer or row['roles']!={'target':expected_answer}:
+            raise ValueError('gate task answer metadata mismatch')
+        key=(row['condition'],row['query'])
+        if key in histories[row['history_id']]: raise ValueError('duplicate gate status/query cell')
+        histories[row['history_id']][key]=row
+    required={(c,q) for c in ('YY','YN','NY','NN') for q in ('x','z')}
+    if len(histories)!=24 or any(set(cells)!=required for cells in histories.values()):
+        raise ValueError('gate must contain 24 complete histories with all status/query cells')
+    signatures=set()
+    for hid,cells in histories.items():
+        ref=next(iter(cells.values()))
+        for row in cells.values():
+            for key in ('matching_values','variables','candidate_values','seed','history_index','orientation'):
+                if row[key]!=ref[key]: raise ValueError(f'gate history {hid} is not matched on {key}')
+        signature=(tuple(ref['variables']),tuple(ref['matching_values'][f] for f in FIELDS))
+        if signature in signatures: raise ValueError('duplicate concrete gate history')
+        signatures.add(signature)
+    return True
 
 
 def render_behavior_example(ex, tokenizer=None, chat=True):
@@ -103,24 +216,24 @@ def render_behavior_example(ex, tokenizer=None, chat=True):
     kind, condition, values = ex['experiment_kind'], ex['condition'], ex['semantic_values']
     x, z = ex['variables']
     variables = {'x': x, 'z': z}
-    if kind == 'controls':
+    if kind in ('controls', 'controls_counterbalanced'):
         if condition == 'live':
             lines = [f'Assignment: {variables[v]} = {values[f"initial_{v}"]}' for v in ('x', 'z')]
         elif condition == 'superseded':
             lines = [f'Initial assignment: {variables[v]} = {values[f"initial_{v}"]}' for v in ('x', 'z')]
             lines += [f'Update: {variables[v]} = {values[f"proposed_{v}"]}' for v in ('x', 'z')]
-        elif condition == 'irrelevant':
+        elif condition in ('irrelevant', 'irrelevant_counterbalanced'):
             lines = [f'Assignment: {variables[v]} = {values[f"proposed_{v}"]}' for v in ('x', 'z')]
-            # x/z are analytic slot labels only: neither mention is bound to a variable.
-            lines += [f'Unassigned candidate: {values[f"initial_{v}"]}' for v in ('x', 'z')]
+            order = ex.get('unassigned_slot_order') or 'xz'
+            lines += [f'Unassigned candidate: {values[f"initial_{v}"]}' for v in order]
         else:
             raise ValueError('unknown control condition')
         question = f'After all updates, what is {variables[ex["query"]]}?' if condition == 'superseded' else f'What is {variables[ex["query"]]}?'
-    elif kind == 'status':
+    elif kind in ('status', 'status_2x2'):
         lines = [f'Initial assignment: {variables[v]} = {values[f"initial_{v}"]}' for v in ('x', 'z')]
         for v in ('x', 'z'):
             lines += [f'Proposed update: {variables[v]} = {values[f"proposed_{v}"]}',
-                      f'Update accepted: {"YES" if ex["update_accepted"] else "NO"}']
+                      f'Update accepted: {"YES" if (ex["update_accepted"] if kind == "status" else ex["update_accepted_by_variable"][v]) else "NO"}']
         question = f'After all accepted updates, what is {variables[ex["query"]]}?'
     else:
         raise ValueError('chains and mixed/unknown experiments are not supported')
@@ -136,18 +249,23 @@ def render_behavior_example(ex, tokenizer=None, chat=True):
 
 def _context_expected(base, condition):
     """Canonical unedited context for auditing cross-condition matching."""
+    kind = base['experiment_kind']
     fields = FIELDS[:2] if condition == 'live' else FIELDS
-    current = condition in ('superseded', 'irrelevant', 'accepted')
+    accepted = ({'x': condition[0] == 'Y', 'z': condition[1] == 'Y'} if kind == 'status_2x2' else
+                {v: condition in ('superseded', 'irrelevant', 'irrelevant_counterbalanced', 'accepted') for v in ('x', 'z')})
+    current = condition in ('superseded', 'irrelevant', 'irrelevant_counterbalanced', 'accepted')
     statuses = {}
     for field in fields:
-        if base['experiment_kind'] == 'controls':
-            statuses[field] = ({'live': 'live_current', 'superseded': 'superseded_initial', 'irrelevant': 'irrelevant_occurrence'}[condition]
-                               if field.startswith('initial') else ('accepted_current' if condition == 'superseded' else 'live_current'))
-        else:
+        if kind in ('controls', 'controls_counterbalanced'):
+            statuses[field] = ('live_current' if condition == 'live' else 'superseded_initial' if condition == 'superseded' and field.startswith('initial') else
+                               'accepted_current' if condition == 'superseded' else 'irrelevant_occurrence' if field.startswith('initial') else 'live_current')
+        elif kind == 'status':
             statuses[field] = ('accepted_current' if field.startswith('proposed') else 'superseded_initial') if condition == 'accepted' else ('rejected_update' if field.startswith('proposed') else 'accepted_current')
+        else:
+            statuses[field] = ('accepted_current' if field.startswith('proposed') else 'superseded_initial') if accepted[field[-1]] else ('rejected_update' if field.startswith('proposed') else 'accepted_current')
+    obsolete = {v: f'initial_{v}' for v in ('x', 'z') if accepted[v] and condition in ('superseded', 'accepted', 'YY', 'YN', 'NY')}
     return ({f: base['matching_values'][f] for f in fields}, statuses,
-            {v: f'{"proposed" if current else "initial"}_{v}' for v in ('x', 'z')},
-            {v: f'initial_{v}' for v in ('x', 'z')} if condition in ('superseded', 'accepted') else {})
+            {v: f'{"proposed" if accepted[v] else "initial"}_{v}' for v in ('x', 'z')}, obsolete)
 
 
 def audit_behavior_dataset(rows, kind=None):
@@ -185,10 +303,10 @@ def audit_behavior_dataset(rows, kind=None):
             raise ValueError(f'pair {pid} lacks baseline/edit pair_direction 0 and 1')
         base, edit = members[0], members[1]
         condition, field, query = base['condition'], base['edited_field'], base['query']
-        fields_to_edit = FIELDS[:2] if kind == 'controls' else FIELDS
+        fields_to_edit = FIELDS[:2] if kind in ('controls', 'controls_counterbalanced') else FIELDS
         if field not in fields_to_edit or query not in ('x', 'z') or base['edited_variable'] != field[-1] or base['query_id'] != f'current_{query}':
             raise ValueError('invalid edited field/variable or query cell')
-        expected_pid = f'{base["history_id"]}:{condition}:{field}:current_{query}'
+        expected_pid = f'{base["history_id"]}:{condition}:{field}:current_{query}' + (f':slots_{base["unassigned_slot_order"]}' if base.get('unassigned_slot_order') else '')
         if pid != expected_pid:
             raise ValueError('pair_id disagrees with semantic metadata')
         if len(base['variables']) != 2 or len(set(base['variables'])) != 2:
@@ -208,13 +326,15 @@ def audit_behavior_dataset(rows, kind=None):
             raise ValueError('source/replacement/edit status metadata mismatch')
         if kind == 'status' and (type(base.get('update_accepted')) is not bool or base['update_accepted'] != (condition == 'accepted') or base.get('status') != ('YES' if condition == 'accepted' else 'NO')):
             raise ValueError('accepted/rejected semantic status mismatch')
+        if kind == 'status_2x2' and (base.get('status') != condition or base.get('status_by_variable') != {v: ('accepted' if condition[i] == 'Y' else 'rejected') for i, v in enumerate(('x', 'z'))}):
+            raise ValueError('independent x/z acceptance status metadata mismatch')
         if _derived(copy.deepcopy(base)) != base or edited_member(base) != edit:
             raise ValueError('baseline/edit differ beyond the intended semantic value and its derived answer roles')
-        hid = base['history_id']; cell = (condition, field, query)
+        hid = base['history_id']; cell = (condition, field, query, base.get('unassigned_slot_order'))
         if cell in histories[hid]:
             raise ValueError('duplicate history query/edit cell')
         histories[hid][cell] = base
-    expected_cells = {(c, f, q) for c in CONDITIONS[kind] for f in (FIELDS[:2] if kind == 'controls' else FIELDS) for q in ('x', 'z')}
+    expected_cells = {(c, f, q, slot) for c in CONDITIONS[kind] for f in (FIELDS[:2] if kind in ('controls', 'controls_counterbalanced') else FIELDS) for q in ('x', 'z') for slot in (('xz', 'zx') if c == 'irrelevant_counterbalanced' else (None,))}
     signatures = set()
     for hid, cells in histories.items():
         if set(cells) != expected_cells:

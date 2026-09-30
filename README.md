@@ -278,3 +278,58 @@ uv run python scripts/validate_replication_vocab.py --config configs/four_query_
 ```
 
 The validator records accepted and rejected candidates, one-token continuation checks, assignment-alignment audit, and vocabulary overlap. A later replication run should use only its separately frozen token map and fresh data. None of these commands selects a head automatically, treats attention weights as causal evidence, or implies erasure or a complete circuit.
+
+### Counterbalanced irrelevant and independent-status follow-ups
+
+The existing `controls.jsonl` and `status.jsonl` remain unchanged. Generate separate fresh-history datasets for counterbalanced unassigned mention slots and independently accepted/rejected x/z updates:
+
+```bash
+uv run python scripts/generate_supersession_experiments.py --kind controls_counterbalanced --values configs/supersession_values.json --token-ids outputs/four_query_288/frozen_token_ids.json --output outputs/supersession/controls_counterbalanced.jsonl --seed 20260930
+uv run python scripts/run_supersession_behavior.py --config configs/four_query_288.yaml --dataset outputs/supersession/controls_counterbalanced.jsonl --token-ids outputs/four_query_288/frozen_token_ids.json --output outputs/supersession/controls_counterbalanced_behavior.jsonl
+uv run python scripts/analyze_supersession_behavior.py --dataset outputs/supersession/controls_counterbalanced.jsonl --behavior outputs/supersession/controls_counterbalanced_behavior.jsonl --kind controls_counterbalanced --output-dir outputs/supersession/controls_counterbalanced_analysis
+
+uv run python scripts/generate_supersession_experiments.py --kind status_2x2 --values configs/supersession_values.json --token-ids outputs/four_query_288/frozen_token_ids.json --output outputs/supersession/status_2x2.jsonl --seed 20260931
+uv run python scripts/run_supersession_behavior.py --config configs/four_query_288.yaml --dataset outputs/supersession/status_2x2.jsonl --token-ids outputs/four_query_288/frozen_token_ids.json --output outputs/supersession/status_2x2_behavior.jsonl
+uv run python scripts/analyze_supersession_behavior.py --dataset outputs/supersession/status_2x2.jsonl --behavior outputs/supersession/status_2x2_behavior.jsonl --kind status_2x2 --output-dir outputs/supersession/status_2x2_analysis
+```
+
+The counterbalanced condition presents the same unassigned x/z identities in both first/second slot orders for every history. The analyzer averages each edit/query effect over slot order before forming its x/z relevance contrast; the original fixed-order irrelevant condition remains a comparison. In `status_2x2`, the code gives x status then z status (`YY`, `YN`, `NY`, `NN`). For x, the history-paired acceptance contrast averages `YY−NY` and `YN−NN`; z averages `YY−YN` and `NY−NN`. Only the focal variable's status changes within each comparison. These new datasets require model scoring before they support behavioral conclusions.
+
+Audit the already-scored original status data without loading a model. This categorizes every incorrect NO prediction and reports the secondary subset with all NO members correct; it does not replace the all-trials analysis:
+
+```bash
+uv run python scripts/audit_supersession_status.py --dataset outputs/supersession/status.jsonl --behavior outputs/supersession/status_behavior.jsonl --token-ids outputs/four_query_288/frozen_token_ids.json --output-dir outputs/supersession/status_audit
+```
+
+Named head profiling uses only Stage 1 discovery histories, with no reserve input. It is exploratory and does not select a head automatically:
+
+```bash
+uv run python scripts/run_four_query_attention_head_patching.py --stage discovery --config configs/four_query_288.yaml --pairs outputs/four_query_288/pairs.jsonl --token-ids outputs/four_query_288/frozen_token_ids.json --partition-file outputs/four_query_288/mechanism/mechanistic_partitions.json --profile-heads 32:8,34:1,34:28,33:12,34:29,35:27 --output outputs/four_query_288/mechanism/named_discovery_head_profile.jsonl
+uv run python scripts/analyze_named_head_profiles.py --patches outputs/four_query_288/mechanism/named_discovery_head_profile.jsonl --output-dir outputs/four_query_288/mechanism/named_discovery_head_analysis
+```
+
+The named profile requires complete stale, historical, and current query cells for the same 24 discovery histories. It does not inspect or consume the mechanistic reserve.
+
+### Status 2×2 competence gate and order audit
+
+Run a separate 24-history, accuracy-only gate before creating confirmatory 2×2 histories. The gate records task accuracy and target ranks only; any cell below 99% is a prompt-design failure. Gate scoring must run on the configured model host:
+
+```bash
+uv run python scripts/generate_supersession_experiments.py --kind status_2x2_gate --n 24 --seed 20261001 --values configs/supersession_values.json --token-ids outputs/four_query_288/frozen_token_ids.json --output outputs/supersession/status_2x2_competence_gate.jsonl
+uv run python scripts/run_status_2x2_gate.py --config configs/four_query_288.yaml --dataset outputs/supersession/status_2x2_competence_gate.jsonl --token-ids outputs/four_query_288/frozen_token_ids.json --output outputs/supersession/status_2x2_competence_gate_scores.jsonl
+uv run python scripts/analyze_status_2x2_gate.py --dataset outputs/supersession/status_2x2_competence_gate.jsonl --behavior outputs/supersession/status_2x2_competence_gate_scores.jsonl --output-dir outputs/supersession/status_2x2_competence_gate_analysis
+```
+
+The generator audits update-block order. Orientation 0 maps semantic x to literal x in the first block position; orientation 1 maps semantic x to literal z in the first position. The saved 96-history `status_2x2.jsonl` has 48 histories in each literal order per status cell, but it predates this gate; preserve it as a pre-gate artifact and do not treat it as confirmatory. After the gate passes, create a fresh final dataset at a new path with a new seed:
+
+```bash
+uv run python scripts/generate_supersession_experiments.py --kind status_2x2 --n 96 --seed 20261002 --values configs/supersession_values.json --token-ids outputs/four_query_288/frozen_token_ids.json --output outputs/supersession/status_2x2_confirmatory.jsonl
+```
+
+Audit whether the existing accepted/rejected asymmetry tracks literal variable names or block position using only saved status records:
+
+```bash
+uv run python scripts/audit_status_order_orientation.py --dataset outputs/supersession/status.jsonl --behavior outputs/supersession/status_behavior.jsonl --output-dir outputs/supersession/status_order_audit
+```
+
+This CPU analysis reports history-level relevance components and task accuracy/ranks stratified by literal variable, first/second assignment or update position, and orientation. Its additive position/name decomposition is descriptive; inspect the orientation-specific contrasts for interactions.

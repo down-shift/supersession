@@ -13,7 +13,8 @@ from src.data.progress import prepare_jsonl_progress
 from src.data.supersession_behavior import (generate_behavior_pairs, audit_behavior_dataset,
                                           audit_candidate_tokens, audit_tokenized_pairs, render_behavior_example)
 from src.analysis.supersession_behavior import (audited_effects, matched_edit_effect,
-                                               history_contrasts, competence)
+                                               history_contrasts, status_2x2_contrasts, competence)
+from scripts.audit_supersession_status import categorize_no_errors, all_no_members_correct_histories
 
 VALUES = ['amber', 'coral', 'denim', 'elm', 'frost', 'grape', 'jade', 'maple', 'navy', 'pearl', 'quartz', 'rust']
 IDS = {v: i+1 for i, v in enumerate(VALUES)}
@@ -144,6 +145,76 @@ def test_status_keeps_yes_no_and_same_occurrence_comparisons_paired():
     assert h['R_superseded_initial_minus_R_retained_initial_after_rejection'] == -7
 
 
+def test_counterbalanced_irrelevant_slots_are_independent_and_averaged():
+    rows = generate_behavior_pairs('controls_counterbalanced', 1, VALUES, 31)
+    assert audit_behavior_dataset(rows, 'controls_counterbalanced') == 'controls_counterbalanced'
+    bases = [r for r in rows if r['condition'] == 'irrelevant_counterbalanced' and r['pair_direction'] == 0]
+    assert {(r['edited_field'], r['query'], r['unassigned_slot_order']) for r in bases} == {
+        (f, q, slot) for f in ('initial_x','initial_z') for q in ('x','z') for slot in ('xz','zx')}
+    xz = next(r for r in bases if r['edited_field']=='initial_x' and r['query']=='x' and r['unassigned_slot_order']=='xz')
+    zx = next(r for r in bases if r['edited_field']=='initial_x' and r['query']=='x' and r['unassigned_slot_order']=='zx')
+    assert xz['semantic_values']==zx['semantic_values']
+    lines_xz=render_behavior_example(xz,chat=False).splitlines()
+    lines_zx=render_behavior_example(zx,chat=False).splitlines()
+    assert lines_xz[2:] == list(reversed(lines_zx[2:4])) + lines_zx[4:]
+    effects=audited_effects(rows,scaffold(rows),'controls_counterbalanced')
+    for e in effects:
+        if e['condition']=='irrelevant_counterbalanced':
+            e['identity_transfer'] = {('initial_x','x','xz'):10,('initial_x','x','zx'):0,
+                                      ('initial_x','z','xz'):0,('initial_x','z','zx'):2,
+                                      ('initial_z','z','xz'):8,('initial_z','z','zx'):4,
+                                      ('initial_z','x','xz'):0,('initial_z','x','zx'):2}[(e['edited_field'],e['query'],e['unassigned_slot_order'])]
+    h=history_contrasts(effects,'controls_counterbalanced')[0]
+    assert h['R_irrelevant_counterbalanced_x']==4
+    assert h['R_irrelevant_counterbalanced_z']==5
+
+
+def test_status_2x2_local_acceptance_effects_are_history_paired():
+    rows=generate_behavior_pairs('status_2x2',2,VALUES,41)
+    assert audit_behavior_dataset(rows,'status_2x2')=='status_2x2'
+    yes=next(r for r in rows if r['condition']=='YY' and r['pair_direction']==0 and r['query']=='x')
+    mixed=next(r for r in rows if r['condition']=='NY' and r['edited_field']=='proposed_x' and r['pair_direction']==0 and r['query']=='x')
+    assert yes['answer']==yes['semantic_values']['proposed_x']
+    assert mixed['answer']==mixed['semantic_values']['initial_x']
+    assert yes['semantic_values']==mixed['semantic_values']
+    a=render_behavior_example(yes,chat=False).splitlines()
+    b=render_behavior_example(mixed,chat=False).splitlines()
+    assert [(i,x,y) for i,(x,y) in enumerate(zip(a,b)) if x!=y] == [(3,a[3],b[3])]
+    effects=audited_effects(rows,scaffold(rows),'status_2x2')
+    contrasts={('YY','x','x'):10,('YY','x','z'):1,('NY','x','x'):4,('NY','x','z'):1,
+               ('YN','x','x'):8,('YN','x','z'):0,('NN','x','x'):3,('NN','x','z'):0,
+               ('YY','z','z'):9,('YY','z','x'):1,('YN','z','z'):4,('YN','z','x'):1,
+               ('NY','z','z'):7,('NY','z','x'):0,('NN','z','z'):2,('NN','z','x'):0}
+    for e in effects: e['identity_transfer']=contrasts[(e['condition'],e['edited_variable'],e['query'])]
+    h=status_2x2_contrasts(effects)[0]
+    assert h['R_x_local_1']==6 and h['R_x_local_2']==5 and h['R_x_acceptance_effect']==5.5
+    assert h['R_z_local_1']==5 and h['R_z_local_2']==5 and h['R_z_acceptance_effect']==5
+    assert h['R_acceptance_effect_symmetric']==5.25
+
+
+@pytest.mark.parametrize(('predicted','expected'), [
+    ('proposed','rejected_proposed_value'),('initial','retained_initial_value'),
+    ('other','other_candidate'),('outside','non_candidate')])
+def test_no_condition_error_categories_and_complete_history_sensitivity(predicted,expected):
+    rows=generate_behavior_pairs('status',1,VALUES,9)
+    scores=scaffold(rows)
+    no=[r for r in scores if r['condition']=='rejected']
+    for r in no: r['full_vocab_next_token_accuracy']=1
+    target=no[0]; source=next(r for r in rows if r['example_id']==target['example_id'])
+    query=source['query']
+    value={'proposed':source['semantic_values'][f'proposed_{query}'],
+           'initial':source['semantic_values'][f'initial_{query}'],
+           'other':next(v for v in VALUES if v not in source['semantic_values'].values()),
+           'outside':None}[predicted]
+    target['full_vocab_next_token_accuracy']=0
+    target['greedy_token_id']=IDS[value] if value is not None else 999999
+    classified=categorize_no_errors(rows,scores,IDS)
+    assert len(classified)==1 and classified[0]['error_category']==expected
+    assert all_no_members_correct_histories(scores)==set()
+    target['full_vocab_next_token_accuracy']=1
+    assert all_no_members_correct_histories(scores)=={source['history_id']}
+
+
 @pytest.mark.parametrize('mutation', ['direction_missing', 'direction_ambiguous', 'query_cell_missing', 'extra_change', 'missing_status', 'collision', 'mixed', 'duplicate'])
 def test_dataset_audits_fail_closed(mutation):
     rows = generate_behavior_pairs('controls', 1, VALUES, 7)
@@ -258,7 +329,7 @@ def test_scoring_reuses_shared_scorer_preserves_metadata_and_resumes_partial_pai
         prepare_jsonl_progress(output, dataset, tokens, config, rows, resume=True)
 
 
-@pytest.mark.parametrize('kind', ['controls', 'status'])
+@pytest.mark.parametrize('kind', ['controls', 'status', 'controls_counterbalanced', 'status_2x2'])
 def test_generate_score_analyze_commands_end_to_end_with_scoring_stub(tmp_path, monkeypatch, kind):
     import scripts.generate_supersession_experiments as generator
     import scripts.run_supersession_behavior as runner
