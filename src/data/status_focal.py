@@ -9,6 +9,11 @@ from src.data.status_prompt_gate import history_signatures as shared_history_sig
 VARIANTS = ('bracketed', 'active_words', 'accepted_words')
 LABELS = {'bracketed': ('APPLIED', 'IGNORED'), 'active_words': ('ACTIVE', 'INACTIVE'),
           'accepted_words': ('YES', 'NO')}
+PERSISTENCE_VARIANTS = ('persistence_rule', 'accept_reject_rule')
+VARIANTS += PERSISTENCE_VARIANTS
+LABELS.update({'persistence_rule': ('APPLIED', 'IGNORED'),
+               'accept_reject_rule': ('ACCEPTED', 'REJECTED')})
+DEVELOPMENT_MIN_ACCURACY = 0.98
 
 def render(row):
     v=row['semantic_values']; names=row['literal_names']; focal=row['focal_variable']
@@ -20,10 +25,19 @@ def render(row):
         # The nonfocal update is always valid.
         if variant=='bracketed': lines.append(f"{names[role]} -> {v['proposed_'+role]} [{status}]")
         elif variant=='active_words': lines.append(f"Update {names[role]} = {v['proposed_'+role]}; Status: {status}.")
-        else: lines.append(f"{status} update: {names[role]} = {v['proposed_'+role]}")
-    apply='Use only APPLIED updates.' if variant=='bracketed' else ('Use only ACTIVE updates.' if variant=='active_words' else 'Use only YES updates.')
+        elif variant=='accepted_words': lines.append(f"{status} update: {names[role]} = {v['proposed_'+role]}")
+        elif variant=='persistence_rule': lines.append(f"{names[role]} -> {v['proposed_'+role]} [{status}]")
+        else: lines.append(f"{status}: {names[role]} -> {v['proposed_'+role]}.")
+    if variant=='bracketed': apply='Use only APPLIED updates.'
+    elif variant=='active_words': apply='Use only ACTIVE updates.'
+    elif variant=='accepted_words': apply='Use only YES updates.'
+    elif variant=='persistence_rule': apply='An APPLIED update replaces its variable value. An IGNORED update leaves its variable unchanged.'
+    else: apply='An ACCEPTED update replaces its variable value. A REJECTED update leaves its variable unchanged.'
     query_role=row['query_role']; query=row['query']
-    return '\n'.join(lines+['',apply,f"What is {names[row['query']]}?",'Respond with only the value, with no explanation.'])
+    if variant=='persistence_rule': question=f"What is {names[query]} after processing these updates?"
+    elif variant=='accept_reject_rule': question=f"What is the value of {names[query]} after processing these decisions?"
+    else: question=f"What is {names[query]}?"
+    return '\n'.join(lines+['',apply,question,'Respond with only the value, with no explanation.'])
 
 def render_prompt(row,tokenizer,chat):
     from src.data.supersession_behavior import _answer_prefix
@@ -32,9 +46,10 @@ def render_prompt(row,tokenizer,chat):
 def focal_status_char_span(row,text):
     name=row['literal_names'][row['focal_variable']]; value=row['semantic_values']['proposed_'+row['focal_variable']]
     variant=row['prompt_variant']; label=LABELS[variant][0 if row['focal_valid'] else 1]
-    if variant=='bracketed': marker=f'{name} -> {value} [{label}]'; start=text.index(marker)+len(marker)-len(label)-1; return start,start+len(label)
+    if variant in ('bracketed','persistence_rule'): marker=f'{name} -> {value} [{label}]'; start=text.index(marker)+len(marker)-len(label)-1; return start,start+len(label)
     if variant=='active_words': marker=f'Update {name} = {value}; Status: {label}.'; start=text.index(marker)+len(marker)-len(label)-1; return start,start+len(label)
-    marker=f'{label} update: {name} = {value}'; start=text.index(marker); return start,start+len(label)
+    if variant=='accepted_words': marker=f'{label} update: {name} = {value}'; start=text.index(marker); return start,start+len(label)
+    marker=f'{label}: {name} -> {value}.'; start=text.index(marker); return start,start+len(label)
 
 def audit_validity_prompt_alignment(yes,no,tokenizer,chat):
     """Require equal-length APPLIED/IGNORED token sequences with changes confined to their status span."""
@@ -107,8 +122,15 @@ def verify_competence_artifact(path,expected_stage,config_path,token_map_path):
     token_doc=json.loads(Path(token_map_path).read_text())
     for k in ('model_revision','tokenizer_revision'):
         if token_doc.get(k) and token_doc[k]!=prov.get('resolved_'+k): raise ValueError(f'frozen token map {k} mismatch')
-    if expected_stage=='frozen_gate' and not recomputed.get('passed'): raise ValueError('frozen gate competence does not pass on recomputation')
-    if doc.get('passed')!=recomputed.get('passed'): raise ValueError('stored pass flag differs from recomputed competence')
+    if expected_stage=='frozen_gate':
+        if not recomputed.get('passed'): raise ValueError('frozen gate competence does not pass on recomputation')
+        if doc.get('passed')!=recomputed.get('passed'): raise ValueError('stored pass flag differs from recomputed competence')
+    elif expected_stage=='development':
+        qualified=development_variant_diagnostic(ds,scores,doc.get('selected_variant'))
+        if not qualified['passed'] or doc.get('passed') is not True:
+            raise ValueError('development selection did not pass every competence cell')
+        if doc.get('development_qualification')!=qualified:
+            raise ValueError('stored development qualification differs from recomputed competence')
     if doc.get('selected_variant') not in {r['prompt_variant'] for r in ds}: raise ValueError('selected wording is absent from gate data')
     if doc.get('selected_variant') not in doc.get('alignment_eligible_variants',[]):raise ValueError('selected wording failed focal status token alignment')
     return doc,ds
@@ -248,3 +270,20 @@ def gate_summary(dataset,scores):
     passed=complete and alignment_passed and all(x['full_vocab_accuracy']==1 and x['target_rank_max']==1 and
                             x['candidate_accuracy']==1 and x['candidate_rank_max']==1 for x in details)
     return {'stage':dataset[0]['stage'],'passed':passed,'complete_cells':complete,'alignment_passed':alignment_passed,'cells':details,'causal_effects_computed':False}
+
+def development_variant_diagnostic(dataset,scores,variant,min_accuracy=DEVELOPMENT_MIN_ACCURACY):
+    """Require near-perfect accuracy and rank-one answers in every competence cell."""
+    if audit(dataset)!='development':raise ValueError('development qualification requires development data')
+    summary=gate_summary(dataset,scores)
+    cells=[c for c in summary['cells'] if c['cell'][0]==variant]
+    expected=set(itertools.product((True,False),('focal','other'),('focal_first','focal_second'),('x','z'),(0,1)))
+    observed={tuple(c['cell'][1:]) for c in cells}
+    complete=observed==expected
+    variant_scores=[s for s in scores if s['prompt_variant']==variant]
+    alignment=bool(variant_scores) and all(s['validity_alignment_passed'] for s in variant_scores)
+    failed=[c for c in cells if c['full_vocab_accuracy']<min_accuracy or c['candidate_accuracy']<min_accuracy
+            or c['target_rank_max']!=1 or c['candidate_rank_max']!=1]
+    return {'variant':variant,'passed':complete and alignment and not failed,
+            'complete_cells':complete,'cell_count':len(cells),'expected_cell_count':len(expected),
+            'alignment_passed':alignment,'minimum_cell_accuracy':min_accuracy,
+            'failed_cells':failed}

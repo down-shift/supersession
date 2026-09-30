@@ -33,7 +33,6 @@ def main():
   if r['answer'] not in token_ids:raise ValueError('answer absent from frozen token map')
   for value in candidate_values:
    if continuation_token_id(tok,prompt,' '+value)!=token_ids[value]:raise ValueError(f'{value!r} is not a stable one-token candidate at {r["example_id"]}')
-  alignment.append(prompt)
  code=hashlib.sha256(Path(__file__).read_bytes()+Path('src/data/status_focal.py').read_bytes()+Path('src/data/supersession_behavior.py').read_bytes()).hexdigest()
  fingerprint={**config,'status_focal_gate':{'code_sha256':code,'config_sha256':sha256_file(a.config),'template_sha256':focal_template_hash(),'chat':chat}}
  done=prepare_jsonl_progress(a.output,a.dataset,a.token_ids,fingerprint,rows,resume=a.resume)

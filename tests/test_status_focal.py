@@ -2,9 +2,11 @@ import json
 import pytest
 from src.data.io import write_jsonl,sha256_file
 from src.data.status_focal import (generate,audit,gate_summary,render,audit_validity_prompt_alignment,
-    focal_history_signatures,focal_template_hash,verify_competence_artifact,audit_value_edit_alignment)
+    focal_history_signatures,focal_template_hash,verify_competence_artifact,audit_value_edit_alignment,
+    development_variant_diagnostic)
 from src.experiments.patching import focal_status_margin,focal_status_patch_delta
 from scripts.analyze_status_focal_behavior import analyze
+from scripts.analyze_status_focal_gate import main as analyze_focal_gate_main
 from src.experiments.patching import partition_history_ids
 
 VALUES=['amber','coral','denim','elm','frost','gray','hazel','indigo']
@@ -50,6 +52,52 @@ def test_validity_prompt_alignment_audits_equal_lengths_and_status_only_differen
  rows=generate('frozen_gate',24,VALUES,887,('bracketed',));yes=next(r for r in rows if r['focal_valid']);no=next(r for r in rows if not r['focal_valid'] and r['history_id']==yes['history_id'] and r['query_role']==yes['query_role'] and r['focal_position']==yes['focal_position'])
  report=audit_validity_prompt_alignment(yes,no,CharTokenizer(),False)
  assert report['status_positions'] and set(report['differing_positions'])<=set(report['status_positions'])
+
+def test_persistence_prompt_variants_explain_rule_without_stating_answer_and_align_status_only():
+ class CharTokenizer:
+  def __call__(self,text,add_special_tokens=False,return_offsets_mapping=False,**kwargs):
+   d={'input_ids':[ord(ch) for ch in text]}
+   if return_offsets_mapping:d['offset_mapping']=[(i,i+1) for i in range(len(text))]
+   return d
+ variants=('persistence_rule','accept_reject_rule')
+ rows=generate('development',4,VALUES,732,variants)
+ for variant in variants:
+  yes=next(r for r in rows if r['prompt_variant']==variant and r['focal_valid'] and r['query_role']=='focal')
+  no=next(r for r in rows if r['prompt_variant']==variant and r['history_id']==yes['history_id'] and not r['focal_valid'] and r['query_role']==yes['query_role'] and r['focal_position']==yes['focal_position'])
+  prompt=render(yes);label=render(no)
+  assert 'after processing' in prompt
+  assert 'What is ' in prompt and 'Respond with only the value' in prompt
+  assert not any(x in prompt.lower() for x in ('the answer is','the final value is'))
+  assert 'leaves its variable unchanged' in prompt and 'leaves its variable unchanged' in label
+  report=audit_validity_prompt_alignment(yes,no,CharTokenizer(),False)
+  assert report['status_positions'] and set(report['differing_positions'])<=set(report['status_positions'])
+
+def test_development_variant_requires_every_cell_to_meet_accuracy_and_rank_bar():
+ rows=generate('development',4,VALUES,733,('persistence_rule','accept_reject_rule'))
+ scores=[{**r,'full_vocab_next_token_accuracy':1,'target_rank':1,'candidate_accuracy':1,
+          'candidate_target_rank':1,'validity_alignment_passed':True} for r in rows]
+ assert development_variant_diagnostic(rows,scores,'persistence_rule')['passed']
+ target=next(s for s in scores if s['prompt_variant']=='persistence_rule' and not s['focal_valid'] and s['query_role']=='focal')
+ target['full_vocab_next_token_accuracy']=0
+ target['target_rank']=2
+ diagnostic=development_variant_diagnostic(rows,scores,'persistence_rule')
+ assert not diagnostic['passed']
+ assert diagnostic['failed_cells']
+
+def test_development_analyzer_writes_no_selection_when_no_variant_passes(tmp_path,monkeypatch):
+ rows=generate('development',4,VALUES,734,('persistence_rule','accept_reject_rule'))
+ dataset=tmp_path/'development.jsonl';scores_path=tmp_path/'scores.jsonl';output=tmp_path/'selection.json'
+ write_jsonl(rows,dataset)
+ scores=[{**r,'full_vocab_next_token_accuracy':1,'target_rank':1,'candidate_accuracy':1,
+          'candidate_target_rank':1,'validity_alignment_passed':True} for r in rows]
+ for variant in ('persistence_rule','accept_reject_rule'):
+  bad=next(s for s in scores if s['prompt_variant']==variant and not s['focal_valid'] and s['query_role']=='focal')
+  bad['full_vocab_next_token_accuracy']=0;bad['target_rank']=2
+ write_jsonl(scores,scores_path)
+ (tmp_path/'scores.jsonl.provenance.json').write_text(json.dumps({'dataset_sha256':sha256_file(dataset),'template_sha256':focal_template_hash()}))
+ monkeypatch.setattr('sys.argv',['analyze_status_focal_gate.py','--dataset',str(dataset),'--scores',str(scores_path),'--output',str(output),'--select'])
+ assert analyze_focal_gate_main() is False
+ assert not output.exists()
 
 def test_value_edit_alignment_is_one_token_at_the_declared_span():
  class CharTokenizer:
