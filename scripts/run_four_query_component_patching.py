@@ -42,7 +42,11 @@ for members in pairs.values():
         x=members[0]; histories[x['history_id']][(x['edited_binding'],x['query_id'])]=members
 partition_path=Path(a.partition_file)
 if not partition_path.exists():
-    from scripts.freeze_mechanistic_partitions import ids_in, partition_sets
+    try:
+        from scripts.freeze_mechanistic_partitions import ids_in, partition_sets
+    except ModuleNotFoundError as exc:
+        if exc.name != 'scripts': raise
+        from freeze_mechanistic_partitions import ids_in, partition_sets
     out_root=Path(a.pairs).parent
     discovery_path=Path(a.discovery_ids) if a.discovery_ids else out_root/'mechanism/discovery/patch_Rx_by_layer_site.csv'
     heldout_path=Path(a.heldout_ids) if a.heldout_ids else out_root/'mechanism/heldout/heldout_R_by_history.csv'
