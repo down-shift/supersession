@@ -129,3 +129,18 @@ def test_head_analyzer_uses_head_column_and_writes_descriptive_outputs(tmp_path,
     assert set(summary['mean'])=={2.}
     assert (out/'head_Rx_heatmap.png').is_file() and (out/'head_summary.json').is_file()
     assert json.loads((out/'head_summary.json').read_text())['individual_head_effects_are_additive'] is False
+
+def test_expanded_head_profile_requires_and_computes_all_mechanistic_cells():
+    from scripts.analyze_attention_head_patching import history_head_profiles
+    rows=[]
+    values={('old_x','current_x'):4,('old_x','current_z'):1,('old_x','initial_x'):3,('old_x','initial_z'):1,
+      ('old_z','current_z'):6,('old_z','current_x'):2,('old_z','initial_z'):5,('old_z','initial_x'):1,
+      ('current_x','current_x'):8,('current_x','current_z'):2,('current_z','current_z'):10,('current_z','current_x'):4}
+    for (binding,query),effect in values.items():
+        for direction in ('baseline_to_edited','edited_to_baseline'):
+            rows.append({'history_id':'h','layer':32,'head':0,'edited_binding':binding,'query_id':query,'direction':direction,'patch_delta_toward_donor':effect})
+    profile=history_head_profiles(rows).iloc[0]
+    assert profile.R_stale==pytest.approx(3.5)
+    assert profile.R_historical==pytest.approx(3.)
+    assert profile.R_current==pytest.approx(6.)
+    assert profile.generic_binding_score==pytest.approx(4.5)

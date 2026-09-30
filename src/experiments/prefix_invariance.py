@@ -24,7 +24,10 @@ def audit_prefix_invariance(model, tokenizer, examples_by_query, queries,
             if prior is None or prior.get('prompt') != prompt:
                 raise ValueError(f"frozen rendered prompt mismatch for {ex['example_id']}")
         enc = tokenizer(prompt, add_special_tokens=False, return_offsets_mapping=True)
-        start = prompt.index(ex['old_x'])
+        try:
+            start = prompt.index(ex['old_x'])
+        except ValueError as exc:
+            raise ValueError('token IDs through old-x value differ across query variants') from exc
         positions[query] = [i for i, (lo, hi) in enumerate(enc['offset_mapping'])
                             if lo < start + len(ex['old_x']) and hi > start]
         if not positions[query]:

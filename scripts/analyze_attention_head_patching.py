@@ -17,6 +17,24 @@ def history_head_rx(rows):
     wide=wide.dropna(subset=['current_x','current_z']); wide['R_x_patch']=wide.current_x-wide.current_z
     return wide
 
+def history_head_profiles(rows):
+    """History-level stale, valid-history, and current binding query contrasts."""
+    f=pd.DataFrame(rows); required={'history_id','layer','head','query_id','edited_binding','direction','patch_delta_toward_donor'}
+    if not required.issubset(f.columns): raise ValueError(f'head records missing {sorted(required-set(f.columns))}')
+    d=f.groupby(['history_id','layer','head','edited_binding','query_id','direction'],as_index=False).patch_delta_toward_donor.mean()
+    e=d.groupby(['history_id','layer','head','edited_binding','query_id'],as_index=False).patch_delta_toward_donor.mean()
+    def contrast(binding, rel, irr, name):
+        x=e[e.edited_binding.eq(binding)].pivot(index=['history_id','layer','head'],columns='query_id',values='patch_delta_toward_donor')
+        if rel not in x or irr not in x: raise ValueError(f'incomplete head-analysis cells for {binding}/{rel}/{irr}')
+        return (x[rel]-x[irr]).rename(name).reset_index()
+    keys=['history_id','layer','head']
+    out=contrast('old_x','current_x','current_z','R_stale_x').merge(contrast('old_z','current_z','current_x','R_stale_z'),on=keys)
+    out=out.merge(contrast('old_x','initial_x','initial_z','R_historical_x'),on=keys).merge(contrast('old_z','initial_z','initial_x','R_historical_z'),on=keys)
+    out=out.merge(contrast('current_x','current_x','current_z','R_current_x'),on=keys).merge(contrast('current_z','current_z','current_x','R_current_z'),on=keys)
+    out['R_stale']=.5*(out.R_stale_x+out.R_stale_z); out['R_historical']=.5*(out.R_historical_x+out.R_historical_z); out['R_current']=.5*(out.R_current_x+out.R_current_z)
+    out['generic_binding_score']=.5*(out.R_historical+out.R_current); out['stale_minus_generic_binding']=out.R_stale-out.generic_binding_score
+    return out
+
 def _trimmed_mean(x,proportion=.1):
     x=np.sort(np.asarray(x,dtype=float)); k=int(np.floor(len(x)*proportion))
     return float(np.mean(x[k:len(x)-k])) if k and len(x)>2*k else float(np.mean(x))
@@ -74,6 +92,13 @@ def main():
         per_history.to_csv(out/'frozen_head_set_R_by_history.csv',index=False); summary.to_csv(out/'frozen_head_set_summary.csv',index=False)
         (out/'frozen_head_set_summary.json').write_text(json.dumps({'analysis_label':'reserve_confirmation','bootstrap_unit':'history_id','rows':summary.to_dict(orient='records')},indent=2)+'\n')
         return
+    try:
+        profiles=history_head_profiles(rows)
+        profiles.to_csv(out/'head_mechanistic_profile_by_history.csv',index=False)
+    except ValueError:
+        # Backward-compatible analysis of archived, narrower scans. New discovery
+        # outputs are required to contain every profile cell before interpretation.
+        profiles=None
     history=history_head_rx(rows); summary=summarize_heads(history,a.bootstrap_seed,a.bootstrap_draws)
     layer_heads=rows[0].get('num_attention_heads')
     if layer_heads is not None:
@@ -92,7 +117,7 @@ def main():
     vmax=float(np.nanmax(np.abs(pivot.to_numpy()))) or 1.
     fig,ax=plt.subplots(figsize=(max(10,pivot.shape[1]*.35),5.5)); image=ax.imshow(pivot.to_numpy(),aspect='auto',origin='lower',cmap='coolwarm',norm=TwoSlopeNorm(vmin=-vmax,vcenter=0,vmax=vmax))
     ax.set_xticks(range(pivot.shape[1])); ax.set_xticklabels(pivot.columns); ax.set_yticks(range(pivot.shape[0])); ax.set_yticklabels(pivot.index); ax.set(xlabel='Query-head index',ylabel='Transformer layer',title='Exploratory mean history-level $R_{x,patch}$ by Qwen3 query head'); fig.colorbar(image,ax=ax,label='Mean $R_{x,patch}$ (logits)'); fig.tight_layout(); fig.savefig(out/'head_Rx_heatmap.png',dpi=180); plt.close(fig)
-    doc={'analysis_label':'exploratory','exploratory':True,'metric':'history-level R_x_patch = effect(old_x/current_x) - effect(old_x/current_z), each cell averaged across both donor-oriented directions first','bootstrap_unit':'history_id','bootstrap_seed':a.bootstrap_seed,'bootstrap_draws':a.bootstrap_draws,'n_histories':int(history.history_id.nunique()),'n_layers':int(summary['layer'].nunique()),'n_heads_per_layer':{str(k):int(v) for k,v in summary.groupby('layer')['head'].nunique().items()},'individual_head_effects_are_additive':False,'interpretation':'Per-head patch effects are single-head interventions in the intact network. Their sum is descriptive only and is not a decomposition; joint all-head intervention should reproduce whole-attention-output patching by construction and is covered by a unit test. No head is selected automatically.','whole_attention_comparison':None if comparison is None else comparison.to_dict(orient='records'),'rows':summary.to_dict(orient='records')}
+    doc={'analysis_label':'exploratory','exploratory':True,'metric':'history-level R_x_patch = effect(old_x/current_x) - effect(old_x/current_z), each cell averaged across both donor-oriented directions first','profile_definitions':{'R_stale':'mean symmetric query relevance contrast for old_x/current_x vs old_x/current_z and old_z/current_z vs old_z/current_x','R_historical':'mean symmetric query relevance contrast for old_x/initial_x vs old_x/initial_z and symmetric z cells','R_current':'mean symmetric query relevance contrast for current_x/current_x vs current_x/current_z and symmetric z cells','generic_binding_score':'mean(R_historical,R_current)','stale_minus_generic_binding':'R_stale - generic_binding_score; exploratory diagnostic only'},'profile_cells_complete':profiles is not None,'bootstrap_unit':'history_id','bootstrap_seed':a.bootstrap_seed,'bootstrap_draws':a.bootstrap_draws,'n_histories':int(history.history_id.nunique()),'n_layers':int(summary['layer'].nunique()),'n_heads_per_layer':{str(k):int(v) for k,v in summary.groupby('layer')['head'].nunique().items()},'individual_head_effects_are_additive':False,'interpretation':'Per-head patch effects are single-head interventions in the intact network. Their sum is descriptive only and is not a decomposition; joint all-head intervention should reproduce whole-attention-output patching by construction and is covered by a unit test. No head is selected automatically.','whole_attention_comparison':None if comparison is None else comparison.to_dict(orient='records'),'rows':summary.to_dict(orient='records')}
     (out/'head_summary.json').write_text(json.dumps(doc,indent=2)+'\n')
 
 if __name__=='__main__': main()

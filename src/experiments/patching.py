@@ -16,6 +16,24 @@ def patch_effect_metrics(donor_margin, recipient_margin, patched_margin, epsilon
     delta=float(patched_margin-recipient_margin)
     return {"patch_delta_toward_donor":delta,"normalized_recovery":delta/denominator if abs(denominator)>epsilon else None}
 
+def version_selection_diagnostics(baseline_logits, patched_logits, current_value, obsolete_value, token_ids):
+    """Raw correct-current vs recipient obsolete margin around an intervention."""
+    old_id=token_ids[obsolete_value]; current_id=token_ids[current_value]
+    before=float(baseline_logits[current_id]-baseline_logits[old_id]); after=float(patched_logits[current_id]-patched_logits[old_id])
+    return {'decision_current_value':current_value,'decision_obsolete_value':obsolete_value,
+      'baseline_current_minus_old':before,'patched_current_minus_old':after,'patch_delta_current_minus_old':after-before,
+      'baseline_current_logit':float(baseline_logits[current_id]),'baseline_old_logit':float(baseline_logits[old_id]),
+      'patched_current_logit':float(patched_logits[current_id]),'patched_old_logit':float(patched_logits[old_id])}
+
+def identity_transfer_effect(baseline_logits, edited_logits, source_value, replacement_value, token_ids):
+    """Counterfactual value identity transfer E, with fixed replacement-source orientation."""
+    src=token_ids[source_value]; rep=token_ids[replacement_value]
+    base=float(baseline_logits[rep]-baseline_logits[src]); edit=float(edited_logits[rep]-edited_logits[src])
+    return {'identity_transfer_E':edit-base,'baseline_replacement_minus_source':base,'edited_replacement_minus_source':edit}
+
+def relevant_minus_irrelevant(relevant_effect, irrelevant_effect):
+    return float(relevant_effect)-float(irrelevant_effect)
+
 def focal_cells(stage="discovery", all_positions=False, cell_set="focal"):
     """Predeclared edited-binding/query cells for four-query patching."""
     if cell_set == "full":

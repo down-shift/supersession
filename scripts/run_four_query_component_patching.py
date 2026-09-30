@@ -6,7 +6,7 @@ from tqdm.auto import tqdm
 from src.data.io import read_jsonl
 from src.data.generate import render_example
 from src.experiments.component_patching import COMPONENTS, capture_component, patch_component_logits, validate_qwen3_blocks
-from src.experiments.patching import commit_patch_pair, recover_patch_checkpoint, patch_effect_metrics
+from src.experiments.patching import commit_patch_pair, recover_patch_checkpoint, patch_effect_metrics, version_selection_diagnostics
 from src.models.loader import load_model
 from src.utils import load_config, provenance, save_json
 
@@ -124,7 +124,14 @@ for hid in tqdm(chosen,desc=f'{a.stage} component histories'):
             patched=patch_component_logits(model,rin,layer,component,donor_act,pos)
             old_key='old_x'; donor_value=donor[old_key]; recipient_value=recipient[old_key]
             dm=metric(donor_logits,donor_value,recipient_value); rm=metric(recipient_logits,donor_value,recipient_value); pm=metric(patched,donor_value,recipient_value)
-            rows.append({'pair_id':pair_id,'history_id':hid,'query_id':query,'edited_binding':binding,'layer':layer,'component':component,'site_role':'final_preanswer','position':pos,'direction':label,'donor_value':donor_value,'recipient_value':recipient_value,'donor_margin':dm,'recipient_margin':rm,'patched_margin':pm,**patch_effect_metrics(dm,rm,pm)})
+            row={'pair_id':pair_id,'history_id':hid,'query_id':query,'edited_binding':binding,'layer':layer,'component':component,'site_role':'final_preanswer','position':pos,'direction':label,'donor_value':donor_value,'recipient_value':recipient_value,'donor_margin':dm,'recipient_margin':rm,'patched_margin':pm,**patch_effect_metrics(dm,rm,pm)}
+            if query.startswith('current_') and binding.startswith('old_'):
+                old_key=binding; current_value=recipient['answer']; old_value=recipient[old_key]
+                row.update(version_selection_diagnostics(recipient_logits,patched,current_value,old_value,token_ids))
+                row.update({'donor_old_value':donor[old_key],'recipient_old_value_used':old_value,
+                    'baseline_current_logit':float(recipient_logits[token_ids[current_value]]),'patched_current_logit':float(patched[token_ids[current_value]]),
+                    'baseline_old_logit':float(recipient_logits[token_ids[old_value]]),'patched_old_logit':float(patched[token_ids[old_value]])})
+            rows.append(row)
         commit_patch_pair(out,completion,pair_id,rows); done.add(pair_id)
 save_json({'provenance':provenance(c,a.pairs),'analysis_label':'exploratory_component_patching' if a.stage=='discovery' else 'manually_frozen_reserve_confirmation','exploratory':a.stage=='discovery','stage':a.stage,'history_ids':chosen,'layers':layers,'components':list(components),'cells':cells,'manual_frozen_choice':fingerprint['manual_frozen_choice'],'hook_semantics':{'residual_input':'decoder block hidden_states input before input_layernorm','attention_output':'self_attn first output tensor after output projection, before residual addition','mlp_output':'mlp output tensor after down projection, before residual addition','block_output':'decoder block first output tensor after both residual additions'}},str(out)+'.provenance.json')
 print(f'saved/resumed {a.stage} component patch records at {out}; histories={len(chosen)}, layers={layers}, components={components}')

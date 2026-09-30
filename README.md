@@ -227,3 +227,35 @@ bash scripts/run_four_query_288_ubuntu.sh
 ```
 
 This behavior runner does not launch probes or patching. The separate mechanistic runner above reuses the frozen artifacts. The four-query generation path always uses centralized canonical rendering; legacy syntax/template factors remain limited to older experiment paths.
+
+## Supersession-specific extensions (infrastructure; not yet run)
+
+The established Stage 1–4 results above are unchanged. The next experiments distinguish **ordinary binding retrieval** (a live assignment), **stale binding retrieval** (an obsolete value remains causally retrievable), and **semantic supersession/version selection** (the current accepted version wins over that stale value). No outputs from these extensions are empirical results yet. They use fresh histories and separate output paths; they do not consume prompt-development, gate, or mechanistic held-out histories.
+
+Generate fresh matched live/superseded/irrelevant controls, accepted/rejected update cases, or version chains (provide a JSON array of values):
+
+```bash
+uv run python scripts/generate_supersession_experiments.py --kind controls --values configs/supersession_values.json --output outputs/supersession/controls.jsonl
+uv run python scripts/generate_supersession_experiments.py --kind status --values configs/supersession_values.json --output outputs/supersession/status.jsonl
+uv run python scripts/generate_supersession_experiments.py --kind chains --values configs/supersession_values.json --depths 0,1,2,4,8 --output outputs/supersession/chains.jsonl
+```
+
+Each status record contains explicit semantic status fields. Chain records carry ordered `x_versions` / `z_versions`, depth, current index, and per-version age/status metadata. Use independently generated candidate substitutions and preserve raw logits when scoring. For the reusable metric, `identity_transfer_effect` computes the original replacement-minus-source difference-in-differences; `version_selection_diagnostics` records current-minus-obsolete logits separately.
+
+Expanded head discovery remains exploratory and uses only Stage 1 `discovery` histories (24 histories) at layers 32–35. It saves direction-level raw records and emits a profile table for stale, historical, and current binding query contrasts. Do not choose heads by maximum effect; manually predeclare a profile-based choice before any reserve evaluation.
+
+```bash
+uv run python scripts/run_four_query_attention_head_patching.py --stage discovery --config configs/four_query_288.yaml --pairs outputs/four_query/pairs.jsonl --token-ids outputs/four_query/frozen_token_ids.json --partition-file outputs/four_query/mechanistic_partitions.json --output outputs/four_query/head_discovery.jsonl
+uv run python scripts/freeze_head_reserve.py --partition-file outputs/four_query/mechanistic_partitions.json --output outputs/four_query/head_reserve_subpartition.json --seed 20260930
+uv run python scripts/run_four_query_attention_head_patching.py --stage reserve --heads 32:7,34:12 --config configs/four_query_288.yaml --pairs outputs/four_query/pairs.jsonl --token-ids outputs/four_query/frozen_token_ids.json --partition-file outputs/four_query/mechanistic_partitions.json --reserve-subpartition outputs/four_query/head_reserve_subpartition.json --output outputs/four_query/head_confirmation.jsonl
+```
+
+The reserve command consumes only `head_confirmation`; `path_confirmation` and `final_validation` remain untouched. The partition freezer refuses to overwrite an existing artifact. Adjust the target proportions deterministically if the existing unused reserve is not 168 histories. Selected-head Q/K/V primitives are available in `src/experiments/qkv_interventions.py`; they are infrastructure for later targeted interventions and perform no sweeps.
+
+Create a disjoint lexical replication proposal and validate it against exact tokenizer/chat prefixes with new variable names:
+
+```bash
+uv run python scripts/validate_replication_vocab.py --config configs/four_query_288.yaml --original-token-ids outputs/four_query/frozen_token_ids.json --values configs/replication_values.json --variables configs/replication_variables.json --output outputs/replication/token_ids.json
+```
+
+The validator records accepted and rejected candidates, one-token continuation checks, assignment-alignment audit, and vocabulary overlap. A later replication run should use only its separately frozen token map and fresh data. None of these commands selects a head automatically, treats attention weights as causal evidence, or implies erasure or a complete circuit.

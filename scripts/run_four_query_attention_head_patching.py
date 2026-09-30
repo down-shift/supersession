@@ -9,12 +9,14 @@ from src.experiments.attention_head_patching import (capture_head_layers, patch_
     patch_head_set_logits, validate_qwen3_attention_heads, validate_head_sets, donor_oriented_margin_effect,
     pair_direction_examples)
 from src.experiments.patching import commit_patch_pair, recover_patch_checkpoint
+from src.experiments.patching import version_selection_diagnostics
 from src.models.loader import load_model
 from src.utils import load_config, provenance, save_json
 
 p=argparse.ArgumentParser()
 p.add_argument('--config',default='configs/four_query_288.yaml'); p.add_argument('--pairs',required=True); p.add_argument('--token-ids',required=True)
 p.add_argument('--partition-file',required=True); p.add_argument('--output',required=True)
+p.add_argument('--reserve-subpartition',help='frozen JSON from freeze_head_reserve.py; required for reserve stage')
 p.add_argument('--stage',choices=('discovery','reserve'),default='discovery')
 p.add_argument('--layers',default='32-35',help='discovery layer list/range; default includes transition control layer 35')
 p.add_argument('--heads',help='reserve only: manually frozen comma-separated LAYER:QUERY_HEAD pairs, e.g. 32:7,34:12')
@@ -64,9 +66,21 @@ if discovery&heldout or discovery&reserve or heldout&reserve or discovery|heldou
     raise ValueError('mechanistic partition artifact is not a disjoint cover of confirmatory histories')
 for name,ids in (('confirmatory',confirm),('stage1_discovery',discovery),('stage1_heldout',heldout),('unused_mechanistic_reserve',reserve)):
     if int(part.get('counts',{}).get(name,-1))!=len(ids): raise ValueError(f'partition artifact count mismatch for {name}')
-if a.stage=='discovery': chosen=list(part_ids['stage1_discovery']); cells=(('old_x','current_x'),('old_x','current_z'))
+if a.stage=='discovery': chosen=list(part_ids['stage1_discovery']); cells=(('old_x','current_x'),('old_x','current_z'),('old_x','initial_x'),('old_x','initial_z'),('current_x','current_x'),('current_x','current_z'),('old_z','current_z'),('old_z','current_x'),('old_z','initial_z'),('old_z','initial_x'),('current_z','current_z'),('current_z','current_x'))
 else:
-    chosen=list(part_ids['unused_mechanistic_reserve'])
+    if not a.reserve_subpartition: raise ValueError('reserve stage requires --reserve-subpartition so only head_confirmation is consumed')
+    sub=json.loads(Path(a.reserve_subpartition).read_text())
+    if sub.get('exact_cover_of')!='unused_mechanistic_reserve': raise ValueError('invalid reserve subpartition artifact')
+    expected_parent_sha=hashlib.sha256(json.dumps(part,sort_keys=True).encode()).hexdigest()
+    if sub.get('source_partition_sha256')!=expected_parent_sha: raise ValueError('reserve subpartition was frozen from a different parent partition artifact')
+    subsets=sub.get('history_ids',{}); chosen=list(subsets.get('head_confirmation',[]))
+    all_sub=[set(subsets.get(k,[])) for k in ('head_confirmation','path_confirmation','final_validation')]
+    if any(all_sub[i]&all_sub[j] for i in range(3) for j in range(i+1,3)) or set.union(*all_sub)!=reserve:
+        raise ValueError('reserve subpartition must be a disjoint exact cover of the previous unused reserve')
+    for key,ids in zip(('head_confirmation','path_confirmation','final_validation'),all_sub):
+        if sub.get('counts',{}).get(key)!=len(ids): raise ValueError(f'reserve subpartition count mismatch for {key}')
+        expected_ids_sha=hashlib.sha256('\n'.join(sorted(ids)).encode()).hexdigest()
+        if sub.get('sha256',{}).get(key)!=expected_ids_sha: raise ValueError(f'reserve subpartition ID digest mismatch for {key}')
     cells=(('old_x','current_x'),('old_x','current_z'),('old_z','current_z'),('old_z','current_x'))
 if a.stage=='discovery' and len(chosen)!=24: raise ValueError(f'frozen discovery set must contain 24 histories, got {len(chosen)}')
 if a.stage=='reserve' and set(chosen)&(discovery|heldout): raise ValueError('reserve overlaps already-used mechanistic histories')
@@ -77,7 +91,7 @@ out=Path(a.output); manifest=Path(str(out)+'.run.json'); completion=Path(str(out
 def sha(path): return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 try: commit=__import__('subprocess').check_output(['git','rev-parse','HEAD'],text=True,stderr=__import__('subprocess').DEVNULL).strip()
 except Exception: commit=None
-fingerprint={'pairs_sha256':sha(a.pairs),'token_map_sha256':sha(a.token_ids),'partition_sha256':sha(a.partition_file),'config_sha256':sha(a.config),'model_id':c['model']['id'],'stage':a.stage,'history_ids':chosen,'cells':cells,'layers':layers,'frozen_head_pairs':frozen_heads,'head_batch_size':a.head_batch_size,'git_commit':commit,'code_sha256':hashlib.sha256(Path(__file__).read_bytes()+Path(__import__('src.experiments.attention_head_patching',fromlist=['__file__']).__file__).read_bytes()).hexdigest()}
+fingerprint={'pairs_sha256':sha(a.pairs),'token_map_sha256':sha(a.token_ids),'partition_sha256':sha(a.partition_file),'reserve_subpartition_sha256':sha(a.reserve_subpartition) if a.reserve_subpartition else None,'config_sha256':sha(a.config),'model_id':c['model']['id'],'stage':a.stage,'history_ids':chosen,'cells':cells,'layers':layers,'frozen_head_pairs':frozen_heads,'head_batch_size':a.head_batch_size,'git_commit':commit,'code_sha256':hashlib.sha256(Path(__file__).read_bytes()+Path(__import__('src.experiments.attention_head_patching',fromlist=['__file__']).__file__).read_bytes()).hexdigest()}
 if a.resume:
     if not manifest.exists(): raise ValueError('--resume requires an existing head-patching run manifest')
     saved=json.loads(manifest.read_text())
@@ -127,12 +141,22 @@ for hid in tqdm(chosen,desc=f'{a.stage} head-patching histories'):
                     patched=patch_head_batch_logits(model,rin,layer,donor_acts[layer],head_ids,position).cpu()
                     for row,head in enumerate(head_ids):
                         effect=donor_oriented_margin_effect(donor_logits,recipient_logits,patched[row],donor[binding],recipient[binding],token_ids)
-                        rows.append({'pair_id':pair_id,'history_id':hid,'edited_binding':binding,'query_id':query,'layer':layer,'head':head,'query_head_index':head,'num_attention_heads':qheads,'num_key_value_heads':kvheads,'head_dim':head_dim,'position':position,'site_role':'final_preanswer','direction':label,'donor_value':donor[binding],'recipient_value':recipient[binding],**effect})
+                        row={'pair_id':pair_id,'history_id':hid,'edited_binding':binding,'query_id':query,'layer':layer,'head':head,'query_head_index':head,'num_attention_heads':qheads,'num_key_value_heads':kvheads,'head_dim':head_dim,'position':position,'site_role':'final_preanswer','direction':label,'donor_value':donor[binding],'recipient_value':recipient[binding],**effect}
+                        if query.startswith('current_') and binding.startswith('old_'):
+                            old_value=recipient[binding]; current_value=recipient['answer']
+                            row.update(version_selection_diagnostics(recipient_logits,patched[row],current_value,old_value,token_ids))
+                            row.update({'donor_old_value':donor[binding],'recipient_old_value_used':old_value})
+                        rows.append(row)
             else:
                 head_sets={l:[head for hl,head in frozen_heads if hl==l] for l in layers}
                 patched=patch_head_set_logits(model,rin,donor_acts,head_sets,position)
                 effect=donor_oriented_margin_effect(donor_logits,recipient_logits,patched,donor[binding],recipient[binding],token_ids)
-                rows.append({'pair_id':pair_id,'history_id':hid,'edited_binding':binding,'query_id':query,'layer':-1,'head':-1,'head_set':frozen_heads,'head_set_size':len(frozen_heads),'position':position,'site_role':'final_preanswer','direction':label,'donor_value':donor[binding],'recipient_value':recipient[binding],**effect})
+                row={'pair_id':pair_id,'history_id':hid,'edited_binding':binding,'query_id':query,'layer':-1,'head':-1,'head_set':frozen_heads,'head_set_size':len(frozen_heads),'position':position,'site_role':'final_preanswer','direction':label,'donor_value':donor[binding],'recipient_value':recipient[binding],**effect}
+                if query.startswith('current_') and binding.startswith('old_'):
+                    old_value=recipient[binding]; current_value=recipient['answer']
+                    row.update(version_selection_diagnostics(recipient_logits,patched,current_value,old_value,token_ids))
+                    row.update({'donor_old_value':donor[binding],'recipient_old_value_used':old_value})
+                rows.append(row)
         commit_patch_pair(out,completion,pair_id,rows); done.add(pair_id)
 
 save_json({'provenance':provenance(c,a.pairs),'stage':a.stage,'analysis_label':'exploratory_individual_attention_head_scan' if a.stage=='discovery' else 'manually_frozen_reserve_head_set_confirmation','exploratory':a.stage=='discovery','history_ids':chosen,'layers':layers,'cells':cells,'frozen_head_pairs':frozen_heads,'head_indexing':'query-head index along the Qwen3 attention output [batch, sequence, query_heads, head_dim]; GQA repeats KV heads into query heads before attention output is formed','tensor_patched':'self_attn.o_proj pre-hook input reshaped from [batch, sequence, num_attention_heads*head_dim] to [batch, sequence, num_attention_heads, head_dim]; selected head slice replaced before o_proj','model_config':{'num_attention_heads':dimensions[0][0],'num_key_value_heads':dimensions[0][1],'head_dim':dimensions[0][2]},'attention_weights_used_as_evidence':False},str(out)+'.provenance.json')

@@ -5,7 +5,7 @@ from pathlib import Path
 from tqdm.auto import tqdm
 from src.data.io import read_jsonl
 from src.data.generate import render_example, query_variable_span
-from src.experiments.patching import (patch_sweep, partition_history_ids, focal_cells,
+from src.experiments.patching import (patch_sweep, partition_history_ids, focal_cells, version_selection_diagnostics,
     canonical_site_role, recover_patch_checkpoint, commit_patch_pair)
 from src.experiments.prefix_invariance import audit_prefix_invariance
 from src.models.loader import load_model
@@ -128,6 +128,9 @@ try:
      correct_delta=patched[correct]-tgt_log[correct]
      rec_margin=tgt_log[correct]-tgt_log.get(source_old,0.0); pat_margin=patched[correct]-patched.get(source_old,0.0)
      row.update({'pair_id':pair_id,'history_id':hid,'query_id':query,'edited_binding':binding,'direction':label,'donor_pair_direction':label,'recipient_pair_direction':'edited_to_baseline' if label=='baseline_to_edited' else 'baseline_to_edited','donor_is_edited':direction==1,'donor_value':donor[binding],'recipient_value':recipient[binding],'site_role':role,'site_label':role,'site':role,'token_id':tid,'token_text':token_text,'correct_answer':correct,'recipient_correct_logit':tgt_log[correct],'donor_correct_logit':src_log[correct],'patched_correct_logit':patched[correct],'patch_correct_logit_delta':correct_delta,'recipient_correct_minus_old_source':rec_margin,'patched_correct_minus_old_source':pat_margin,'patch_correct_margin_delta':pat_margin-rec_margin if query.startswith('current_') else None})
+     if query.startswith('current_') and binding.startswith('old_'):
+      row.update(version_selection_diagnostics(tgt_log,patched,correct,source_old,token_ids))
+      row['donor_old_value']=donor[old_key]; row['recipient_old_value_used']=source_old
      qrows.append(row)
    if len(direction_counts)!=2 or len(set(direction_counts.values()))!=1:
     raise RuntimeError(f'incomplete directions generated for {pair_id}: {direction_counts}')
