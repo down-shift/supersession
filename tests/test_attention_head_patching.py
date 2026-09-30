@@ -107,3 +107,25 @@ def test_reserve_head_set_reports_x_z_and_symmetric_history_contrasts():
     assert set(per_history.R_z)=={4.}
     assert set(per_history.symmetric_R)=={3.}
     assert summary.iloc[0].symmetric_R_mean==pytest.approx(3.)
+
+
+def test_head_analyzer_uses_head_column_and_writes_descriptive_outputs(tmp_path,monkeypatch):
+    pd=pytest.importorskip('pandas'); pytest.importorskip('matplotlib')
+    import json,sys
+    from src.data.io import write_jsonl
+    from scripts.analyze_attention_head_patching import main
+    rows=[]
+    for history in ('h1','h2'):
+        for head in (0,1):
+            for query,effect in (('current_x',3.),('current_z',1.)):
+                for direction in ('baseline_to_edited','edited_to_baseline'):
+                    rows.append({'history_id':history,'layer':32,'head':head,'num_attention_heads':2,'edited_binding':'old_x','query_id':query,'direction':direction,'patch_delta_toward_donor':effect})
+    patches=tmp_path/'patches.jsonl'; write_jsonl(rows,patches)
+    whole=tmp_path/'whole.csv'; pd.DataFrame([{'history_id':h,'layer':32,'component':'attention_output','R_x_patch':4.} for h in ('h1','h2')]).to_csv(whole,index=False)
+    out=tmp_path/'analysis'; monkeypatch.setattr(sys,'argv',['analyze_attention_head_patching.py','--patches',str(patches),'--whole-attention-by-history',str(whole),'--output-dir',str(out)])
+    main()
+    summary=pd.read_csv(out/'head_Rx_by_layer.csv')
+    assert len(summary)==2 and set(summary['head'])=={0,1}
+    assert set(summary['mean'])=={2.}
+    assert (out/'head_Rx_heatmap.png').is_file() and (out/'head_summary.json').is_file()
+    assert json.loads((out/'head_summary.json').read_text())['individual_head_effects_are_additive'] is False

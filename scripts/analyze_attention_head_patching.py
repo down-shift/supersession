@@ -78,7 +78,7 @@ def main():
     layer_heads=rows[0].get('num_attention_heads')
     if layer_heads is not None:
         expected={(int(r.layer),h) for r in summary.itertuples() for h in range(int(layer_heads))}
-        actual=set(zip(summary.layer.astype(int),summary.head.astype(int)))
+        actual=set(zip(summary['layer'].astype(int),summary['head'].astype(int)))
         if expected!=actual: raise ValueError('head scan is incomplete: not every configured query head has records at each scanned layer')
     if (summary.n_histories!=history.history_id.nunique()).any(): raise ValueError('some head/layer cells are missing histories')
     comparison=compare_whole_attention(history,a.whole_attention_by_history)
@@ -92,7 +92,7 @@ def main():
     vmax=float(np.nanmax(np.abs(pivot.to_numpy()))) or 1.
     fig,ax=plt.subplots(figsize=(max(10,pivot.shape[1]*.35),5.5)); image=ax.imshow(pivot.to_numpy(),aspect='auto',origin='lower',cmap='coolwarm',norm=TwoSlopeNorm(vmin=-vmax,vcenter=0,vmax=vmax))
     ax.set_xticks(range(pivot.shape[1])); ax.set_xticklabels(pivot.columns); ax.set_yticks(range(pivot.shape[0])); ax.set_yticklabels(pivot.index); ax.set(xlabel='Query-head index',ylabel='Transformer layer',title='Exploratory mean history-level $R_{x,patch}$ by Qwen3 query head'); fig.colorbar(image,ax=ax,label='Mean $R_{x,patch}$ (logits)'); fig.tight_layout(); fig.savefig(out/'head_Rx_heatmap.png',dpi=180); plt.close(fig)
-    doc={'analysis_label':'exploratory','exploratory':True,'metric':'history-level R_x_patch = effect(old_x/current_x) - effect(old_x/current_z), each cell averaged across both donor-oriented directions first','bootstrap_unit':'history_id','bootstrap_seed':a.bootstrap_seed,'bootstrap_draws':a.bootstrap_draws,'n_histories':int(history.history_id.nunique()),'n_layers':int(summary.layer.nunique()),'n_heads_per_layer':{str(k):int(v) for k,v in summary.groupby('layer').head.nunique().items()},'individual_head_effects_are_additive':False,'interpretation':'Per-head patch effects are single-head interventions in the intact network. Their sum is descriptive only and is not a decomposition; joint all-head intervention should reproduce whole-attention-output patching by construction and is covered by a unit test. No head is selected automatically.','whole_attention_comparison':None if comparison is None else comparison.to_dict(orient='records'),'rows':summary.to_dict(orient='records')}
+    doc={'analysis_label':'exploratory','exploratory':True,'metric':'history-level R_x_patch = effect(old_x/current_x) - effect(old_x/current_z), each cell averaged across both donor-oriented directions first','bootstrap_unit':'history_id','bootstrap_seed':a.bootstrap_seed,'bootstrap_draws':a.bootstrap_draws,'n_histories':int(history.history_id.nunique()),'n_layers':int(summary['layer'].nunique()),'n_heads_per_layer':{str(k):int(v) for k,v in summary.groupby('layer')['head'].nunique().items()},'individual_head_effects_are_additive':False,'interpretation':'Per-head patch effects are single-head interventions in the intact network. Their sum is descriptive only and is not a decomposition; joint all-head intervention should reproduce whole-attention-output patching by construction and is covered by a unit test. No head is selected automatically.','whole_attention_comparison':None if comparison is None else comparison.to_dict(orient='records'),'rows':summary.to_dict(orient='records')}
     (out/'head_summary.json').write_text(json.dumps(doc,indent=2)+'\n')
 
 if __name__=='__main__': main()
