@@ -5,11 +5,7 @@ from pathlib import Path
 from src.data.io import read_jsonl, sha256_file
 from src.utils import save_json
 
-from src.analysis.natural_competence import GATE, GATE_VERSION, evaluate_competence
-
-def history_signature(row):
-    return json.dumps({'values':row['matching_values'], 'entities':row.get('entities', row.get('variables')),
-                       'attribute':row.get('attribute'), 'orientation':row.get('orientation')}, sort_keys=True)
+from src.analysis.natural_competence import GATE, GATE_VERSION, concrete_history_signature, evaluate_competence
 
 p = argparse.ArgumentParser()
 p.add_argument('--dataset', required=True); p.add_argument('--behavior', required=True)
@@ -33,13 +29,13 @@ score_prov=json.loads(score_prov_path.read_text())
 if score_prov.get('dataset_sha256') != sha256_file(a.dataset): raise ValueError('scoring provenance dataset hash mismatch')
 if score_prov.get('dataset_seed') != dataset_seeds: raise ValueError('scoring provenance dataset seeds mismatch')
 renderer_hash=hashlib.sha256(Path('src/data/supersession_behavior.py').read_bytes()).hexdigest()
-history_sigs=sorted({history_signature(r) for r in dataset})
+history_sigs=sorted({concrete_history_signature(r) for r in dataset})
 prior_hashes=[]
 if a.stage=='frozen_gate':
     seen=set()
     for path in a.prior_dataset:
         prior_hashes.append(sha256_file(path))
-        current={history_signature(row) for row in read_jsonl(path)}
+        current={concrete_history_signature(row) for row in read_jsonl(path)}
         if seen & current or current & set(history_sigs): raise ValueError('frozen gate overlaps an earlier-stage concrete history')
         seen |= current
     if not a.prior_dataset: raise ValueError('frozen gate requires development --prior-dataset files')

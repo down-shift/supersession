@@ -50,7 +50,7 @@ uv run python scripts/run_supersession_behavior.py --config configs/mistral7b_na
 uv run python scripts/analyze_supersession_behavior.py --kind controls_counterbalanced --dataset outputs/supersession/mistral_nl_confirmatory.jsonl --behavior outputs/supersession/mistral_nl_confirmatory_scores.jsonl --output-dir outputs/supersession/mistral_nl_confirmatory_analysis
 ```
 
-Generation validates the frozen-gate seal and recomputes competence from the hash-bound gate data, verifies tokenizer/model/config/renderer provenance and the selected template, and rejects history overlap with development and gate data. Scoring repeats the exact token continuation and paired one-token edit audits under the second model's tokenizer/chat template.
+Generation validates the frozen-gate seal and recomputes competence from the hash-bound gate data, verifies tokenizer/model/config/renderer provenance and the selected template, and rejects overlap of complete histories (initial values, replacement values, entities, attribute, and orientation) with development and gate data. Scoring repeats the exact token continuation and paired one-token edit audits under the second model's tokenizer/chat template.
 
 ## Expected artifacts
 

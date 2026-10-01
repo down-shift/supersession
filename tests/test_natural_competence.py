@@ -5,7 +5,8 @@ import sys
 
 import pytest
 
-from src.analysis.natural_competence import GATE, GATE_VERSION, evaluate_competence, expected_cells
+from src.analysis.natural_competence import (GATE, GATE_VERSION, concrete_history_signature,
+                                             evaluate_competence, expected_cells)
 from src.data.io import write_jsonl, sha256_file
 from scripts.generate_supersession_experiments import _recompute_gate_pass
 
@@ -18,7 +19,8 @@ def records():
                    orientation=orientation, edited_variable=variable, edit_status=status,
                    pair_direction=direction, unassigned_slot_order=None if slot=='none' else slot,
                    answer='navy', stale_value='rust' if condition=='superseded' else None, seed=20261024,
-                   matching_values={'initial_x':'rust','initial_z':'silver','proposed_x':'navy','proposed_z':'olive'})
+                   matching_values={'initial_x':'rust','initial_z':'silver','proposed_x':'navy','proposed_z':'olive'},
+                   replacement_values={'initial_x':'wheat','initial_z':'lemon','proposed_x':'olive','proposed_z':'silver'})
         # Baselines have the same prompt across edited-variable pairs.
         prompt = f'{condition}|{query}|{orientation}|{direction}|{slot}' + (f'|{variable}' if direction else '')
         dataset.append(row)
@@ -59,6 +61,15 @@ def test_gate_verifier_uses_same_cell_contract(tmp_path):
     assert not _recompute_gate_pass(gate)
     gate.pop('gate_version')
     assert not _recompute_gate_pass(gate)
+
+
+def test_history_signature_includes_replacements_but_ignores_template():
+    row={'matching_values':{'initial_x':'rust'},'replacement_values':{'initial_x':'navy'},
+         'entities':['Nora','Liam'],'attribute':'badge','orientation':0,'prompt_variant':'nora_v1'}
+    other=copy.deepcopy(row); other['prompt_variant']='record_v1'
+    assert concrete_history_signature(row)==concrete_history_signature(other)
+    other['replacement_values']['initial_x']='olive'
+    assert concrete_history_signature(row)!=concrete_history_signature(other)
 
 
 def test_artifact_seed_comes_from_dataset_not_config(tmp_path, monkeypatch):

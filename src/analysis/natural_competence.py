@@ -69,3 +69,12 @@ def evaluate_competence(dataset, scores):
     return {'pass': passed, 'summary': summary, 'templates': templates,
             'n_unique_prompts': len(unique), 'expected_cell_count': len(required),
             'dataset_seed': sorted({r['seed'] for r in dataset})}
+
+
+def concrete_history_signature(row):
+    """Identify the full generated history while ignoring template replication."""
+    import json
+    return json.dumps({'initial_values': row['matching_values'],
+                       'replacement_values': row['replacement_values'],
+                       'entities': row.get('entities', row.get('variables')),
+                       'attribute': row.get('attribute'), 'orientation': row.get('orientation')}, sort_keys=True)

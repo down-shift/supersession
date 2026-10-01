@@ -9,12 +9,12 @@ from pathlib import Path
 from src.data.io import write_jsonl, read_jsonl, sha256_file
 from src.data.supersession import make_version_chain, render_version_chain
 from src.data.supersession_behavior import generate_behavior_pairs, generate_status_2x2_gate, SCHEMA
+from src.analysis.natural_competence import concrete_history_signature
 from src.utils import provenance, save_json
 
 
 def _history_signature(row):
-    return json.dumps({'values': row['matching_values'], 'entities': row.get('entities', row.get('variables')),
-                       'attribute': row.get('attribute'), 'orientation': row.get('orientation')}, sort_keys=True)
+    return concrete_history_signature(row)
 
 
 def _recompute_gate_pass(gate):
