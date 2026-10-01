@@ -10,7 +10,7 @@ from src.data.io import write_jsonl, read_jsonl, sha256_file
 from src.data.supersession import make_version_chain, render_version_chain
 from src.data.supersession_behavior import generate_behavior_pairs, generate_status_2x2_gate, SCHEMA
 from src.analysis.natural_competence import concrete_history_signature
-from src.utils import provenance, save_json
+from src.utils import load_config, provenance, save_json
 
 
 def _history_signature(row):
@@ -56,6 +56,16 @@ def main():
         raise ValueError('natural confirmatory generation requires --frozen-gate-required')
     if a.natural_language and a.stage != 'confirmatory' and a.frozen_gate_required:
         raise ValueError('--frozen-gate-required is only valid for confirmatory natural generation')
+    natural_config = None
+    if a.natural_language:
+        if not a.config or not a.token_ids:
+            raise ValueError('natural-language generation requires --config and --token-ids for frozen provenance')
+        natural_config = load_config(a.config)
+        token_doc = json.loads(Path(a.token_ids).read_text())
+        if (natural_config['model']['id'] != token_doc.get('model_id') or
+                natural_config['model'].get('revision') != token_doc.get('model_revision') or
+                natural_config['model'].get('tokenizer_revision') != token_doc.get('tokenizer_revision')):
+            raise ValueError('natural-language config model/tokenizer revisions differ from validated token map')
     if a.kind == 'status_2x2':
         if not a.frozen_gate or not a.token_ids:
             raise ValueError('status_2x2 generation requires --frozen-gate and --token-ids; use generate_status_prompt_stage.py for redevelopment')
@@ -68,7 +78,6 @@ def main():
         if not a.config or not a.token_ids:
             raise ValueError('natural confirmatory generation requires --config and --token-ids to verify the frozen gate')
         from src.data.supersession_behavior import NATURAL_TEMPLATES
-        from src.utils import load_config
         gate_path = Path(a.frozen_gate_required)
         gate = json.loads(gate_path.read_text())
         claimed = gate.pop('artifact_sha256', None)
@@ -76,7 +85,6 @@ def main():
         if claimed != actual or gate.get('stage') != 'frozen_competence_gate' or gate.get('pass') is not True or not _recompute_gate_pass(gate):
             raise ValueError('frozen gate is failed or its integrity seal is invalid')
         gate['artifact_sha256'] = claimed
-        load_config(a.config)
         renderer_hash = hashlib.sha256(Path('src/data/supersession_behavior.py').read_bytes()).hexdigest()
         score_prov_path = Path(gate['behavior_path'] + '.provenance.json')
         if (gate['dataset_sha256'] != sha256_file(gate['dataset_path']) or gate['behavior_sha256'] != sha256_file(gate['behavior_path'])
@@ -159,7 +167,10 @@ def main():
             if overlap:
                 raise ValueError('confirmatory histories overlap a development/frozen-gate dataset')
     write_jsonl(rows, out)
-    save_json({**provenance({'seed': seed}, out), 'schema': SCHEMA if a.kind != 'chains' else 'legacy_chains',
+    prov_config = {'seed': seed}
+    if natural_config:
+        prov_config['model'] = natural_config['model']
+    save_json({**provenance(prov_config, out), 'schema': SCHEMA if a.kind != 'chains' else 'legacy_chains',
                'kind': a.kind, 'n_matched_histories': n, 'n_records': len(rows),
                'values_sha256': sha256_file(a.values), 'token_map_sha256': sha256_file(a.token_ids) if a.token_ids else None,
                'selected_values': values, 'excluded_proposals': [v for v in proposals if v not in values],

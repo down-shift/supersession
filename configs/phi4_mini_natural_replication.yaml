@@ -1,0 +1,13 @@
+seed: 20261023
+model:
+  id: microsoft/Phi-4-mini-instruct
+  revision: cfbefacb99257ffa30c83adab238a50856ac3083
+  tokenizer_id: microsoft/Phi-4-mini-instruct
+  tokenizer_revision: cfbefacb99257ffa30c83adab238a50856ac3083
+  device: cuda
+  dtype: bfloat16
+  quantization: none
+  device_map: auto
+  chat_template: true
+  attn_implementation: sdpa
+  trust_remote_code: true

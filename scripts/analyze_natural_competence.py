@@ -45,6 +45,8 @@ artifact={'stage':'frozen_competence_gate' if a.stage=='frozen_gate' else 'devel
  'gate_version':GATE_VERSION, 'expected_cell_count':evaluation['expected_cell_count'],
  'n_unique_prompts':evaluation['n_unique_prompts'],'selected_templates':templates,'selected_template':a.selected_template,
  'by_template_condition_query_orientation_edit_status_pair_direction_slot':summary,
+ 'by_template_condition':evaluation['condition_summary'],
+ 'failed_cells':evaluation['failed_cells'],
  'history_signatures':history_sigs,'dataset_path':str(Path(a.dataset).resolve()),'behavior_path':str(Path(a.behavior).resolve()),
  'dataset_sha256':sha256_file(a.dataset),'behavior_sha256':sha256_file(a.behavior),
  'scoring_provenance_sha256':sha256_file(score_prov_path),'token_map_sha256':sha256_file(a.token_ids),

@@ -18,7 +18,8 @@ from src.models.loader import load_model
 from src.utils import load_config, provenance, save_json
 
 
-def score_dataset(model, tokenizer, rows, token_ids, output, completed, chat=True):
+def score_dataset(model, tokenizer, rows, token_ids, output, completed, chat=True,
+                  competence_only=False):
     """Use the shared scorer and checkpoint format, ordering baseline before edit."""
     expected = {r['example_id']: r for r in rows}
     saved = read_jsonl(output) if Path(output).exists() else []
@@ -43,7 +44,8 @@ def score_dataset(model, tokenizer, rows, token_ids, output, completed, chat=Tru
         if row['pair_direction'] == 0:
             baselines[row['pair_id']] = result
         else:
-            result['matched_edit_effect'] = matched_edit_effect(baselines[row['pair_id']], result)
+            if not competence_only:
+                result['matched_edit_effect'] = matched_edit_effect(baselines[row['pair_id']], result)
         append_jsonl_record(output, result)
 
 
@@ -54,6 +56,8 @@ def main():
     p.add_argument('--token-ids', required=True)
     p.add_argument('--output', required=True)
     p.add_argument('--resume', action='store_true')
+    p.add_argument('--competence-only', action='store_true',
+                   help='score next-token competence without computing matched causal effects')
     a = p.parse_args()
     c = load_config(a.config)
     rows = read_jsonl(a.dataset)
@@ -87,6 +91,7 @@ def main():
     code_sha = hashlib.sha256(b''.join(path.read_bytes() for path in code_paths)).hexdigest()
     fingerprint_config = copy.deepcopy(c)
     fingerprint_config['supersession_scoring'] = {'schema': SCHEMA, 'kind': kind,
+        'competence_only': a.competence_only,
         'config_sha256': sha256_file(a.config), 'code_sha256': code_sha,
         'chat_template_sha256': hashlib.sha256(str(getattr(tok, 'chat_template', None)).encode()).hexdigest(),
         'python': run['python'], 'packages': run['packages']}
@@ -100,7 +105,8 @@ def main():
                    token_map_sha256=sha256_file(a.token_ids), code_sha256=code_sha,
                    prompt_alignment_audit=alignment, primary_filter='all_valid_trials')
         save_json(run, sidecar)
-    score_dataset(model, tok, rows, ids, a.output, completed, chat)
+    score_dataset(model, tok, rows, ids, a.output, completed, chat,
+                  competence_only=a.competence_only)
     print(f'scored/resumed {len(rows)} {kind} members; {len(completed)} loaded from checkpoint')
 
 

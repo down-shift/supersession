@@ -6,7 +6,9 @@ def load_model(config):
     except ImportError as e:
         raise RuntimeError("Model execution requires optional torch and transformers dependencies; install with `uv sync --extra model` on a supported Python/GPU environment.") from e
     m=config["model"]; model_id=m["id"]; tok_id=m.get("tokenizer_id") or model_id
-    tok=AutoTokenizer.from_pretrained(tok_id,revision=m.get("tokenizer_revision") or m.get("revision"))
+    remote_code=m.get("trust_remote_code",False)
+    tok=AutoTokenizer.from_pretrained(tok_id,revision=m.get("tokenizer_revision") or m.get("revision"),
+                                      trust_remote_code=remote_code)
     dtype=getattr(torch,m.get("dtype","float16"))
     quantization=m.get("quantization","none")
     load_kwargs={
@@ -14,6 +16,7 @@ def load_model(config):
         "torch_dtype":dtype,
         "attn_implementation":m.get("attn_implementation","eager"),
         "device_map":m.get("device_map","auto"),
+        "trust_remote_code":remote_code,
     }
     if quantization == "int8":
         try:

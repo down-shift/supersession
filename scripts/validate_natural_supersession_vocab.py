@@ -32,7 +32,8 @@ if a.validation_histories<2: raise ValueError('use at least two validation histo
 c=load_config(a.config); model=c['model']; requested=model.get('tokenizer_revision') or model['revision']
 if any(not re.fullmatch(r'[0-9a-f]{40}', str(x)) for x in (requested, model['revision'])):
     raise ValueError('model and tokenizer revisions must be immutable 40-character commit hashes')
-tok=AutoTokenizer.from_pretrained(model.get('tokenizer_id') or model['id'],revision=requested)
+tok=AutoTokenizer.from_pretrained(model.get('tokenizer_id') or model['id'],revision=requested,
+                                  trust_remote_code=model.get('trust_remote_code',False))
 resolved=getattr(tok,'_commit_hash',None) or getattr(tok,'init_kwargs',{}).get('_commit_hash')
 if resolved and resolved != requested: raise ValueError(f'tokenizer resolved to {resolved}, expected pinned commit {requested}')
 # AutoTokenizer does not expose _commit_hash consistently. The immutable
