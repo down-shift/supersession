@@ -37,7 +37,26 @@ def _load_phi4_mini(model_id, model_config, load_kwargs):
             "lm_head.weight": "model.embed_tokens.weight"}
     kwargs = {key: value for key, value in load_kwargs.items()
               if key != "trust_remote_code"}
-    return model_class.from_pretrained(model_id, config=remote_config, **kwargs)
+    model = model_class.from_pretrained(model_id, config=remote_config, **kwargs)
+    _materialize_phi4_rope_buffers(model)
+    return model
+
+
+def _materialize_phi4_rope_buffers(model):
+    """Recreate Phi-4's nonpersistent RoPE buffers after Accelerate meta dispatch."""
+    embedding = model.get_input_embeddings()
+    device = embedding.weight.device
+    for module in model.modules():
+        if module.__class__.__name__ != "Phi3RotaryEmbedding":
+            continue
+        original = getattr(module, "original_inv_freq", None)
+        current = getattr(module, "inv_freq", None)
+        if original is None or current is None or not (original.is_meta or current.is_meta):
+            continue
+        inv_freq, attention_scaling = module.rope_init_fn(module.config, device)
+        module.register_buffer("inv_freq", inv_freq, persistent=False)
+        module.original_inv_freq = inv_freq.clone()
+        module.attention_scaling = attention_scaling
 
 
 def load_model(config):
@@ -73,6 +92,8 @@ def load_model(config):
         model = _load_phi4_mini(model_id, m, load_kwargs)
         config.setdefault("transformers_compatibility_shims", []).append(
             "Phi3ForCausalLM._tied_weights_keys converted to target/source mapping")
+        config.setdefault("transformers_compatibility_shims", []).append(
+            "Phi3RotaryEmbedding nonpersistent RoPE buffers initialized after meta dispatch")
     else:
         model=AutoModelForCausalLM.from_pretrained(model_id,**load_kwargs)
     model.eval()
