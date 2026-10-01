@@ -348,3 +348,7 @@ uv run python scripts/audit_status_order_orientation.py --dataset outputs/supers
 ```
 
 This CPU analysis reports history-level relevance components and task accuracy/ranks stratified by literal variable, first/second assignment or update position, and orientation. Its additive position/name decomposition is descriptive; inspect the orientation-specific contrasts for interactions.
+
+## Cross-model framework
+
+The separate [cross_model_v1 protocol](docs/cross_model_v1.md) provides fixed semantic surface classes, shared vocabulary, staged competence gates, causal estimands, architecture adapters, and exact run commands. Read the [preimplementation audit](docs/cross_model_v1_audit.md) for the preserved failed Mistral/Phi gates and tokenizer limitations. No cross-model confirmatory result is implied by this implementation.

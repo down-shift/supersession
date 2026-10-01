@@ -1,0 +1,68 @@
+seed: 20261023
+model:
+  id: meta-llama/Llama-3.1-8B-Instruct
+  revision: 0e9e39f249a16976918f6564b8830bc894c89659
+  tokenizer_id: meta-llama/Llama-3.1-8B-Instruct
+  tokenizer_revision: 0e9e39f249a16976918f6564b8830bc894c89659
+  device: cuda
+  dtype: float16
+  quantization: int8
+  device_map: auto
+  chat_template: true
+  attn_implementation: eager
+cross_model:
+  protocol: cross_model_v1
+  causal_protocol: cross_model_sequence_mass_v1
+  values:
+  - amber
+  - coral
+  - jade
+  - pearl
+  - slate
+  - teal
+  - violet
+  - ivory
+  gate:
+    semantic_accuracy_min: 0.99
+    mean_semantic_rank_max: 1.01
+    mean_current_minus_stale_min: 0.0
+  seeds:
+    validation: 20261201
+    development: 20261202
+    frozen_gate: 20261203
+    confirmatory: 20261204
+  counts:
+    development: 24
+    frozen_gate: 24
+    confirmatory: 96
+  template: nora_v1
+  surfaces: lower/title x zero/one leading ASCII space; exclude unspaced prefix-changing
+    forms; deduplicate token events
+  candidate_score: logsumexp of complete unnormalized sequence log probabilities
+  span_policy: patch all tokens; require exact pair alignment outside edited span
+  bootstrap:
+    unit: history
+    draws: 2000
+    seed: 73021
+  mechanism_histories: 12
+  head_discovery_histories: 6
+  depth_shift:
+    early_max: 0.25
+    late_min: 0.75
+    contrasts:
+    - early_historical_minus_readout
+    - late_readout_minus_historical
+  normalized_secondary: primary / live mean; available iff live bootstrap lower CI
+    > 1 nat
+  quantization_sensitivity:
+    models:
+    - Qwen/Qwen3-8B
+    - microsoft/Phi-4-mini-instruct
+    histories: 6
+    comparison: int8 versus unquantized float16
+    patch_depths:
+    - 0.125
+    - 0.875
+    sites:
+    - edited_value_span
+    - final_preanswer
