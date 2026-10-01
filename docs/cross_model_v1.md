@@ -1,12 +1,12 @@
 # Supersession Without Erasure: cross_model_v1
 
-Status: revised before logits (`review_1_before_logits`), preregistration-ready implementation, **not a completed replication or externally registered protocol**. No new model competence or confirmatory causal inference has run. Read [the preimplementation audit](cross_model_v1_audit.md) first. Established Qwen experiments, failed Mistral/Phi gates, and stopped version-chain/status branches remain preserved.
+Status: logged rerun revision (`review_2_progress_20261002`), preregistration-ready implementation, **not a completed replication or externally registered protocol**. The prior Qwen cross-model development/gate run is preserved as revision 1; no revision-2 model scoring has run. The instrumented revision requires a new Stage 0 through frozen gate. Read [the preimplementation audit](cross_model_v1_audit.md) first. Established Qwen experiments, failed Mistral/Phi gates, and stopped version-chain/status branches remain preserved.
 
 ## Frozen scientific design
 
 Use the existing `nora_v1` entity–attribute semantics and generator: live, superseded, ordinary irrelevant (diagnostic), and both literal orders of counterbalanced irrelevant. The same semantic histories, replacement identities, seeds, names, attributes, and orientations are used across model families. The assistant suffix remains `Answer:`; chat rendering uses the pinned tokenizer, `add_generation_prompt=True`, `enable_thinking=False`. No stronger classification instruction or candidate list is added to the prompt.
 
-The contract in `src/cross_model/protocol.py` is copied exactly into four new configs. Config mismatches fail; thresholds/seeds/candidates have no CLI override. Stages use 24/24/96 histories and seeds 20261202/20261203/20261204; tokenizer validation uses 20261201. Three focal conditions yield exactly **64 required completeness/diagnostic cells** per template: live 16, superseded 16, counterbalanced irrelevant 32. Each cell counts each unique prompt once. Each history has 40 scored members / 20 edit pairs; confirmatory has 3,840 members / 1,920 pairs. No causal analysis is available for development/gate stages.
+The contract in `src/cross_model/protocol.py` is copied exactly into four new configs. Config mismatches fail; thresholds/seeds/candidates have no CLI override. Logged revision stages use 24/24/96 histories and seeds 20261206/20261207/20261208; tokenizer validation uses 20261205. These fresh seeds were fixed before revision-2 logits and are checked against locally available prior datasets; generation fails on any overlap. Three focal conditions yield exactly **64 required completeness/diagnostic cells** per template: live 16, superseded 16, counterbalanced irrelevant 32. Each cell counts each unique prompt once. Each history has 40 scored members / 20 edit pairs; confirmatory has 3,840 members / 1,920 pairs. No causal analysis is available for development/gate stages.
 
 ## Competence decision and alternatives
 
@@ -146,58 +146,33 @@ Different implementations are a scientifically useful result. Controlled English
 
 ## Exact commands
 
-Run from repository root on the configured CUDA host. Choose each frozen panel slug in turn (`qwen3_8b`, `mistral7b`, `phi4_mini`, `llama31_8b`). All output paths must be new. No expensive commands below were run during implementation.
+Run from repository root on the configured CUDA host. The helper script owns the config, run paths, resume flags, and progress display. Choose each frozen panel slug in turn (`qwen3_8b`, `mistral7b`, `phi4_mini`, `llama31_8b`).
 
 ```bash
-MODEL=qwen3_8b  # repeat independently for mistral7b, phi4_mini, llama31_8b
-CONFIG="configs/cross_model_v1/$MODEL.yaml"
-RUN="outputs/cross_model_v1/$MODEL"
+# Stage 0, development, fresh frozen gate, and preflight. Stops before confirmation.
+bash scripts/run_cross_model.sh qwen3_8b prepare
 
-# Stage 0: no model weights or logits; add --local-files-only for cached tokenizers.
-uv run python -m scripts.cross_model validate --config "$CONFIG" --output "$RUN/candidates.json"
+# Review outputs/qwen3_8b_review2/gate_report.json and preflight.json first.
+# Then run the 96-history confirmatory dataset/scoring/analysis.
+bash scripts/run_cross_model.sh qwen3_8b confirmatory
 
-# Development: fixed 24 histories; scorer never computes E or R.
-uv run python -m scripts.cross_model generate --stage development --config "$CONFIG" --candidates "$RUN/candidates.json" --output "$RUN/development.jsonl"
-uv run python -m scripts.cross_model score --config "$CONFIG" --candidates "$RUN/candidates.json" --dataset "$RUN/development.jsonl" --output "$RUN/development_scores.jsonl"
-uv run python -m scripts.cross_model analyze --stage development --config "$CONFIG" --candidates "$RUN/candidates.json" --dataset "$RUN/development.jsonl" --scores "$RUN/development_scores.jsonl" --output "$RUN/development_report.json"
+# Plan, real hook smoke, then common M1–M4 mechanistic battery.
+bash scripts/run_cross_model.sh qwen3_8b mechanism
 
-# Fresh gate; development is descriptive and cannot veto generation.
-uv run python -m scripts.cross_model generate --stage frozen_gate --config "$CONFIG" --candidates "$RUN/candidates.json" --development-report "$RUN/development_report.json" --output "$RUN/gate.jsonl"
-uv run python -m scripts.cross_model score --config "$CONFIG" --candidates "$RUN/candidates.json" --dataset "$RUN/gate.jsonl" --output "$RUN/gate_scores.jsonl"
-uv run python -m scripts.cross_model analyze --stage frozen_gate --config "$CONFIG" --candidates "$RUN/candidates.json" --dataset "$RUN/gate.jsonl" --scores "$RUN/gate_scores.jsonl" --development-report "$RUN/development_report.json" --output "$RUN/gate_report.json"
+# Optional fixed Qwen/Phi precision sensitivity.
+bash scripts/run_cross_model.sh qwen3_8b sensitivity
 
-# Required report to review/share before any confirmatory causal run.
-uv run python -m scripts.cross_model preflight --config "$CONFIG" --candidates "$RUN/candidates.json" --gate "$RUN/gate_report.json" --output "$RUN/preflight.json"
-
-# Confirmation: fail-closed gate recomputation, frozen report binding, 96 fresh histories.
-uv run python -m scripts.cross_model generate --stage confirmatory --config "$CONFIG" --candidates "$RUN/candidates.json" --gate "$RUN/gate_report.json" --preflight "$RUN/preflight.json" --output "$RUN/confirmatory.jsonl"
-uv run python -m scripts.cross_model score --config "$CONFIG" --candidates "$RUN/candidates.json" --dataset "$RUN/confirmatory.jsonl" --output "$RUN/confirmatory_scores.jsonl"
-uv run python -m scripts.cross_model analyze --stage confirmatory --config "$CONFIG" --candidates "$RUN/candidates.json" --dataset "$RUN/confirmatory.jsonl" --scores "$RUN/confirmatory_scores.jsonl" --output "$RUN/confirmatory_analysis.json"
-
-# Cheap tokenizer-only workload plan, after the gate-authorized dataset exists.
-uv run python -m scripts.cross_model mechanism-plan --config "$CONFIG" --candidates "$RUN/candidates.json" --dataset "$RUN/confirmatory.jsonl" --output "$RUN/mechanism_plan.json"
-
-# Real model hook smoke; run on the CUDA host immediately before intervention work.
-uv run python -m scripts.cross_model smoke --config "$CONFIG" --candidates "$RUN/candidates.json" --output "$RUN/hook_smoke.json"
-
-# Minimal common M1–M4 battery; JSONL raw grid and .analysis.json history summaries.
-uv run python -m scripts.cross_model mechanism --config "$CONFIG" --candidates "$RUN/candidates.json" --dataset "$RUN/confirmatory.jsonl" --scores "$RUN/confirmatory_scores.jsonl" --output "$RUN/mechanism.jsonl"
-
-# Optional M5, with fixed six/six discovery/reserve split.
-uv run python -m scripts.cross_model mechanism --heads --config "$CONFIG" --candidates "$RUN/candidates.json" --dataset "$RUN/confirmatory.jsonl" --scores "$RUN/confirmatory_scores.jsonl" --output "$RUN/heads.jsonl"
-
-# Fixed Qwen8/Phi4-mini precision sensitivity only; set MODEL to the relevant slug first.
-uv run python -m scripts.cross_model sensitivity --config "$CONFIG" --candidates "$RUN/candidates.json" --dataset "$RUN/confirmatory.jsonl" --scores "$RUN/confirmatory_scores.jsonl" --output "$RUN/precision_sensitivity.json"
-
-# Cheap CPU unit/contract/native tiny-model checks.
-uv run pytest tests/test_cross_model_v1.py -q
+# Check running process, output row counts, and GPU use from another terminal.
+bash scripts/run_cross_model.sh qwen3_8b status
 ```
 
-Use `--prior-dataset PATH` on generation to bind additional archived history datasets. Available old Mistral/Phi and Qwen natural-language paths are automatically included. If resuming an interrupted score or mechanism JSONL, rerun its exact command with `--resume`; never regenerate a claimed stage or overwrite its files. Stage 0 maps made on a different environment remain conditional on exact tokenizer/code/config hashes; repeat cheap validation on the execution host into a fresh path before its first stage if needed.
+The helper defaults to `outputs/<model>_review2`; set `CROSS_MODEL_RUN_DIR` to choose another fresh directory. It automatically resumes score/mechanism JSONL checkpoints when their manifests exist. Generation and validation never overwrite partial artifacts: after an interrupted generation, preserve that run directory and select a new run path. `status` is safe to run while a stage is active.
 
 ## Review corrections and unresolved execution work
 
-These changes revise only the unrun cross-model protocol. `natural_competence_v2`, original Qwen results, and failed Mistral/Phi experiments retain their original thresholds/statuses. Earlier cross-model tokenizer maps are preserved but fail the revised contract/code hash; create fresh reviewed maps before any logits.
+`natural_competence_v2`, original Qwen results, and failed Mistral/Phi experiments retain their original thresholds/statuses. The Qwen revision-1 development/gate files remain preserved; instrumented revision 2 uses fresh maps, seeds, and output paths. New same-model stage generation checks history overlap against the earlier Qwen cross-model run and available legacy natural-language artifacts.
+
+The CLI emits INFO logs and stderr progress bars for tokenizer audits, history generation, model loading, individual score forwards and rows, competence recomputation, hook checks, mechanism tasks, and precision-sensitivity tasks. Instrumentation changes the source-code hash; revision-1 candidate/gate/preflight files therefore fail strict verification under revision 2 and are preserved as the prior run. Thresholds, candidate strings, score definitions, and estimands are unchanged. Revision-2 seeds and fresh output paths are fixed in the config. No code path bypasses hash checks.
 
 Real Phi/CUDA/int8 smoke remains required for mechanisms and does not gate behavioral scoring. This local environment is Darwin, `torch.cuda.is_available() == False`, `torch.version.cuda == None`, and has no cached pinned Phi weights. The real smoke command above must run on the CUDA host; successful tiny native Phi3 tests do not fill that gap.
 

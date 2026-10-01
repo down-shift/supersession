@@ -1,5 +1,6 @@
 """Fixed, paired minimal localization battery. No effect-dependent site selection."""
 from collections import defaultdict
+import logging
 from pathlib import Path
 
 from src.cross_model.adapters import ActivationHook, get_decoder_blocks, head_dimensions, normalized_depth
@@ -8,6 +9,9 @@ from src.cross_model.scoring import score_prompt
 from src.cross_model.tokens import audit_pairs, check_tokenizer, encode, semantic_positions
 from src.cross_model.workflow import score_info, verify_confirmation
 from src.data.supersession_behavior import edited_member
+from src.cross_model.progress import progress
+
+logger = logging.getLogger(__name__)
 
 
 def selected_pairs(rows, *, include_current=True):
@@ -81,7 +85,7 @@ def patch_pair(model, tokenizer, members, candidate, layer, component, site, hea
 def relevance(records):
     """Counterbalance slots before x/z query contrasts; reject incomplete query cells."""
     grouped = defaultdict(dict)
-    for r in records:
+    for r in progress(records, desc='Summarizing patch relevance', unit='record'):
         key = (r['history_id'],r['condition'],r['edited_field'].split('_')[0],
                r['component'],r['site'],r['layer'],r['head'])
         cell = (r['edited_variable'],r['query'],r['slot_order'])
@@ -126,7 +130,7 @@ def build_tasks(ids, pairs, tokenizer, count, *, heads=False, model=None):
     tasks = []
     core = CONTRACT['mechanism_core']
     late = sorted({round(x*(count-1)) for x in core['secondary_depths']})
-    for pid,members in sorted(pairs.items()):
+    for pid,members in progress(sorted(pairs.items()), desc='Planning intervention tasks', unit='pair'):
         row = members[0]
         if not heads:
             if row['condition'] not in core['conditions'] or not row['edited_field'].startswith('initial_'):
@@ -158,6 +162,7 @@ def run(a, config, candidate):
     from src.data.progress import prepare_jsonl_progress, append_jsonl_record
     from src.data.io import read_jsonl, sha256_file
     from src.analysis.supersession_behavior import summarize_histories
+    logger.info("Validating confirmatory dataset and scores before mechanism run")
     rows, info = verify_confirmation(a.dataset, config, a.config, a.candidates)
     score_info(a.scores, a.dataset, config, a.config, a.candidates, 'confirmatory')
     # Hooks run only after gate and completed confirmatory behavioral scoring.
@@ -173,6 +178,8 @@ def run(a, config, candidate):
             'unequal token spans/sequence lengths in the fixed battery; no pairs dropped',
             'edit_audit':audit, 'history_ids':ids, 'provenance':manifest(config,a.config,a.candidates,a.dataset)}))
         print('mechanistic branch stopped: fixed span alignment failed'); return
+    logger.info("Fixed mechanism plan: histories=%d pairs=%d; loading model for real hook smoke",
+                len(ids), len(pairs))
     model, tok = load_pinned_model(config); blocks = get_decoder_blocks(model); n = len(blocks)
     prov = manifest(config,a.config,a.candidates,a.dataset)
     smoke = hook_smoke(model,tok,semantic_positions(flat[0],tok)[0])
@@ -182,6 +189,7 @@ def run(a, config, candidate):
                 resolved_device_map={k:str(v) for k,v in getattr(model,'hf_device_map',{}).items()},
                 mode='heads' if a.heads else 'core')
     tasks = build_tasks(ids, pairs, tok, n, heads=a.heads, model=model)
+    logger.info("Mechanism task grid contains %d tasks across %d decoder blocks", len(tasks), n)
     # Every head is recorded, but selection/profile analysis is strictly split by history.
     task_rows = [{'example_id':str(t), 'task':list(t)} for t in tasks]
     fingerprint = {k:v for k,v in prov.items() if k!='timestamp_utc'}
@@ -191,7 +199,7 @@ def run(a, config, candidate):
         for r in read_jsonl(a.output):
             if r.get('task') != expected.get(r['example_id']): raise ValueError('mechanism resume task mismatch')
     likelihood_cache = {}
-    for task in tasks:
+    for task in progress(tasks, desc='Patching mechanism tasks', unit='task'):
         tid = str(task)
         if tid in completed: continue
         pid,layer,component,site,head = task
@@ -240,7 +248,7 @@ def execution_plan(rows, tokenizer, candidate, count):
     tasks=build_tasks(ids,pairs,tokenizer,count)
     component_counts={c:sum(t[2]==c for t in tasks) for c in ('block_output','attention_output','mlp_output')}
     patch_forwards=0
-    for pid,*_ in tasks:
+    for pid,*_ in progress(tasks, desc='Estimating mechanism forward calls', unit='task'):
         b=pairs[pid][0]
         classes=[candidate['events'][b[v]] for v in ('source_value','replacement_value')]
         scoring_calls=1+sum(len(e['ids'])>1 for members in classes for e in members)

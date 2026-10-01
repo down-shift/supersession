@@ -1,6 +1,7 @@
 """History-level sequence-mass and separately labeled original raw-logit effects."""
 from collections import defaultdict
 import numpy as np
+from src.cross_model.progress import progress
 
 from src.analysis.supersession_behavior import history_contrasts, summarize_histories
 from src.cross_model.protocol import VALUES
@@ -17,7 +18,7 @@ def contrasts(rows, scores, field='semantic_log_mass'):
         pairs[s['pair_id']][s['pair_direction']] = s
     if seen != set(expected): raise ValueError('incomplete causal scores')
     effects = []
-    for members in pairs.values():
+    for members in progress(list(pairs.values()), desc='Computing paired identity-transfer effects', unit='pair'):
         b, e = members[0], members[1]; source, replacement = b['source_value'], b['replacement_value']
         effect = {k: b[k] for k in ('history_id', 'condition', 'experiment_kind', 'edited_field',
                   'edited_variable', 'query', 'edit_status', 'unassigned_slot_order')}
@@ -57,7 +58,7 @@ def strata(rows, history_rows):
                                       for r in history_rows]) for v in ('x', 'z')}
     # Membership strata overlap. They are descriptive, never independent samples.
     vocabulary = {}
-    for value in VALUES:
+    for value in progress(VALUES, desc='Summarizing vocabulary strata', unit='value', leave=False):
         selected = [r[primary] for r in history_rows if value in by_id[r['history_id']]['matching_values'].values()]
         vocabulary[value] = summarize_histories(selected) if selected else {'n_histories': 0}
     return {'orientation': orientation, 'semantic_variable': variables,

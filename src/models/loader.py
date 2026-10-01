@@ -1,4 +1,7 @@
 """Lazy Hugging Face loading for decoder-only models."""
+import logging
+
+logger = logging.getLogger(__name__)
 
 def _prepare_remote_model_compat(config):
     """Bridge moved typing-only Transformers symbols used by pinned remote code."""
@@ -67,6 +70,7 @@ def load_model(config):
         raise RuntimeError("Model execution requires optional torch and transformers dependencies; install with `uv sync --extra model` on a supported Python/GPU environment.") from e
     m=config["model"]; model_id=m["id"]; tok_id=m.get("tokenizer_id") or model_id
     remote_code=m.get("trust_remote_code",False)
+    logger.info("Loading tokenizer %s at revision %s", tok_id, m.get("tokenizer_revision") or m.get("revision"))
     tok=AutoTokenizer.from_pretrained(tok_id,revision=m.get("tokenizer_revision") or m.get("revision"),
                                       trust_remote_code=remote_code)
     dtype=getattr(torch,m.get("dtype","float16"))
@@ -88,6 +92,9 @@ def load_model(config):
     elif quantization != "none":
         raise ValueError(f"unsupported quantization {quantization!r}; supported values: none, int8")
     _prepare_remote_model_compat(config)
+    logger.info("Loading model %s revision=%s dtype=%s quantization=%s device_map=%s",
+                model_id, m.get("revision"), m.get("dtype", "float16"), quantization,
+                m.get("device_map", "auto"))
     if model_id == "microsoft/Phi-4-mini-instruct" and m.get("trust_remote_code"):
         model = _load_phi4_mini(model_id, m, load_kwargs)
         config.setdefault("transformers_compatibility_shims", []).append(
@@ -100,6 +107,9 @@ def load_model(config):
     config["resolved_model_revision"]=getattr(model.config,"_commit_hash",m.get("revision"))
     config["resolved_tokenizer_revision"]=getattr(tok,"_commit_hash",None) or getattr(tok,"init_kwargs",{}).get("_commit_hash",m.get("tokenizer_revision"))
     config["resolved_quantization"]=quantization
+    logger.info("Model loaded: class=%s input_device=%s resolved_revision=%s",
+                model.__class__.__name__, model.get_input_embeddings().weight.device,
+                config["resolved_model_revision"])
     return model,tok
 
 def decoder_blocks(model):

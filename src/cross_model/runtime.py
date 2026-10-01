@@ -1,8 +1,14 @@
 """Pinned execution and cheap real-module no-op hook checks."""
+import logging
+
 from src.models.loader import load_model
+from src.cross_model.progress import progress
+
+logger = logging.getLogger(__name__)
 
 
 def load_pinned_model(config):
+    logger.info("Loading pinned model and tokenizer: %s", config['model']['id'])
     model,tokenizer = load_model(config)
     for key in ('model_revision','tokenizer_revision'):
         requested = config['model'].get(key) or config['model']['revision']
@@ -29,7 +35,8 @@ def hook_smoke(model,tokenizer,prompt):
         for handle in handles:handle.remove()
     if events != [label for label,_ in modules]:raise RuntimeError('within-block ordering differs from adapter')
     dtypes={}
-    for component in ('block_output','attention_output','mlp_output','query_head'):
+    for component in progress(('block_output','attention_output','mlp_output','query_head'),
+                              desc='Checking intervention hooks', unit='hook'):
         kwargs={'head':0} if component=='query_head' else {}
         with ActivationHook(model,0,component,[position],**kwargs) as capture:
             with torch.inference_mode():unchanged=model(**inputs,use_cache=False).logits.detach().float()

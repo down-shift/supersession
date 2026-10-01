@@ -13,7 +13,8 @@ def logsumexp(values):
     return maximum + math.log(sum(math.exp(v-maximum) for v in values))
 
 
-def score_prompt(model, tokenizer, prompt, events, hook_factory=None, *, values=None):
+def score_prompt(model, tokenizer, prompt, events, hook_factory=None, *, values=None,
+                 progress_callback=None):
     """Sum log p(token | prompt, previous candidate tokens), without length normalization.
 
     hook_factory is entered for every forward, including teacher-forced suffixes.
@@ -34,6 +35,8 @@ def score_prompt(model, tokenizer, prompt, events, hook_factory=None, *, values=
     def forward(ids):
         with context(), torch.inference_mode():
             logits = model(input_ids=torch.tensor([ids], device=device), use_cache=False).logits[0].float()
+        if progress_callback is not None:
+            progress_callback()
         return logits
     initial = forward(prefix)[-1]
     initial_lp = initial.log_softmax(-1)
@@ -57,11 +60,12 @@ def score_prompt(model, tokenizer, prompt, events, hook_factory=None, *, values=
     return masses, surface_likelihoods, initial, greedy
 
 
-def score_row(model, tokenizer, row, candidate, competence_only=True):
+def score_row(model, tokenizer, row, candidate, competence_only=True, progress_callback=None):
     prompt = render_behavior_example(row, tokenizer, True)
     events = continuations(tokenizer, prompt)
     if events != candidate['events']: raise ValueError('candidate map mismatch at actual scoring prefix')
-    masses, surfaces, logits, greedy = score_prompt(model, tokenizer, prompt, events)
+    masses, surfaces, logits, greedy = score_prompt(model, tokenizer, prompt, events,
+                                                     progress_callback=progress_callback)
     ids = candidate['canonical_one_token_ids']; target_id = ids.get(row['answer'])
     canonical_first = encode(tokenizer, prompt+' '+row['answer'])[len(encode(tokenizer, prompt))]
     rank = 1 + sum(v >= masses[row['answer']] for k, v in masses.items() if k != row['answer'])

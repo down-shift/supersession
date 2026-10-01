@@ -1,9 +1,13 @@
 """Tokenizer-only surface event and exact semantic edit validation."""
 import re
+import logging
 from collections import defaultdict
 
 from src.cross_model.protocol import VALUES, digest
 from src.data.supersession_behavior import render_behavior_example
+from src.cross_model.progress import progress
+
+logger = logging.getLogger(__name__)
 
 
 def surfaces(value):
@@ -87,7 +91,7 @@ def audit_pairs(rows, tokenizer):
     pairs = defaultdict(dict)
     for row in rows: pairs[row['pair_id']][row['pair_direction']] = row
     audits = []
-    for pid, members in sorted(pairs.items()):
+    for pid, members in progress(sorted(pairs.items()), desc='Auditing edit pairs', unit='pair'):
         if set(members) != {0, 1}: raise ValueError('incomplete edit pair')
         base, edit = members[0], members[1]
         bp, bs = semantic_positions(base, tokenizer); ep, es = semantic_positions(edit, tokenizer)
@@ -113,7 +117,7 @@ def audit_all_substitutions(tokenizer, rows):
     representations = defaultdict(lambda: defaultdict(set))
     lengths = []
     prompts_seen = set()
-    for row in rows:
+    for row in progress(rows, desc='Auditing candidate substitutions', unit='row'):
         if row['pair_direction'] != 0: continue
         prompt = render_behavior_example(row, tokenizer, True)
         if prompt in prompts_seen: continue
@@ -142,7 +146,9 @@ def audit_all_substitutions(tokenizer, rows):
 
 def validate(tokenizer, rows):
     prompts = sorted({render_behavior_example(r, tokenizer, True) for r in rows})
-    maps = {digest(p): continuations(tokenizer, p) for p in prompts}
+    maps = {}
+    for prompt in progress(prompts, desc='Validating surface continuations', unit='prompt'):
+        maps[digest(prompt)] = continuations(tokenizer, prompt)
     signatures = {digest(m) for m in maps.values()}
     if len(signatures) != 1:
         raise ValueError('candidate sequences vary across exact rendered contexts')

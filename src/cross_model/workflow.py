@@ -1,18 +1,23 @@
 """Hash-bound stage lineage, frozen gate recomputation, and run authorization."""
 import json
+import logging
 from pathlib import Path
 
 from src.cross_model.protocol import (COUNTS, CONTRACT, check_manifest, disjoint, evaluate,
                                       manifest, read_sealed, sealed, validate_dataset, write_new)
 from src.data.io import read_jsonl, sha256_file
+from src.cross_model.progress import progress
+
+logger = logging.getLogger(__name__)
 
 
 def dataset_info(path, config, config_path, candidate_path, stage=None):
+    logger.info("Validating dataset lineage and hashes: %s", path)
     info = read_sealed(str(path)+'.provenance.json')
     rows = read_jsonl(path)
     if stage and info['stage'] != stage: raise ValueError('wrong dataset stage')
     validate_dataset(rows, info['stage'])
-    for prior in info.get('prior_datasets', []):
+    for prior in progress(info.get('prior_datasets', []), desc='Checking prior dataset hashes', unit='dataset', leave=False):
         if sha256_file(prior['path']) != prior['sha256']:
             raise ValueError('prior dataset hash changed')
     if sorted(disjoint(rows, [p['path'] for p in info.get('prior_datasets', [])])) != info['history_signatures']:
@@ -22,6 +27,7 @@ def dataset_info(path, config, config_path, candidate_path, stage=None):
 
 
 def score_info(path, dataset, config, config_path, candidate_path, stage):
+    logger.info("Validating score artifact against dataset: %s", path)
     rows, info = dataset_info(dataset, config, config_path, candidate_path, stage)
     sidecar = read_sealed(str(path)+'.provenance.json')
     check_manifest(sidecar['provenance'], config, config_path, candidate_path, dataset)
@@ -32,6 +38,7 @@ def score_info(path, dataset, config, config_path, candidate_path, stage):
 
 
 def gate_report(config, config_path, candidate_path, dataset, scores, development_report):
+    logger.info("Recomputing frozen competence gate from saved score rows")
     dev = read_sealed(development_report)
     if dev['stage'] != 'development': raise ValueError('gate requires development report')
     dr, ds, _, _ = score_info(dev['scores_path'], dev['dataset_path'], config, config_path, candidate_path, 'development')

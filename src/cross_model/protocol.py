@@ -9,6 +9,7 @@ from src.analysis.natural_competence import concrete_history_signature, expected
 from src.data.io import read_jsonl, sha256_file
 from src.data.supersession_behavior import audit_behavior_dataset, render_behavior_example
 from src.utils import provenance
+from src.cross_model.progress import progress
 
 VERSION = 'cross_model_v1'
 CAUSAL_VERSION = 'cross_model_sequence_mass_v1'
@@ -17,10 +18,10 @@ GATE = {'scope': 'unique prompts within each focal condition; 64 cells diagnosti
         'semantic_accuracy_min': .99,
         'candidate_rank_policy': 'strict rank-one accuracy >= .99; mean rank diagnostic only',
         'mean_current_minus_stale_min': 0.0}
-SEEDS = {'validation': 20261201, 'development': 20261202,
-         'frozen_gate': 20261203, 'confirmatory': 20261204}
+SEEDS = {'validation': 20261205, 'development': 20261206,
+         'frozen_gate': 20261207, 'confirmatory': 20261208}
 COUNTS = {'development': 24, 'frozen_gate': 24, 'confirmatory': 96}
-CONTRACT = {'preregistration_revision': 'review_1_before_logits', 'protocol': VERSION, 'causal_protocol': CAUSAL_VERSION, 'values': VALUES,
+CONTRACT = {'preregistration_revision': 'review_2_progress_20261002', 'protocol': VERSION, 'causal_protocol': CAUSAL_VERSION, 'values': VALUES,
             'gate': GATE, 'seeds': SEEDS, 'counts': COUNTS, 'template': 'nora_v1',
             'surfaces': 'lower/title x zero/one leading ASCII space; exclude unspaced prefix-changing forms; deduplicate token events',
             'candidate_score': 'bounded surface-class continuation mass; logsumexp of sequence log probabilities; no termination',
@@ -113,7 +114,7 @@ def history_signatures(rows):
 
 def disjoint(rows, prior_paths):
     current, seen = history_signatures(rows), set()
-    for path in prior_paths:
+    for path in progress(prior_paths, desc='Checking history overlap', unit='dataset', leave=False):
         earlier = history_signatures(read_jsonl(path))
         if current & earlier:
             raise ValueError(f'concrete history overlap with {path}')
@@ -143,7 +144,7 @@ def evaluate(rows, scores, *, gate=True):
     if len(expected) != len(rows) or len(actual) != len(scores) or expected.keys() != actual.keys():
         raise ValueError('dataset/score ID mismatch or duplicate')
     cells, unique, condition_prompts = {}, {}, {}
-    for row in rows:
+    for row in progress(rows, desc='Recomputing competence scores', unit='row'):
         s = actual[row['example_id']]
         if any(s.get(k) != v for k, v in row.items()):
             raise ValueError('score metadata mismatch')

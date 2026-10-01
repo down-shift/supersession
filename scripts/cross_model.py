@@ -2,6 +2,7 @@
 """Strict cross_model_v1 stages; default development/gate scoring never computes R."""
 import argparse
 import json
+import logging
 from pathlib import Path
 
 from src.cross_model.protocol import (CONTRACT, COUNTS, GATE, VALUES, VERSION, check_manifest,
@@ -12,6 +13,9 @@ from src.cross_model.tokens import audit_pairs, check_tokenizer, validate, surfa
 from src.cross_model.workflow import (dataset_info, gate_report, score_info, verify_confirmation, verify_gate)
 from src.data.io import read_jsonl, sha256_file
 from src.utils import load_config
+from src.cross_model.progress import configure_logging, progress
+
+logger = logging.getLogger("cross_model")
 
 
 def load_candidate(a, c):
@@ -39,19 +43,22 @@ def write_dataset(output, rows, info):
     fresh_bundle(output)
     p = Path(output); p.parent.mkdir(parents=True, exist_ok=True)
     with p.open('x') as f:
-        for row in rows: f.write(json.dumps(row, sort_keys=True)+'\n')
+        for row in progress(rows, desc='Writing dataset', unit='row'):
+            f.write(json.dumps(row, sort_keys=True)+'\n')
     return info
 
 
 def claim_stage(c, stage, output):
     """One dataset per model/stage even when fresh output paths are used."""
-    key = digest({'model':c['model']['id'], 'revision':c['model']['revision']})[:16]
+    key = digest({'model':c['model']['id'], 'revision':c['model']['revision'],
+                  'contract_sha256':digest(CONTRACT)})[:16]
     path = Path('outputs/cross_model_v1/stage_claims')/key/(stage+'.json')
     write_new(path, {'stage':stage,'dataset_path':str(Path(output).resolve()),
                      'model':c['model'], 'contract_sha256':digest(CONTRACT)})
 
 
 def main():
+    configure_logging()
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('command', choices=['validate', 'generate', 'score', 'analyze', 'preflight', 'mechanism', 'sensitivity', 'smoke', 'mechanism-plan'])
     p.add_argument('--config', required=True); p.add_argument('--candidates')
@@ -62,8 +69,10 @@ def main():
     p.add_argument('--local-files-only', action='store_true')
     p.add_argument('--heads', action='store_true', help='optional fixed discovery/heldout M5 battery')
     a = p.parse_args(); c = load_config(a.config); validate_config(c)
+    logger.info("Starting command=%s config=%s output=%s", a.command, a.config, a.output)
     if a.command == 'validate':
         fresh_bundle(a.output)
+        logger.info("Loading pinned tokenizer and beginning tokenizer-only Stage 0 audit")
         tok = tokenizer(c, a.local_files_only)
         rows = generate('validation', 4)
         result = validate(tok, rows)
@@ -74,6 +83,8 @@ def main():
                           trust_remote_code=c['model'].get('trust_remote_code', False),
                           local_files_only=a.local_files_only).to_dict())
         write_new(a.output, sealed(result))
+        logger.info("Stage 0 complete: %d prefixes, %d edit pairs; artifact=%s",
+                    result['unique_prefixes_checked'], result['edit_audit']['pairs_checked'], a.output)
         print(json.dumps({'status': 'passed', 'raw_R_defined': result['canonical_raw_R_defined'],
                           'aligned_pairs': result['edit_audit']['all_mechanism_aligned'],
                           'surface_geometry_audit': result['surface_geometry_audit']})); return
@@ -83,9 +94,11 @@ def main():
         fresh_bundle(a.output)
         from src.cross_model.runtime import load_pinned_model, hook_smoke
         from src.data.supersession_behavior import render_behavior_example
+        logger.info("Loading model for real hook smoke")
         model,tok = load_pinned_model(c);check_tokenizer(tok,candidate)
         result = hook_smoke(model,tok,render_behavior_example(generate('validation',4)[0],tok,True))
-        write_new(a.output,sealed({**result,'provenance':manifest(c,a.config,a.candidates)})); return
+        write_new(a.output,sealed({**result,'provenance':manifest(c,a.config,a.candidates)}))
+        logger.info("Hook smoke %s; artifact=%s", result['status'], a.output); return
     if a.command == 'generate':
         if not a.stage: p.error('--stage required')
         fresh_bundle(a.output)
@@ -96,6 +109,11 @@ def main():
                   'nl_dev.jsonl','nl_frozen_gate.jsonl','nl_confirmatory.jsonl']
         prior += [str(Path('outputs/supersession')/x) for x in legacy
                   if (Path('outputs/supersession')/x).exists()]
+        # Prevent replaying histories from an earlier run of this same model.
+        model_slug = Path(a.config).stem
+        for root in (Path('outputs')/model_slug, Path('outputs/cross_model_v1')/model_slug):
+            prior += [str(root/name) for name in ('development.jsonl','gate.jsonl','confirmatory.jsonl')
+                      if (root/name).exists() and Path(root/name).resolve() != Path(a.output).resolve()]
         prior = list(dict.fromkeys(prior))
         if a.stage == 'frozen_gate':
             if not a.development_report: p.error('--development-report required')
@@ -114,9 +132,11 @@ def main():
             info.update(gate_path=str(Path(a.gate).resolve()), gate_sha256=sha256_file(a.gate),
                         preflight_path=str(Path(a.preflight).resolve()), preflight_sha256=sha256_file(a.preflight))
             prior += [gate['dataset_path'], read_sealed(gate['development_report_path'])['dataset_path']]
+        logger.info("Generating %s histories (n=%d)", a.stage, COUNTS[a.stage])
         rows = generate(a.stage, COUNTS[a.stage]); validate_dataset(rows, a.stage)
         info.update(history_signatures=disjoint(rows, prior), prior_datasets=[
             {'path': str(Path(x).resolve()), 'sha256': sha256_file(x)} for x in prior])
+        logger.info("Auditing tokenizer, prompt edits, and history overlap")
         tok = tokenizer(c, a.local_files_only); check_tokenizer(tok, candidate)
         audit = validate(tok, rows)
         if audit['events'] != candidate['events']: raise ValueError('actual dataset surface map mismatch')
@@ -125,7 +145,8 @@ def main():
         claim_stage(c, a.stage, a.output)
         write_dataset(a.output, rows, info)
         info['provenance'] = manifest(c, a.config, a.candidates, a.output)
-        write_new(a.output+'.provenance.json', sealed(info)); print(f'wrote {len(rows)} rows'); return
+        write_new(a.output+'.provenance.json', sealed(info)); print(f'wrote {len(rows)} rows')
+        logger.info("Generation complete: rows=%d histories=%d artifact=%s", len(rows), len({r['history_id'] for r in rows}), a.output); return
     if a.command == 'score':
         if not a.dataset: p.error('--dataset required')
         rows, info = dataset_info(a.dataset, c, a.config, a.candidates)
@@ -144,6 +165,7 @@ def main():
         from src.cross_model.runtime import load_pinned_model
         from src.data.progress import prepare_jsonl_progress, append_jsonl_record
         from src.cross_model.scoring import score_row
+        logger.info("Loading model/tokenizer for %s scoring; checkpoint output=%s", info['stage'], a.output)
         model, tok = load_pinned_model(c); check_tokenizer(tok, candidate)
         actual_map = validate(tok, rows)
         if actual_map['events'] != candidate['events']: raise ValueError('loaded continuation map mismatch')
@@ -162,15 +184,28 @@ def main():
             if any(s.get(k) != v for k,v in r.items()) or s['prompt'] != render_behavior_example(r, tok, True):
                 raise ValueError('resume score metadata or prompt differs')
         cache = {}
-        for r in rows:
-            if r['example_id'] in completed: continue
-            prompt = render_behavior_example(r, tok, True)
-            if prompt not in cache:
-                cache[prompt] = score_row(model, tok, r, candidate, info['stage'] != 'confirmatory')
-            append_jsonl_record(a.output, {**cache[prompt], **r})
+        scored_rows = 0
+        pending_prompts = {render_behavior_example(r, tok, True) for r in rows
+                           if r['example_id'] not in completed}
+        forwards_per_prompt = 1 + sum(len(event['ids']) > 1
+                                      for members in candidate['events'].values() for event in members)
+        total_forwards = len(pending_prompts) * forwards_per_prompt
+        logger.info("Scoring %d examples (%d prompts, up to %d model forwards; prior rows=%d)",
+                    len(rows), len(pending_prompts), total_forwards, len(completed))
+        with progress(total=total_forwards, desc='Model forwards', unit='forward') as forward_bar:
+            for r in progress(rows, desc=f"Scoring {info['stage']}", unit='row', leave=False):
+                if r['example_id'] in completed: continue
+                prompt = render_behavior_example(r, tok, True)
+                if prompt not in cache:
+                    cache[prompt] = score_row(model, tok, r, candidate,
+                                              info['stage'] != 'confirmatory',
+                                              progress_callback=forward_bar.update)
+                append_jsonl_record(a.output, {**cache[prompt], **r})
+                scored_rows += 1
         write_new(a.output+'.provenance.json', sealed({'stage': info['stage'], 'scores_sha256':sha256_file(a.output),
                                                      'provenance':prov}))
-        print(f'scored {len(rows)} members; causal effects not computed by scorer'); return
+        print(f'scored {scored_rows} members; causal effects not computed by scorer')
+        logger.info("Scoring complete: rows=%d artifact=%s", scored_rows, a.output); return
     if a.command == 'analyze':
         if not a.dataset or not a.scores or not a.stage: p.error('--dataset, --scores, --stage required')
         fresh_bundle(a.output)
@@ -196,7 +231,8 @@ def main():
                           'original_raw_logit': summarize(contrasts(rows, scores, 'canonical_candidate_logits'))
                              if candidate['canonical_raw_R_defined'] else {'available':False, 'reason':'multi-token canonical values'}}
             result['provenance'] = manifest(c, a.config, a.candidates, a.dataset)
-        write_new(a.output, sealed(result)); print(json.dumps({'stage':result['stage'], 'pass':result.get('evaluation',{}).get('pass')})); return
+        write_new(a.output, sealed(result)); print(json.dumps({'stage':result['stage'], 'pass':result.get('evaluation',{}).get('pass')}))
+        logger.info("Analysis complete: stage=%s artifact=%s", result['stage'], a.output); return
     if a.command == 'preflight':
         if not a.gate: p.error('--gate required')
         gate = verify_gate(a.gate, c, a.config, a.candidates)
@@ -256,6 +292,7 @@ if __name__ == '__main__':
     except Exception as error:
         import sys
         from datetime import datetime, timezone
+        logging.getLogger('cross_model').error("Command failed: %s: %s", type(error).__name__, error)
         args = sys.argv[1:]
         if '--output' in args:
             output = args[args.index('--output')+1]

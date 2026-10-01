@@ -11,7 +11,7 @@ model:
   chat_template: true
   attn_implementation: eager
 cross_model:
-  preregistration_revision: review_1_before_logits
+  preregistration_revision: review_2_progress_20261002
   protocol: cross_model_v1
   causal_protocol: cross_model_sequence_mass_v1
   values:
@@ -29,10 +29,10 @@ cross_model:
     candidate_rank_policy: strict rank-one accuracy >= .99; mean rank diagnostic only
     mean_current_minus_stale_min: 0.0
   seeds:
-    validation: 20261201
-    development: 20261202
-    frozen_gate: 20261203
-    confirmatory: 20261204
+    validation: 20261205
+    development: 20261206
+    frozen_gate: 20261207
+    confirmatory: 20261208
   counts:
     development: 24
     frozen_gate: 24
