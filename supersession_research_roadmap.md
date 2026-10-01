@@ -78,35 +78,32 @@
 - [ ] **Validity residual patching** — **ABANDONED FOR NOW**
   - Do not run without a valid behavioral manipulation.
 
-## 5. Next primary direction: version-chain / recency structure
+## 5. Version-chain / recency structure
 
-- [ ] **Build audited version-chain dataset** — **NEXT**
-  - Example: `x=v0 -> v1 -> v2 -> ... -> vk`.
-  - Keep the same paired counterfactual-edit methodology and token audits.
-  - Prefer depths such as 1, 2, 4, 8 if competence remains high.
+- [x] **Audited multi-depth version-chain pilot and exploratory full run**
+  - The two-updated-variable design passed competence only at depth 1; do not use it to answer the multiple-obsolete question.
+  - The single-deep-chain pilot qualified depth 2, so one full run was conducted at depth 2.
+  - That full run failed the fixed per-cell 98% competence gate: baseline focal accuracy was 94/96 (97.92%).
 
-- [ ] **Measure causal relevance of every version**
-  - Independently edit each historical value.
-  - Measure query-specific causal relevance \(R_i\) for each version.
+- [x] **One final fresh replication, frozen design** — **RECENCY PATTERN REPLICATED; COMPETENCE GATE FAILED**
+  - Same depth-2 prompt, token map, model/tokenizer revision, and analysis; seed `20261104`; 96 fresh histories excluding pilot and exploratory-full histories.
+  - Full run baseline accuracy was 100% for focal and distractor queries. Edited focal accuracy was 382/384 (99.48%), but two individual cells had 23/24 correct (95.83%), below the unchanged 98% cell threshold. No depth qualified.
+  - The two edited-prompt misses were both focal-z queries under swapped literal names: one stable-control edit elicited the previous answer; one previous-version edit elicited the edited previous value.
+  - Exploratory $R_i$ means: current 39.00 [37.64, 40.42], previous 17.93 [16.58, 19.21], oldest -8.40 [-9.35, -7.45]. Intervals are history-bootstrap 95% CIs.
+  - Preregistered previous-minus-oldest contrast: 26.33 [24.81, 27.67], positive in 96/96 histories.
+  - Current-minus-previous contrast: 21.07 [19.54, 22.76], positive in 96/96 histories.
+  - Both contrasts were positive in focal-x and focal-z strata and in both literal-name orientations.
+  - These estimates reproduce the exploratory-full pattern, but the final run failed competence. Label both runs exploratory; they do not establish a competence-qualified confirmatory result.
 
-- [ ] **Test competing hypotheses**
-  - **Discrete status hypothesis:** current value is strongly privileged, old versions are similarly attenuated.
-  - **Recency-gradient hypothesis:** causal relevance decreases smoothly with version age.
-  - **Hybrid hypothesis:** sharp current-vs-old gap plus residual age gradient among obsolete versions.
+- [x] **Version-chain branch decision: STOP**
+  - The one permitted fresh replication has been completed and failed the fixed competence gate.
+  - Do not run a third replication, tune wording, or lower the threshold.
+  - Preserve both full runs and their analyses as exploratory evidence of a replicated recency pattern.
+  - Do not proceed to version-age mechanistic patching or head/QKV follow-up on this branch.
 
-- [ ] **Check behavioral competence across chain depth**
-  - Confirm that the model still selects the latest value reliably.
-  - Track current-vs-previous and current-vs-oldest logit margins.
+## 6. Mechanistic follow-up
 
-- [ ] **Counterbalance order / variable / lexical factors**
-  - Two variables.
-  - Query focal vs distractor variable.
-  - Multiple literal variable-name assignments if useful.
-  - Preserve history-level paired analysis.
-
-## 6. Mechanistic follow-up after version-chain behavior
-
-Run only if the chain experiment gives a clear behavioral structure.
+The version-chain branch stopped after its single allowed replication failed the competence gate. The following version-age follow-ups are not authorized by the present evidence and remain deferred.
 
 - [ ] **Layer × position patching by version age**
   - Ask whether older and newer obsolete bindings converge onto the same late retrieval pathway.
@@ -152,9 +149,7 @@ Run only if the chain experiment gives a clear behavioral structure.
 
 ## Immediate priority order
 
-1. [ ] Implement the audited **version-chain causal relevance experiment**.
-2. [ ] Run a small competence + pilot check.
-3. [ ] Run the full paired behavioral version-depth experiment.
-4. [ ] Decide between discrete-status vs recency-gradient vs hybrid interpretation.
-5. [ ] Only then choose the next mechanistic localization experiment.
-6. [ ] Add one natural-language replication before finalizing the paper.
+1. [x] Complete the frozen single-deep-chain replication and apply the predeclared competence rule.
+2. [x] Stop the version-chain branch after the replication failed that rule; retain both runs as exploratory.
+3. [ ] Choose the next paper direction without further version-chain prompt or threshold changes.
+4. [ ] Add one natural-language replication before finalizing the paper, if it remains aligned with the paper's central claim.

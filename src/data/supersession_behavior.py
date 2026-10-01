@@ -218,8 +218,11 @@ def render_behavior_example(ex, tokenizer=None, chat=True):
         prompt = render(ex)
         return _answer_prefix(prompt, tokenizer, chat)
     if 'prompt_variant' in ex:
-        from src.data.status_prompt_gate import prompt_text
-        prompt = prompt_text(ex)
+        if ex.get('prompt_family') == 'natural_entity_attribute_v1':
+            prompt = render_natural_example(ex)
+        else:
+            from src.data.status_prompt_gate import prompt_text
+            prompt = prompt_text(ex)
         return _answer_prefix(prompt, tokenizer, chat)
     kind, condition, values = ex['experiment_kind'], ex['condition'], ex['semantic_values']
     x, z = ex['variables']
@@ -247,6 +250,46 @@ def render_behavior_example(ex, tokenizer=None, chat=True):
         raise ValueError('chains and mixed/unknown experiments are not supported')
     prompt = '\n'.join(lines + [question, 'Respond with only the value, with no explanation.'])
     return _answer_prefix(prompt, tokenizer, chat)
+
+
+NATURAL_TEMPLATES = {
+    'nora_v1': ('The {attribute} assigned to {x} was {ix}.', 'The {attribute} assigned to {z} was {iz}.',
+                'Later, {x}’s {attribute} was changed to {px}.', 'Later, {z}’s {attribute} was changed to {pz}.',
+                'What is {x}’s current {attribute}?'),
+    'record_v1': ('{x} had {ix} as a {attribute}.', '{z} had {iz} as a {attribute}.',
+                  'The {attribute} for {x} was later changed to {px}.', 'The {attribute} for {z} was later changed to {pz}.',
+                  'What {attribute} does {x} have now?'),
+    'tag_v1': ('At first, {x}’s {attribute} was {ix}.', 'At first, {z}’s {attribute} was {iz}.',
+               'Afterward, {x}’s {attribute} became {px}.', 'Afterward, {z}’s {attribute} became {pz}.',
+               'Which {attribute} is currently assigned to {x}?'),
+}
+
+
+def render_natural_example(ex):
+    """Controlled entity–attribute rendering for the supersession controls schema."""
+    name = ex['prompt_variant']
+    if name not in NATURAL_TEMPLATES:
+        raise ValueError(f'unknown natural-language template {name!r}')
+    t = NATURAL_TEMPLATES[name]
+    entity = dict(zip(('x', 'z'), ex['variables']))
+    query = entity[ex['query']]
+    attr = ex['attribute']
+    v = ex['semantic_values']
+    fmt = dict(attribute=attr, x=entity['x'], z=entity['z'],
+               ix=v.get('initial_x', ''), iz=v.get('initial_z', ''),
+               px=v.get('proposed_x', ''), pz=v.get('proposed_z', ''))
+    if ex['condition'] == 'live':
+        lines = [t[0].format(**fmt), t[1].format(**fmt)]
+    elif ex['condition'] == 'superseded':
+        lines = [t[0].format(**fmt), t[1].format(**fmt), t[2].format(**fmt), t[3].format(**fmt)]
+    elif ex['condition'] in ('irrelevant', 'irrelevant_counterbalanced'):
+        lines = [t[2].format(**fmt), t[3].format(**fmt)]
+        order = ex.get('unassigned_slot_order') or 'xz'
+        lines += [f'The unassigned {attr} value was {fmt["i" + var]}.' for var in order]
+    else:
+        raise ValueError('natural-language family requires live, superseded, and counterbalanced irrelevant conditions')
+    question = t[4].format(**{**fmt, 'x': query})
+    return '\n'.join(lines + [question, 'Respond with only the value, with no explanation.'])
 
 
 def _answer_prefix(prompt, tokenizer, chat):
@@ -282,7 +325,7 @@ def _context_expected(base, condition):
 
 def audit_behavior_dataset(rows, kind=None):
     """Fail closed on incomplete cells, mismatched pairs, or ambiguous roles."""
-    if rows and any('prompt_variant' in r for r in rows):
+    if rows and any(r.get('prompt_family') != 'natural_entity_attribute_v1' and 'prompt_variant' in r for r in rows):
         if kind not in (None, 'status_2x2'):
             raise ValueError('prompt variants are only supported for status_2x2')
         from src.data.status_prompt_gate import audit_final_dataset
