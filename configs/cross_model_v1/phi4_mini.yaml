@@ -7,7 +7,8 @@ model:
   device: cuda
   dtype: float16
   quantization: int8
-  device_map: auto
+  device_map: 0
+  require_full_gpu: true
   chat_template: true
   attn_implementation: eager
   trust_remote_code: true

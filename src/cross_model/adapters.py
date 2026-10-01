@@ -1,20 +1,22 @@
 """Explicit serial decoder adapters; attention contribution is post projection.
 
-For all supported families: input -> norm -> attention -> residual add -> norm
--> MLP -> residual add. Block output is the residual entering the next block.
+Each adapter names the corresponding decoder block, attention output, MLP output,
+and concatenated query-head coordinates. Gemma 3 has additional feed-forward
+normalization around its MLP; the hook is at the MLP module output, before its
+post-feedforward norm. Block output is the residual entering the next block.
 Query heads are concatenated at o_proj input (Phi3 uses fused qkv_proj).
-Gemma's additional norms and other layouts are intentionally unsupported.
 """
 from contextlib import AbstractContextManager
 
 from src.models.loader import decoder_blocks
 
 FAMILIES = {'qwen3': ('q_proj', 'o_proj'), 'llama': ('q_proj', 'o_proj'),
-            'mistral': ('q_proj', 'o_proj'), 'phi3': ('qkv_proj', 'o_proj')}
+            'mistral': ('q_proj', 'o_proj'), 'phi3': ('qkv_proj', 'o_proj'),
+            'gemma3': ('q_proj', 'o_proj'), 'gemma3_text': ('q_proj', 'o_proj')}
 
 
 def get_decoder_blocks(model):
-    cfg = model.config
+    cfg = getattr(model.config, 'text_config', model.config)
     family = cfg.model_type
     if family not in FAMILIES: raise RuntimeError(f'unsupported adapter: {family}')
     blocks = decoder_blocks(model)
@@ -42,7 +44,7 @@ def get_mlp_output_hook(model, layer): return _block(model, layer).mlp
 
 
 def head_dimensions(model, layer):
-    cfg = model.config; b = _block(model, layer); a = b.self_attn
+    cfg = getattr(model.config, 'text_config', model.config); b = _block(model, layer); a = b.self_attn
     heads, kv = cfg.num_attention_heads, cfg.num_key_value_heads
     dim = getattr(a, 'head_dim', getattr(cfg, 'head_dim', cfg.hidden_size // heads))
     projection_name, output_name = FAMILIES[cfg.model_type]

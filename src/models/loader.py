@@ -62,6 +62,19 @@ def _materialize_phi4_rope_buffers(model):
         module.attention_scaling = attention_scaling
 
 
+def _verify_full_gpu_placement(model, torch):
+    """Fail closed if dispatch placed any model module off cuda:0."""
+    placements = getattr(model, "hf_device_map", {})
+    allowed = {0, "0", "cuda", "cuda:0", torch.device("cuda:0")}
+    bad = {name: str(device) for name, device in placements.items() if device not in allowed}
+    if bad:
+        raise RuntimeError(f"full-GPU placement required; modules were offloaded: {bad}")
+    embedding_device = model.get_input_embeddings().weight.device
+    if embedding_device.type != "cuda" or embedding_device.index not in (None, 0):
+        raise RuntimeError(f"full-GPU placement required; input embeddings are on {embedding_device}")
+    logger.info("Verified all dispatched model modules are on cuda:0 (%d entries)", len(placements))
+
+
 def load_model(config):
     try:
         import torch
@@ -75,11 +88,19 @@ def load_model(config):
                                       trust_remote_code=remote_code)
     dtype=getattr(torch,m.get("dtype","float16"))
     quantization=m.get("quantization","none")
+    require_full_gpu = bool(m.get("require_full_gpu", False))
+    device_map = m.get("device_map", "auto")
+    if require_full_gpu:
+        if not torch.cuda.is_available():
+            raise RuntimeError("this run requires a CUDA GPU; refusing CPU execution")
+        if device_map not in (0, "0", {"": 0}):
+            raise ValueError("require_full_gpu requires device_map=0 (single-GPU placement)")
+        device_map = 0
     load_kwargs={
         "revision":m.get("revision"),
         "torch_dtype":dtype,
         "attn_implementation":m.get("attn_implementation","eager"),
-        "device_map":m.get("device_map","auto"),
+        "device_map":device_map,
         "trust_remote_code":remote_code,
     }
     if quantization == "int8":
@@ -104,6 +125,8 @@ def load_model(config):
     else:
         model=AutoModelForCausalLM.from_pretrained(model_id,**load_kwargs)
     model.eval()
+    if require_full_gpu:
+        _verify_full_gpu_placement(model, torch)
     config["resolved_model_revision"]=getattr(model.config,"_commit_hash",m.get("revision"))
     config["resolved_tokenizer_revision"]=getattr(tok,"_commit_hash",None) or getattr(tok,"init_kwargs",{}).get("_commit_hash",m.get("tokenizer_revision"))
     config["resolved_quantization"]=quantization
@@ -114,7 +137,19 @@ def load_model(config):
 
 def decoder_blocks(model):
     cfg=getattr(model.config,"text_config",model.config); n=getattr(cfg,"num_hidden_layers",None)
-    for root in (model,getattr(model,"model",None),getattr(model,"language_model",None)):
+    roots = [model]
+    # Gemma 3 conditional-generation wrappers nest the text decoder at
+    # model.language_model.layers; text-only Gemma3ForCausalLM exposes layers
+    # directly beneath model.
+    cursor = 0
+    while cursor < len(roots):
+        root = roots[cursor]
+        cursor += 1
+        for name in ("model", "language_model", "text_model"):
+            child = getattr(root, name, None)
+            if child is not None and child not in roots:
+                roots.append(child)
+    for root in roots:
         blocks=getattr(root,"layers",None)
         if blocks is not None and (n is None or len(blocks)==n): return list(blocks)
     raise RuntimeError(f"Unsupported decoder architecture {model.__class__.__name__}: could not locate decoder blocks")

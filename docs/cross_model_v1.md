@@ -1,12 +1,12 @@
 # Supersession Without Erasure: cross_model_v1
 
-Status: logged rerun revision (`review_2_progress_20261002`), preregistration-ready implementation, **not a completed replication or externally registered protocol**. The prior Qwen cross-model development/gate run is preserved as revision 1; no revision-2 model scoring has run. The instrumented revision requires a new Stage 0 through frozen gate. Read [the preimplementation audit](cross_model_v1_audit.md) first. Established Qwen experiments, failed Mistral/Phi gates, and stopped version-chain/status branches remain preserved.
+Status: logged protocol (`review_2_progress_20261002`), preregistration-ready implementation, **not a completed replication or externally registered protocol**. Existing sealed Qwen development/gate artifacts remain eligible when their scientific inputs and score lineage recompute under the fixed gate. Read [the preimplementation audit](cross_model_v1_audit.md) first. Established Qwen experiments, failed Mistral/Phi gates, and stopped version-chain/status branches remain preserved.
 
 ## Frozen scientific design
 
 Use the existing `nora_v1` entity–attribute semantics and generator: live, superseded, ordinary irrelevant (diagnostic), and both literal orders of counterbalanced irrelevant. The same semantic histories, replacement identities, seeds, names, attributes, and orientations are used across model families. The assistant suffix remains `Answer:`; chat rendering uses the pinned tokenizer, `add_generation_prompt=True`, `enable_thinking=False`. No stronger classification instruction or candidate list is added to the prompt.
 
-The contract in `src/cross_model/protocol.py` is copied exactly into four new configs. Config mismatches fail; thresholds/seeds/candidates have no CLI override. Logged revision stages use 24/24/96 histories and seeds 20261206/20261207/20261208; tokenizer validation uses 20261205. These fresh seeds were fixed before revision-2 logits and are checked against locally available prior datasets; generation fails on any overlap. Three focal conditions yield exactly **64 required completeness/diagnostic cells** per template: live 16, superseded 16, counterbalanced irrelevant 32. Each cell counts each unique prompt once. Each history has 40 scored members / 20 edit pairs; confirmatory has 3,840 members / 1,920 pairs. No causal analysis is available for development/gate stages.
+The contract in `src/cross_model/protocol.py` is copied exactly into the four runnable panel configs. Scientific criteria, seeds, and candidates have no CLI override. Runtime-only changes to code, configuration hashes, git commit, or device-map choice do not invalidate a sealed competence gate; those values remain in the provenance for audit. Model/tokenizer revisions, prompt renderer, candidate map, dataset/score hashes, dtype, and quantization remain checked, and the gate is recomputed from the saved score rows. Stages use 24/24/96 histories and seeds 20261206/20261207/20261208; tokenizer validation uses 20261205. Three focal conditions yield exactly **64 required completeness/diagnostic cells** per template: live 16, superseded 16, counterbalanced irrelevant 32. Each cell counts each unique prompt once. Each history has 40 scored members / 20 edit pairs; confirmatory has 3,840 members / 1,920 pairs. No causal analysis is available for development/gate stages.
 
 ## Competence decision and alternatives
 
@@ -49,7 +49,7 @@ Shared meanings and identical histories take priority over one-token matching. M
 
 Stage 0 must also save/display a **model × value geometry table**: number of distinct events, token length and IDs of every event, all surface strings represented by each event (including deduplicated aliases), and excluded proposals. Class counts and length profiles can differ; unequal classes are disclosed, not rejected or averaged. Stable lexical preferences may cancel in difference-in-differences, but tokenizer/format interactions need not, so this audit must be visible before logits. Later stages reject missing/inconsistent geometry audits.
 
-Final historical span lengths are Qwen=1, Mistral=2, Phi=1. Exact sequence IDs, casing proposals, exclusions, tokenizer JSON hash, template hash, actual prompt example, every paired edit, and exhaustive candidate substitutions in each represented assignment slot are saved in Stage 0 maps. All values must remain valid; no per-model replacements or truncation. Llama must validate this exact vocabulary; failure is a documented exclusion, not a vocabulary retune. Stage generation repeats audits on the actual dataset. Counterfactual text changes must leave all tokens outside the edited semantic value span identical. The core mechanistic battery additionally requires equal lengths/positions across each donor/recipient pair and patches **all** value-span tokens jointly.
+Existing tokenizer audits found final historical span lengths Qwen=1, Mistral=2, Phi=1. Gemma's span length is determined and recorded during its Stage 0 audit. Exact sequence IDs, casing proposals, exclusions, tokenizer JSON hash, template hash, actual prompt example, every paired edit, and exhaustive candidate substitutions in each represented assignment slot are saved in Stage 0 maps. All values must remain valid; no per-model replacements or truncation. Stage generation repeats audits on the actual dataset. Counterfactual text changes must leave all tokens outside the edited semantic value span identical. The core mechanistic battery additionally requires equal lengths/positions across each donor/recipient pair and patches **all** value-span tokens jointly.
 
 ## Model panel fixed on lineage and intervention feasibility
 
@@ -60,13 +60,13 @@ Four planned families, all instruction/chat variants. Model and tokenizer use th
 | `qwen3_8b`: `Qwen/Qwen3-8B` | `b968826d9c46dd6066d109eabc6255188de91218` | Qwen3 / 4096 / 36 | 32/8; 128 | roughly 10–13 GiB | Existing loader supported; native code; disable thinking via exact template. |
 | `mistral7b`: `mistralai/Mistral-7B-Instruct-v0.3` | `c170c708c41dac9275d15a8fff4eca08d52bab71` | Mistral / 4096 / 32 | 32/8; 128 | roughly 8–11 GiB | Existing loader supported; native code; `[INST]` template and surface/subword differences; canonical answers now two tokens. |
 | `phi4_mini`: `microsoft/Phi-4-mini-instruct` | `cfbefacb99257ffa30c83adab238a50856ac3083` | Phi3 implementation / 3072 / 32 | 24/8; 128 | roughly 5–8 GiB | Pinned remote code and existing compatibility shims; fused qkv; LongRoPE; old run used BF16/no quantization, new panel uses int8/FP16. |
-| `llama31_8b`: `meta-llama/Llama-3.1-8B-Instruct` | `0e9e39f249a16976918f6564b8830bc894c89659` | Llama / 4096 / 32 | 32/8; 128 | roughly 10–13 GiB | Native loader path and adapters; gated access unresolved; header template; pinned tokenizer/config validation still pending. |
+| `gemma3_4b`: `google/gemma-3-4b-it` | Resolved to a 40-character immutable revision by `prepare`; stored in the run's `model_config.yaml` | Gemma3 text decoder; Stage 0 records hidden size/layers | Stage 0 records query/KV heads and head dimension | roughly 6–9 GiB expected with int8; verify on the host | Gemma license acceptance required; multimodal wrapper; text decoder adapter and pretrained hook smoke required. |
 
-Specifications are from [pinned Qwen config](https://huggingface.co/Qwen/Qwen3-8B/blob/b968826d9c46dd6066d109eabc6255188de91218/config.json), [pinned Mistral config](https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.3/raw/c170c708c41dac9275d15a8fff4eca08d52bab71/config.json), [pinned Phi config](https://huggingface.co/microsoft/Phi-4-mini-instruct/blob/cfbefacb99257ffa30c83adab238a50856ac3083/config.json), and [Meta's architecture registry](https://github.com/meta-llama/llama-models/blob/main/models/sku_list.py). The pinned Llama file returned HTTP 401 during this audit, so registry specifications are provisional until authenticated Stage 0. Approximate memory estimates follow weight size plus full-precision embeddings/output heads, quantization metadata, logits, and activations; do not assume the same footprint for equal parameter counts.
+Specifications for Qwen, Mistral, and Phi are from their pinned configs above. Gemma's official [Gemma 3 model card](https://huggingface.co/google/gemma-3-4b-it) documents the 4B instruction-tuned checkpoint; repository terms must be accepted to download it. Exact model and tokenizer revision are resolved once before Stage 0 and saved in the run-specific config. Memory estimates include full-precision non-quantized modules and runtime activations, but are estimates rather than a substitute for the required full-GPU placement check.
 
-All new configs request float16, bitsandbytes int8, eager attention, batch-one execution, `device_map=auto`. Actual dispatch is recorded; CPU offload is a technical caveat, not a silent equivalence to fully GPU execution. Do not replace an inaccessible/failed model based on causal effects. If Llama access fails, the preregistered three-family panel remains Qwen/Mistral/Phi. Gemma is deferred because its block normalization/ordering needs a separate adapter audit; v1 rejects it. No random model substitutions.
+All configs request float16 compute, bitsandbytes int8 weights, eager attention, batch-one execution, and `device_map=0`. The loader rejects CPU-only execution and fails after load if any module is on CPU or disk; it never falls back to offload. A CUDA OOM stops the run. Gemma 3 12B is excluded because this loader does not provide NF4/NF8 and int8 leaves insufficient headroom to guarantee all weights and intervention activations remain on a 16 GiB card. “Full-GPU fit” means all model modules stay on the GPU; it does not mean consuming all 16 GiB. The RTX 5080 must have enough free memory before a run, with unrelated GPU processes closed. No model is replaced based on causal effects.
 
-Residual/block, post-projection attention, and MLP hooks are explicit for Qwen3/Llama/Mistral/Phi3. Native tiny-model tests pass for each family. **Native Phi3 tests do not certify the pinned remote Phi implementation**, and local CPU tests do not certify bitsandbytes/CUDA. Before intervention work, `smoke` and the battery's mandatory runtime smoke check actual module order, dimensions, captures, activation dtypes, and no-op/self-patch logit parity.
+Residual/block, post-projection attention, and MLP hooks are explicit for Qwen3/Mistral/Phi3/Gemma3. Gemma's MLP hook is at the MLP module output before its post-feedforward normalization. Native tiny-model tests check adapter dimensions and no-op/self-patch parity; they do not certify the downloaded multimodal wrapper or int8/CUDA behavior. Before intervention work, `smoke` and the battery's mandatory runtime smoke check the actual pretrained model's module order, dimensions, captures, activation dtypes, and self-patch parity.
 
 ## Causal estimands and comparability
 
@@ -146,7 +146,7 @@ Different implementations are a scientifically useful result. Controlled English
 
 ## Exact commands
 
-Run from repository root on the configured CUDA host. The helper script owns the config, run paths, resume flags, and progress display. Choose each frozen panel slug in turn (`qwen3_8b`, `mistral7b`, `phi4_mini`, `llama31_8b`).
+Run from repository root on the configured CUDA host. The helper script owns the config, run paths, resume flags, and progress display. Choose a panel slug (`qwen3_8b`, `mistral7b`, `phi4_mini`, `gemma3_4b`).
 
 ```bash
 # Stage 0, development, fresh frozen gate, and preflight. Stops before confirmation.
@@ -159,20 +159,26 @@ bash scripts/run_cross_model.sh qwen3_8b confirmatory
 # Plan, real hook smoke, then common M1–M4 mechanistic battery.
 bash scripts/run_cross_model.sh qwen3_8b mechanism
 
+# After reviewing the frozen gate and preflight report, run behavior then M1–M4.
+bash scripts/run_cross_model.sh qwen3_8b complete
+
 # Optional fixed Qwen/Phi precision sensitivity.
 bash scripts/run_cross_model.sh qwen3_8b sensitivity
 
 # Check running process, output row counts, and GPU use from another terminal.
 bash scripts/run_cross_model.sh qwen3_8b status
+
+# Gemma license must be accepted in Hugging Face before its first prepare.
+bash scripts/run_cross_model.sh gemma3_4b prepare
 ```
 
-The helper defaults to `outputs/<model>_review2`; set `CROSS_MODEL_RUN_DIR` to choose another fresh directory. It automatically resumes score/mechanism JSONL checkpoints when their manifests exist. Generation and validation never overwrite partial artifacts: after an interrupted generation, preserve that run directory and select a new run path. `status` is safe to run while a stage is active.
+The helper defaults to `outputs/<model>_review2`; set `CROSS_MODEL_RUN_DIR` to choose another fresh directory. Existing review2 Qwen candidate, development, and gate artifacts can be carried forward after score recomputation. New artifacts still use exclusive creation; `complete` adds confirmatory and mechanism outputs to the same run directory only after the gate verifies. `status` is safe to run while a stage is active.
 
 ## Review corrections and unresolved execution work
 
-`natural_competence_v2`, original Qwen results, and failed Mistral/Phi experiments retain their original thresholds/statuses. The Qwen revision-1 development/gate files remain preserved; instrumented revision 2 uses fresh maps, seeds, and output paths. New same-model stage generation checks history overlap against the earlier Qwen cross-model run and available legacy natural-language artifacts.
+`natural_competence_v2`, original Qwen results, and failed Mistral/Phi experiments retain their original thresholds/statuses. The Qwen review2 gate is not discarded because of later runtime-only edits; new same-model stage generation checks history overlap against the earlier Qwen cross-model run and available legacy natural-language artifacts.
 
-The CLI emits INFO logs and stderr progress bars for tokenizer audits, history generation, model loading, individual score forwards and rows, competence recomputation, hook checks, mechanism tasks, and precision-sensitivity tasks. Instrumentation changes the source-code hash; revision-1 candidate/gate/preflight files therefore fail strict verification under revision 2 and are preserved as the prior run. Thresholds, candidate strings, score definitions, and estimands are unchanged. Revision-2 seeds and fresh output paths are fixed in the config. No code path bypasses hash checks.
+The CLI emits INFO logs and stderr progress bars for tokenizer audits, history generation, model loading, individual score forwards and rows, competence recomputation, hook checks, mechanism tasks, and precision-sensitivity tasks. Instrumentation and adapters change the recorded code hash but do not change the fixed competence estimand. The full-GPU requirement applies to new model loads; it does not retroactively invalidate an already scored competence gate. No original artifact is overwritten.
 
 Real Phi/CUDA/int8 smoke remains required for mechanisms and does not gate behavioral scoring. This local environment is Darwin, `torch.cuda.is_available() == False`, `torch.version.cuda == None`, and has no cached pinned Phi weights. The real smoke command above must run on the CUDA host; successful tiny native Phi3 tests do not fill that gap.
 

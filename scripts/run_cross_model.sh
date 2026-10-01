@@ -10,12 +10,13 @@ Usage:
   bash scripts/run_cross_model.sh MODEL prepare
   bash scripts/run_cross_model.sh MODEL confirmatory
   bash scripts/run_cross_model.sh MODEL mechanism
+  bash scripts/run_cross_model.sh MODEL complete
   bash scripts/run_cross_model.sh MODEL heads
   bash scripts/run_cross_model.sh MODEL sensitivity
   bash scripts/run_cross_model.sh MODEL resume
   bash scripts/run_cross_model.sh MODEL status
 
-MODEL: qwen3_8b | mistral7b | phi4_mini | llama31_8b
+MODEL: qwen3_8b | mistral7b | phi4_mini | gemma3_4b
 
 Set CROSS_MODEL_RUN_DIR to override the default outputs/MODEL_review2 directory.
 prepare stops after writing the frozen gate and preflight report. Review those
@@ -27,12 +28,14 @@ if [[ $# -eq 1 && ( "$1" == "-h" || "$1" == "--help" ) ]]; then usage; exit 0; f
 if [[ $# -ne 2 ]]; then usage >&2; exit 2; fi
 MODEL="$1"
 ACTION="$2"
-case "$MODEL" in qwen3_8b|mistral7b|phi4_mini|llama31_8b) ;; *) usage >&2; exit 2 ;; esac
-case "$ACTION" in prepare|confirmatory|mechanism|heads|sensitivity|resume|status) ;; *) usage >&2; exit 2 ;; esac
+case "$MODEL" in qwen3_8b|mistral7b|phi4_mini|gemma3_4b) ;; *) usage >&2; exit 2 ;; esac
+case "$ACTION" in prepare|confirmatory|mechanism|complete|heads|sensitivity|resume|status) ;; *) usage >&2; exit 2 ;; esac
 
 CONFIG="configs/cross_model_v1/${MODEL}.yaml"
 RUN="${CROSS_MODEL_RUN_DIR:-outputs/${MODEL}_review2}"
-if [[ ! -f "$CONFIG" ]]; then echo "Missing config: $CONFIG" >&2; exit 2; fi
+if [[ "$MODEL" == gemma3_4b ]]; then
+  CONFIG="$RUN/model_config.yaml"
+fi
 
 if [[ -x .venv/bin/python ]]; then
   PYTHON=(.venv/bin/python -u)
@@ -78,7 +81,19 @@ show_status() {
 
 if [[ "$ACTION" == status ]]; then show_status; exit 0; fi
 
+if [[ "$MODEL" == gemma3_4b && ! -f "$CONFIG" ]]; then
+  mkdir -p "$RUN"
+  "${PYTHON[@]}" scripts/pin_cross_model_config.py \
+    configs/cross_model_v1/gemma3_4b.yaml "$CONFIG"
+fi
+if [[ ! -f "$CONFIG" ]]; then echo "Missing config: $CONFIG" >&2; exit 2; fi
+
 case "$ACTION" in
+  complete)
+    [[ -f "$RUN/preflight.json" ]] || { echo "Missing $RUN/preflight.json; run prepare and review its gate report first." >&2; exit 2; }
+    "$0" "$MODEL" confirmatory
+    "$0" "$MODEL" mechanism
+    ;;
   prepare)
     mkdir -p "$RUN"
     cli validate --config "$CONFIG" --output "$RUN/candidates.json"
@@ -143,7 +158,7 @@ case "$ACTION" in
       --output "$RUN/precision_sensitivity.json"
     ;;
   resume)
-    [[ -f "$RUN/candidates.json" ]] || { echo "No revision-2 run found in $RUN." >&2; exit 2; }
+    [[ -f "$RUN/candidates.json" ]] || { echo "No cross-model run found in $RUN." >&2; exit 2; }
     if [[ -f "$RUN/development.jsonl" && ! -f "$RUN/development_report.json" ]]; then
       score_stage development "$RUN/development.jsonl" "$RUN/development_scores.jsonl"
       cli analyze --stage development --config "$CONFIG" --candidates "$RUN/candidates.json" \

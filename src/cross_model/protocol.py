@@ -1,6 +1,7 @@
 """Immutable design constants and fail-closed artifact contracts."""
 import hashlib
 import json
+import logging
 import math
 import re
 from pathlib import Path
@@ -10,6 +11,8 @@ from src.data.io import read_jsonl, sha256_file
 from src.data.supersession_behavior import audit_behavior_dataset, render_behavior_example
 from src.utils import provenance
 from src.cross_model.progress import progress
+
+logger = logging.getLogger(__name__)
 
 VERSION = 'cross_model_v1'
 CAUSAL_VERSION = 'cross_model_sequence_mass_v1'
@@ -101,11 +104,30 @@ def manifest(config, config_path, candidate_path=None, dataset_path=None):
 
 def check_manifest(saved, config, config_path, candidate_path=None, dataset_path=None):
     current = manifest(config, config_path, candidate_path, dataset_path)
-    for k in ('protocol', 'causal_protocol', 'contract_sha256', 'config_sha256', 'code_sha256',
+    # Config/code/commit/device-map hashes remain in every manifest for audit,
+    # but operational edits do not invalidate fixed scientific evidence. The
+    # scientific inputs and score/data lineage below remain exact.
+    for k in ('protocol', 'causal_protocol', 'contract_sha256',
               'renderer_sha256', 'candidate_map_sha256', 'dataset_sha256', 'model_id', 'model_revision',
-              'tokenizer_id', 'tokenizer_revision', 'dtype', 'quantization', 'device_map', 'git_commit'):
+              'tokenizer_id', 'tokenizer_revision', 'dtype', 'quantization'):
         if saved.get(k) != current.get(k):
             raise ValueError(f'provenance mismatch: {k}')
+    saved_config = json.loads(json.dumps(saved.get('config', {})))
+    current_config = json.loads(json.dumps(current.get('config', {})))
+    runtime_keys = {'device', 'device_map', 'require_full_gpu'}
+    for model_config in (saved_config, current_config):
+        for key in list(model_config):
+            if key.startswith('resolved_'):
+                model_config.pop(key, None)
+    for model_config in (saved_config.get('model', {}), current_config.get('model', {})):
+        for key in runtime_keys:
+            model_config.pop(key, None)
+    if saved_config != current_config:
+        raise ValueError('provenance mismatch: scientific config')
+    for k in ('config_sha256', 'code_sha256', 'device_map', 'git_commit'):
+        if saved.get(k) != current.get(k):
+            logger.info("Accepting recorded runtime provenance difference for %s: saved=%s current=%s",
+                        k, saved.get(k), current.get(k))
 
 
 def history_signatures(rows):

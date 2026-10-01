@@ -1,0 +1,53 @@
+seed: 20261023
+model:
+  id: google/gemma-3-4b-it
+  revision: UNPINNED
+  tokenizer_id: google/gemma-3-4b-it
+  tokenizer_revision: UNPINNED
+  device: cuda
+  dtype: float16
+  quantization: int8
+  device_map: 0
+  require_full_gpu: true
+  chat_template: true
+  attn_implementation: eager
+cross_model:
+  preregistration_revision: review_2_progress_20261002
+  protocol: cross_model_v1
+  causal_protocol: cross_model_sequence_mass_v1
+  values: [amber, coral, jade, pearl, slate, teal, violet, ivory]
+  gate:
+    scope: unique prompts within each focal condition; 64 cells diagnostic
+    semantic_accuracy_min: 0.99
+    candidate_rank_policy: strict rank-one accuracy >= .99; mean rank diagnostic only
+    mean_current_minus_stale_min: 0.0
+  seeds: {validation: 20261205, development: 20261206, frozen_gate: 20261207, confirmatory: 20261208}
+  counts: {development: 24, frozen_gate: 24, confirmatory: 96}
+  template: nora_v1
+  surfaces: lower/title x zero/one leading ASCII space; exclude unspaced prefix-changing forms; deduplicate token events
+  candidate_score: bounded surface-class continuation mass; logsumexp of sequence log probabilities; no termination
+  development_policy: descriptive only; no eligibility decision or redevelopment
+  surface_geometry_audit: mandatory per-value event count, every event length and represented strings; unequal classes visible, not rejected
+  span_policy: patch all tokens; require exact pair alignment outside edited span
+  bootstrap: {unit: history, draws: 2000, seed: 73021}
+  mechanism_histories: 12
+  head_discovery_histories: 6
+  mechanism_core:
+    conditions: [live, superseded, irrelevant_counterbalanced]
+    binding: initial
+    all_layer_sites: [historical_value_span, final_preanswer]
+    secondary_histories: 4
+    secondary_depths: [0.75, 0.875, 1]
+    secondary_sites: [current_value_span, distractor_value_span, queried_entity]
+    scored_values: source and replacement only; identical margin estimand
+  depth_shift:
+    early_max: 0.25
+    late_min: 0.75
+    contrasts: [early_historical_minus_readout, late_readout_minus_historical]
+  normalized_secondary: mean(superseded-irrelevant_cb) / mean(live-irrelevant_cb); available iff corrected live bootstrap lower CI and every draw denominator > 1 nat
+  quantization_sensitivity:
+    models: [Qwen/Qwen3-8B, microsoft/Phi-4-mini-instruct]
+    histories: 6
+    comparison: int8 versus unquantized float16
+    patch_depths: [0.125, 0.875]
+    sites: [edited_value_span, final_preanswer]

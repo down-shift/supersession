@@ -112,12 +112,13 @@ def test_complete_sequence_likelihood_and_teacher_forcing():
     assert details['rust'][0]['ids']==[32,114,117,115,116]
 
 
-@pytest.mark.parametrize('family',['qwen3','llama','mistral','phi3'])
+@pytest.mark.parametrize('family',['qwen3','llama','mistral','phi3','gemma3_text'])
 def test_native_tiny_architecture_hooks(family):
     torch=pytest.importorskip('torch');transformers=pytest.importorskip('transformers')
     from src.cross_model.adapters import ActivationHook, get_decoder_blocks, normalized_depth, head_dimensions
     classes={'qwen3':('Qwen3Config','Qwen3ForCausalLM'),'llama':('LlamaConfig','LlamaForCausalLM'),
-             'mistral':('MistralConfig','MistralForCausalLM'),'phi3':('Phi3Config','Phi3ForCausalLM')}
+             'mistral':('MistralConfig','MistralForCausalLM'),'phi3':('Phi3Config','Phi3ForCausalLM'),
+             'gemma3_text':('Gemma3TextConfig','Gemma3ForCausalLM')}
     cfg_cls,model_cls=classes[family]
     cfg=getattr(transformers,cfg_cls)(vocab_size=64,hidden_size=32,intermediate_size=64,
         num_hidden_layers=3,num_attention_heads=4,num_key_value_heads=2,head_dim=8,
@@ -145,10 +146,14 @@ def test_native_tiny_architecture_hooks(family):
 
 def test_gate_recomputation_rejects_forged_pass(tmp_path,monkeypatch):
     from src.cross_model import workflow
+    monkeypatch.chdir(tmp_path)
+    (tmp_path/'dev.json').write_text('{}')
+    (tmp_path/'data').write_text('{}')
+    (tmp_path/'scores').write_text('{}')
     path=tmp_path/'gate.json'
     gate={'stage':'frozen_gate','contract':CONTRACT,'evaluation':{'pass':True},
-          'development_report_path':str(tmp_path/'dev.json'),'development_report_sha256':'devhash',
-          'dataset_path':'data','scores_path':'scores','provenance':{}}
+              'development_report_path':str(tmp_path/'dev.json'),'development_report_sha256':'devhash',
+              'dataset_path':str(tmp_path/'data'),'scores_path':str(tmp_path/'scores'),'provenance':{}}
     write_new(path,sealed(gate))
     monkeypatch.setattr(workflow,'sha256_file',lambda _: 'devhash')
     monkeypatch.setattr(workflow,'check_manifest',lambda *args:None)
@@ -237,7 +242,7 @@ def test_stage_claim_prevents_retry_in_fresh_path(tmp_path,monkeypatch):
     claim_stage(c,'frozen_gate','gate.jsonl')
 
 
-def test_provenance_rejects_changed_config_candidate_and_renderer(tmp_path):
+def test_provenance_allows_runtime_config_drift_but_rejects_scientific_changes(tmp_path):
     from src.cross_model.protocol import manifest,check_manifest
     from src.utils import load_config
     config_path='configs/cross_model_v1/qwen3_8b.yaml';c=load_config(config_path)
@@ -249,15 +254,27 @@ def test_provenance_rejects_changed_config_candidate_and_renderer(tmp_path):
     candidate.write_text('one');changed={**saved,'renderer_sha256':'bad'}
     with pytest.raises(ValueError,match='renderer'):check_manifest(changed,c,config_path,candidate)
     changed={**saved,'config_sha256':'bad'}
-    with pytest.raises(ValueError,match='config_sha256'):check_manifest(changed,c,config_path,candidate)
+    changed['code_sha256']='different implementation'
+    changed['device_map']='auto'
+    changed['git_commit']='older commit'
+    changed['config']['model']['device_map']='auto'
+    changed['config']['model'].pop('require_full_gpu',None)
+    check_manifest(changed,c,config_path,candidate)
+    changed={**saved,'config':{**saved['config'],'seed':0}}
+    with pytest.raises(ValueError,match='scientific config'):check_manifest(changed,c,config_path,candidate)
+    changed={**saved,'model_revision':'different model weights'}
+    with pytest.raises(ValueError,match='model_revision'):check_manifest(changed,c,config_path,candidate)
+    changed={**saved,'quantization':'none'}
+    with pytest.raises(ValueError,match='quantization'):check_manifest(changed,c,config_path,candidate)
 
 
-@pytest.mark.parametrize('family',['qwen3','llama','mistral','phi3'])
+@pytest.mark.parametrize('family',['qwen3','llama','mistral','phi3','gemma3_text'])
 def test_runtime_smoke_on_tiny_native_model(family):
     transformers=pytest.importorskip('transformers')
     from src.cross_model.runtime import hook_smoke
     names={'qwen3':('Qwen3Config','Qwen3ForCausalLM'),'llama':('LlamaConfig','LlamaForCausalLM'),
-           'mistral':('MistralConfig','MistralForCausalLM'),'phi3':('Phi3Config','Phi3ForCausalLM')}
+           'mistral':('MistralConfig','MistralForCausalLM'),'phi3':('Phi3Config','Phi3ForCausalLM'),
+           'gemma3_text':('Gemma3TextConfig','Gemma3ForCausalLM')}
     cfg_name,model_name=names[family]
     cfg=getattr(transformers,cfg_name)(vocab_size=128,hidden_size=32,intermediate_size=64,
         num_hidden_layers=2,num_attention_heads=4,num_key_value_heads=2,head_dim=8,
@@ -337,6 +354,23 @@ def test_restricted_mass_is_identical_and_uses_fewer_patched_forwards():
     assert small=={v:full[v] for v in small}
     assert model.calls<all_calls/3
     with pytest.raises(ValueError):score_prompt(model,CharTokenizer(),'A:',events,values=['missing'])
+
+
+def test_full_gpu_loader_rejects_offloaded_modules():
+    torch=pytest.importorskip('torch')
+    from src.models.loader import _verify_full_gpu_placement
+    model=SimpleNamespace(hf_device_map={'model.layers.0':'cuda:0','model.layers.1':'cpu'})
+    with pytest.raises(RuntimeError,match='offloaded'):
+        _verify_full_gpu_placement(model,torch)
+
+
+def test_moved_run_artifact_paths_resolve_by_outputs_suffix(tmp_path,monkeypatch):
+    from src.cross_model.workflow import local_artifact_path
+    monkeypatch.chdir(tmp_path)
+    local=tmp_path/'outputs'/'qwen3_8b_review2'/'gate.jsonl'
+    local.parent.mkdir(parents=True);local.write_text('{}\n')
+    moved=local_artifact_path('/home/danya/supersession/outputs/qwen3_8b_review2/gate.jsonl')
+    assert moved==local.resolve()
 
 
 def test_normalization_uses_irrelevant_corrected_live_and_guard():

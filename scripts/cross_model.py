@@ -10,7 +10,8 @@ from src.cross_model.protocol import (CONTRACT, COUNTS, GATE, VALUES, VERSION, c
     validate_dataset, write_new)
 from src.cross_model.dataset import generate
 from src.cross_model.tokens import audit_pairs, check_tokenizer, validate, surface_geometry_audit
-from src.cross_model.workflow import (dataset_info, gate_report, score_info, verify_confirmation, verify_gate)
+from src.cross_model.workflow import (dataset_info, gate_report, local_artifact_path,
+                                      score_info, verify_confirmation, verify_gate)
 from src.data.io import read_jsonl, sha256_file
 from src.utils import load_config
 from src.cross_model.progress import configure_logging, progress
@@ -128,10 +129,13 @@ def main():
             gate = verify_gate(a.gate, c, a.config, a.candidates)
             report = read_sealed(a.preflight)
             if report['gate_sha256'] != sha256_file(a.gate): raise ValueError('wrong preflight gate')
-            check_manifest(report['provenance'], c, a.config, a.candidates, gate['dataset_path'])
+            check_manifest(report['provenance'], c, a.config, a.candidates,
+                           local_artifact_path(gate['dataset_path']))
             info.update(gate_path=str(Path(a.gate).resolve()), gate_sha256=sha256_file(a.gate),
                         preflight_path=str(Path(a.preflight).resolve()), preflight_sha256=sha256_file(a.preflight))
-            prior += [gate['dataset_path'], read_sealed(gate['development_report_path'])['dataset_path']]
+            dev = read_sealed(local_artifact_path(gate['development_report_path']))
+            prior += [str(local_artifact_path(gate['dataset_path'])),
+                      str(local_artifact_path(dev['dataset_path']))]
         logger.info("Generating %s histories (n=%d)", a.stage, COUNTS[a.stage])
         rows = generate(a.stage, COUNTS[a.stage]); validate_dataset(rows, a.stage)
         info.update(history_signatures=disjoint(rows, prior), prior_datasets=[
@@ -153,7 +157,7 @@ def main():
         if info['stage'] == 'confirmatory':
             verify_confirmation(a.dataset, c, a.config, a.candidates)
             gate = read_sealed(info['gate_path'])
-            runtime = read_sealed(gate['scores_path']+'.provenance.json')['provenance']
+            runtime = read_sealed(str(local_artifact_path(gate['scores_path']))+'.provenance.json')['provenance']
             current = manifest(c,a.config,a.candidates,a.dataset)
             if any(runtime[k] != current[k] for k in ('packages','python')):
                 raise ValueError('confirmatory runtime differs from frozen gate')
@@ -236,7 +240,7 @@ def main():
     if a.command == 'preflight':
         if not a.gate: p.error('--gate required')
         gate = verify_gate(a.gate, c, a.config, a.candidates)
-        dev = read_sealed(gate['development_report_path'])
+        dev = read_sealed(local_artifact_path(gate['development_report_path']))
         report = {'stage':'preflight', 'gate_sha256':sha256_file(a.gate), 'model':c['model'],
                   'vocabulary':VALUES, 'surface_policy':CONTRACT['surfaces'],
                   'surface_geometry_audit': candidate['surface_geometry_audit'],
@@ -251,7 +255,8 @@ def main():
                              'remote_code':c['model'].get('trust_remote_code',False),
                              'real_model_hook_validation':'tiny native models passed; pinned remote Phi and quantized GPU execution pending'
                              , 'raw_logit_comparability':'available only when all canonical values are one-token; do not compare to sequence masses'},
-                  'provenance':manifest(c, a.config, a.candidates, gate['dataset_path'])}
+                  'provenance':manifest(c, a.config, a.candidates,
+                                         local_artifact_path(gate['dataset_path']))}
         write_new(a.output, sealed(report)); print(json.dumps(report, indent=2)); return
     if a.command == 'mechanism-plan':
         if not a.dataset: p.error('--dataset required')
