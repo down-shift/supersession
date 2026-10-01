@@ -13,7 +13,7 @@ Examples use the repository's validated symbolic token map. Replace the paths if
 1. Development generation (three templates, 24 histories):
 
 ```bash
-uv run python scripts/generate_supersession_experiments.py --kind controls_counterbalanced --natural-language --templates nora_v1,record_v1,tag_v1 --n 24 --seed 20261020 --values configs/supersession_values.json --token-ids outputs/four_query_288/frozen_token_ids.json --output outputs/supersession/nl_dev.jsonl
+uv run python scripts/generate_supersession_experiments.py --kind controls_counterbalanced --natural-language --stage development --templates nora_v1,record_v1,tag_v1 --n 24 --seed 20261020 --values configs/supersession_values.json --token-ids outputs/four_query_288/frozen_token_ids.json --output outputs/supersession/nl_dev.jsonl
 ```
 
 2. Development scoring:
@@ -25,7 +25,7 @@ uv run python scripts/run_supersession_behavior.py --config configs/four_query_2
 3. Development analysis (competence fields only):
 
 ```bash
-uv run python scripts/analyze_natural_competence.py --stage development --dataset outputs/supersession/nl_dev.jsonl --behavior outputs/supersession/nl_dev_scores.jsonl --output outputs/supersession/nl_dev_competence.json
+uv run python scripts/analyze_natural_competence.py --stage development --dataset outputs/supersession/nl_dev.jsonl --behavior outputs/supersession/nl_dev_scores.jsonl --token-ids outputs/four_query_288/frozen_token_ids.json --config configs/four_query_288.yaml --output outputs/supersession/nl_dev_competence.json
 ```
 
 Choose one template using only this file, record the choice, then use that same template in the next two stages.
@@ -33,15 +33,15 @@ Choose one template using only this file, record the choice, then use that same 
 4. Fresh frozen competence gate generation and scoring (24 histories):
 
 ```bash
-uv run python scripts/generate_supersession_experiments.py --kind controls_counterbalanced --natural-language --templates nora_v1 --n 24 --seed 20261021 --values configs/supersession_values.json --token-ids outputs/four_query_288/frozen_token_ids.json --output outputs/supersession/nl_frozen_gate.jsonl
+uv run python scripts/generate_supersession_experiments.py --kind controls_counterbalanced --natural-language --stage frozen_gate --templates nora_v1 --n 24 --seed 20261021 --values configs/supersession_values.json --token-ids outputs/four_query_288/frozen_token_ids.json --output outputs/supersession/nl_frozen_gate.jsonl
 uv run python scripts/run_supersession_behavior.py --config configs/four_query_288.yaml --dataset outputs/supersession/nl_frozen_gate.jsonl --token-ids outputs/four_query_288/frozen_token_ids.json --output outputs/supersession/nl_frozen_gate_scores.jsonl
-uv run python scripts/analyze_natural_competence.py --stage frozen_gate --dataset outputs/supersession/nl_frozen_gate.jsonl --behavior outputs/supersession/nl_frozen_gate_scores.jsonl --output outputs/supersession/nl_frozen_gate.json
+uv run python scripts/analyze_natural_competence.py --stage frozen_gate --selected-template nora_v1 --dataset outputs/supersession/nl_frozen_gate.jsonl --behavior outputs/supersession/nl_frozen_gate_scores.jsonl --token-ids outputs/four_query_288/frozen_token_ids.json --config configs/four_query_288.yaml --prior-dataset outputs/supersession/nl_dev.jsonl --output outputs/supersession/nl_frozen_gate.json
 ```
 
 5. Confirmatory generation (96 fresh histories; command fails unless gate passes):
 
 ```bash
-uv run python scripts/generate_supersession_experiments.py --kind controls_counterbalanced --natural-language --templates nora_v1 --frozen-gate-required outputs/supersession/nl_frozen_gate.json --n 96 --seed 20261022 --values configs/supersession_values.json --token-ids outputs/four_query_288/frozen_token_ids.json --output outputs/supersession/nl_confirmatory.jsonl
+uv run python scripts/generate_supersession_experiments.py --kind controls_counterbalanced --natural-language --stage confirmatory --templates nora_v1 --frozen-gate-required outputs/supersession/nl_frozen_gate.json --prior-dataset outputs/supersession/nl_dev.jsonl --config configs/four_query_288.yaml --n 96 --seed 20261022 --values configs/supersession_values.json --token-ids outputs/four_query_288/frozen_token_ids.json --output outputs/supersession/nl_confirmatory.jsonl
 ```
 
 6. Confirmatory scoring:
@@ -55,6 +55,8 @@ uv run python scripts/run_supersession_behavior.py --config configs/four_query_2
 ```bash
 uv run python scripts/analyze_supersession_behavior.py --kind controls_counterbalanced --dataset outputs/supersession/nl_confirmatory.jsonl --behavior outputs/supersession/nl_confirmatory_scores.jsonl --output-dir outputs/supersession/nl_confirmatory_analysis
 ```
+
+The gate counts unique rendered prompts once and checks each template × condition × query × orientation × edited variable × edit status × pair direction × slot-order cell. The ordinary irrelevant cell remains diagnostic and cannot block the gate. The frozen artifact records data and scoring hashes, model/tokenizer revisions, config/token-map/renderer hashes, seed, selected template, and concrete history signatures. Confirmatory generation verifies those artifacts, recomputes the gate from the hash-bound raw scores, and rejects overlap with both frozen-gate and supplied development datasets. Development renders each semantic history under every candidate template, removing the wording/name/attribute confound.
 
 The confirmatory `history_relevance.csv` contains symmetric `R_live`, `R_superseded`, and `R_irrelevant_counterbalanced` values and their history-paired differences. `summary.json` gives history-bootstrap CIs, including the confirmatory superseded-minus-counterbalanced-irrelevant contrast and the descriptive live-minus-superseded contrast. Other artifacts: generation `.provenance.json`; scoring `.run.json`, `.provenance.json`, and resumable score JSONL; analysis `matched_edit_effects.csv`, `history_relevance.csv`, `competence.csv`, and `summary.json`. Preserve failed and partial artifacts and resume scoring with `--resume`.
 

@@ -404,7 +404,8 @@ def audit_behavior_dataset(rows, kind=None):
             for key in ('matching_values', 'replacement_values', 'variables', 'candidate_values', 'seed', 'history_index', 'orientation'):
                 if row.get(key) != ref.get(key):
                     raise ValueError(f'history {hid} is not matched across conditions/queries: {key}')
-        signature = (tuple(ref['variables']), tuple(ref['matching_values'][f] for f in FIELDS))
+        signature = (tuple(ref['variables']), tuple(ref['matching_values'][f] for f in FIELDS),
+                     ref.get('prompt_variant') if ref.get('prompt_family') == 'natural_entity_attribute_v1' else None)
         if signature in signatures:
             raise ValueError('concrete histories are duplicated under different history IDs')
         signatures.add(signature)
