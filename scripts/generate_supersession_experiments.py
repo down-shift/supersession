@@ -19,35 +19,18 @@ def _history_signature(row):
 
 def _recompute_gate_pass(gate):
     """Recompute the frozen gate from hash-bound raw scores; do not trust JSON pass/metrics."""
-    dataset = read_jsonl(gate['dataset_path'])
-    scores = {r['example_id']: r for r in read_jsonl(gate['behavior_path'])}
-    if len(scores) != len(dataset) or {r['example_id'] for r in dataset} != set(scores):
+    from src.analysis.natural_competence import GATE, GATE_VERSION, evaluate_competence
+    if gate.get('gate_version') != GATE_VERSION or gate.get('preregistered_gate') != GATE:
         return False
-    unique, cells = {}, {}
-    for row in dataset:
-        score = scores[row['example_id']]
-        if row['condition'] == 'irrelevant':
-            continue
-        key_prompt = (row['prompt_variant'], score.get('prompt'))
-        diag = (score['full_vocab_next_token_accuracy'], score['accuracy'], score['candidate_rank'],
-                score['candidate_logits'].get(row['answer']), score['candidate_logits'].get(row.get('stale_value')) if row.get('stale_value') else None)
-        if key_prompt in unique and unique[key_prompt] != diag:
-            return False
-        unique[key_prompt] = diag
-        cell = (row['prompt_variant'], row['condition'], row['query'], row['orientation'], row['edited_variable'],
-                row['edit_status'], row['pair_direction'], row.get('unassigned_slot_order') or 'none')
-        cells.setdefault(cell, {})[key_prompt] = diag
-    if not cells or {key[1] for key in cells} != {'live','superseded','irrelevant_counterbalanced'}:
+    if gate.get('competence_code_sha256') != sha256_file('src/analysis/natural_competence.py'):
         return False
-    for vals in cells.values():
-        n=len(vals); d=list(vals.values())
-        if (sum(x[0] for x in d)/n < .99 or sum(x[1] for x in d)/n < .99 or
-                sum(x[2] for x in d)/n > 1.01):
-            return False
-        margins=[x[3]-x[4] for x in d if x[4] is not None]
-        if margins and sum(margins)/len(margins) <= 0:
-            return False
-    return True
+    try:
+        result = evaluate_competence(read_jsonl(gate['dataset_path']), read_jsonl(gate['behavior_path']))
+    except (ValueError, KeyError, TypeError):
+        return False
+    return (result['pass'] and gate.get('dataset_seed') == result['dataset_seed'] and
+            gate.get('expected_cell_count') == result['expected_cell_count'] and
+            gate.get('by_template_condition_query_orientation_edit_status_pair_direction_slot') == result['summary'])
 
 
 def main():
