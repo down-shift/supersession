@@ -122,13 +122,20 @@ The version-chain branch stopped after its single allowed replication failed the
 
 ## 7. Generalization / paper robustness
 
-- [ ] **Controlled natural-language replication**
-  - Replace symbolic assignments with simple entity-attribute updates.
-  - Replicate stale-vs-counterbalanced-irrelevant causal relevance.
+- [x] **Controlled natural-language replication** — **CORE CONTRAST REPLICATED; COMPETENCE GATE PASSED**
+  - 96 fresh histories with simple entity–attribute updates, one frozen template (`nora_v1`), and the validated 12-token candidate universe.
+  - Primary history-bootstrap contrast: `R_superseded − R_irrelevant_counterbalanced = 4.52` logits, 95% CI [4.12, 4.94], positive in 96/96 histories.
+  - Descriptive live-minus-superseded contrast: 18.48 logits, 95% CI [17.30, 19.57], positive in 96/96 histories.
+  - Full-vocabulary accuracy ranged from 99.61% to 99.87% in the substantive conditions; mean target rank was approximately 1.
+  - The ordinary uncounterbalanced irrelevant estimate was 3.44 [2.94, 3.92], while the counterbalanced estimate was 0.07 [-0.29, 0.41]. Reversing mention order reverses the apparent positional preference, confirming why the counterbalanced control is needed.
+  - Scope: one model (Qwen3-8B), one selected English template family, and 12 validated values. Treat this as a successful controlled natural-language replication, not broad language generalization.
+  - Analysis: `outputs/supersession/nl_confirmatory_analysis/summary.json`; preserve the dataset, scores, gate, and provenance sidecars with the analysis.
 
-- [ ] **Second-model behavioral replication**
-  - Optional but valuable if compute/time permit.
-  - Behavioral replication is higher priority than full mechanistic replication.
+- [ ] **Independent behavioral replication** — **NEXT**
+  - Run the same preregistered live / superseded / counterbalanced-irrelevant estimand on a second model, with that model's own validated one-token candidate map and immutable revisions.
+  - Keep the 96-history design, competence gate, template, contrasts, and history-bootstrap analysis fixed. Do not select prompts from causal results.
+  - If a second model is unavailable, next best is a fresh confirmatory run with a second preselected controlled template on the same model; report this as template robustness, not independent-model replication.
+  - Behavioral replication takes priority over further head scans, Q/K/V analysis, or mechanistic patching.
 
 ## 8. Paper-level interpretation
 
@@ -137,6 +144,7 @@ The version-chain branch stopped after its single allowed replication failed the
 - [x] Obsolete contextual bindings are not causally erased after supersession.
 - [x] Their influence remains query/binding-specific.
 - [x] This effect survives a counterbalanced irrelevant-occurrence control.
+- [x] The superseded-versus-counterbalanced-irrelevant contrast generalizes to one controlled natural-language entity–attribute template with high task competence.
 - [x] Stale information becomes causally available at the late query/readout state.
 - [x] Prominent late heads are more consistent with generic binding retrieval than with a stale-specific mechanism.
 
@@ -145,11 +153,11 @@ The version-chain branch stopped after its single allowed replication failed the
 - [ ] Why the current value wins over still-retrievable obsolete values.
 - [ ] Whether obsolete versions form a discrete “inactive” class or a graded recency hierarchy.
 - [ ] A dedicated supersession/version-selection circuit.
-- [ ] Strong generalization beyond the controlled symbolic Qwen3 setup.
+- [ ] Generalization across models and across a broader range of natural-language formulations.
 
 ## Immediate priority order
 
-1. [x] Complete the frozen single-deep-chain replication and apply the predeclared competence rule.
-2. [x] Stop the version-chain branch after the replication failed that rule; retain both runs as exploratory.
-3. [ ] Choose the next paper direction without further version-chain prompt or threshold changes.
-4. [ ] Add one natural-language replication before finalizing the paper, if it remains aligned with the paper's central claim.
+1. [x] Complete and stop the version-chain branch after its frozen replication failed the competence gate; retain its estimates as exploratory.
+2. [x] Complete the controlled natural-language replication and confirm the superseded > counterbalanced-irrelevant result under the frozen competence gate.
+3. [ ] Run an independent second-model behavioral replication of the frozen natural-language estimand.
+4. [ ] Only after behavioral robustness is established, decide whether further mechanistic localization is needed for the paper's central claim.
