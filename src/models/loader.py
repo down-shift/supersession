@@ -1,4 +1,23 @@
 """Lazy Hugging Face loading for decoder-only models."""
+
+def _prepare_remote_model_compat(config):
+    """Bridge moved typing-only Transformers symbols used by pinned remote code."""
+    model = config.get("model", {})
+    if not model.get("trust_remote_code") or model.get("id") != "microsoft/Phi-4-mini-instruct":
+        return
+    import transformers.utils as transformer_utils
+    if hasattr(transformer_utils, "LossKwargs"):
+        return
+    loss_kwargs = getattr(transformer_utils, "TransformersKwargs", None)
+    shim = "transformers.utils.LossKwargs aliased to TransformersKwargs"
+    if loss_kwargs is None:
+        from typing import TypedDict
+        loss_kwargs = TypedDict("LossKwargs", {"num_items_in_batch": int}, total=False)
+        shim = "transformers.utils.LossKwargs supplied as a typing-only compatibility alias"
+    transformer_utils.LossKwargs = loss_kwargs
+    config.setdefault("transformers_compatibility_shims", []).append(shim)
+
+
 def load_model(config):
     try:
         import torch
@@ -27,6 +46,7 @@ def load_model(config):
         load_kwargs["quantization_config"] = BitsAndBytesConfig(load_in_8bit=True)
     elif quantization != "none":
         raise ValueError(f"unsupported quantization {quantization!r}; supported values: none, int8")
+    _prepare_remote_model_compat(config)
     model=AutoModelForCausalLM.from_pretrained(model_id,**load_kwargs)
     model.eval()
     config["resolved_model_revision"]=getattr(model.config,"_commit_hash",m.get("revision"))
