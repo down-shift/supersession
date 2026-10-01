@@ -18,6 +18,28 @@ def _prepare_remote_model_compat(config):
     config.setdefault("transformers_compatibility_shims", []).append(shim)
 
 
+def _load_phi4_mini(model_id, model_config, load_kwargs):
+    """Adapt Phi-4-mini's legacy tied-weight declaration to mapping-based Transformers."""
+    from transformers import AutoConfig
+    from transformers.dynamic_module_utils import get_class_from_dynamic_module
+
+    revision = model_config.get("revision")
+    remote_config = AutoConfig.from_pretrained(
+        model_id, revision=revision, trust_remote_code=True)
+    class_reference = remote_config.auto_map["AutoModelForCausalLM"]
+    model_class = get_class_from_dynamic_module(
+        class_reference, model_id, revision=revision, code_revision=revision)
+    tied_keys = getattr(model_class, "_tied_weights_keys", None)
+    if isinstance(tied_keys, (list, tuple)):
+        if tied_keys != ["lm_head.weight"]:
+            raise RuntimeError(f"unsupported Phi-4-mini tied-weight declaration: {tied_keys!r}")
+        model_class._tied_weights_keys = {
+            "lm_head.weight": "model.embed_tokens.weight"}
+    kwargs = {key: value for key, value in load_kwargs.items()
+              if key != "trust_remote_code"}
+    return model_class.from_pretrained(model_id, config=remote_config, **kwargs)
+
+
 def load_model(config):
     try:
         import torch
@@ -47,7 +69,12 @@ def load_model(config):
     elif quantization != "none":
         raise ValueError(f"unsupported quantization {quantization!r}; supported values: none, int8")
     _prepare_remote_model_compat(config)
-    model=AutoModelForCausalLM.from_pretrained(model_id,**load_kwargs)
+    if model_id == "microsoft/Phi-4-mini-instruct" and m.get("trust_remote_code"):
+        model = _load_phi4_mini(model_id, m, load_kwargs)
+        config.setdefault("transformers_compatibility_shims", []).append(
+            "Phi3ForCausalLM._tied_weights_keys converted to target/source mapping")
+    else:
+        model=AutoModelForCausalLM.from_pretrained(model_id,**load_kwargs)
     model.eval()
     config["resolved_model_revision"]=getattr(model.config,"_commit_hash",m.get("revision"))
     config["resolved_tokenizer_revision"]=getattr(tok,"_commit_hash",None) or getattr(tok,"init_kwargs",{}).get("_commit_hash",m.get("tokenizer_revision"))
