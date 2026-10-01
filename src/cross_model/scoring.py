@@ -1,4 +1,4 @@
-"""Complete continuation likelihood, preserving raw surface observations."""
+"""Bounded surface-class continuation mass; prefix probabilities without termination."""
 import math
 
 from src.cross_model.protocol import VALUES
@@ -13,14 +13,21 @@ def logsumexp(values):
     return maximum + math.log(sum(math.exp(v-maximum) for v in values))
 
 
-def score_prompt(model, tokenizer, prompt, events, hook_factory=None):
+def score_prompt(model, tokenizer, prompt, events, hook_factory=None, *, values=None):
     """Sum log p(token | prompt, previous candidate tokens), without length normalization.
 
     hook_factory is entered for every forward, including teacher-forced suffixes.
     Only prompt positions are patched; no candidate token is ever patched.
+    values restricts evaluated classes without renormalizing their probabilities.
+    Token sequences are answer prefixes, not exact terminated answers.
     """
     import torch
     from contextlib import nullcontext
+    if values is not None:
+        values = tuple(values)
+        if not values or len(set(values)) != len(values) or any(v not in events for v in values):
+            raise ValueError('requested scoring values must be distinct members of the event map')
+        events = {v: events[v] for v in values}
     prefix = encode(tokenizer, prompt)
     device = model.get_input_embeddings().weight.device
     context = hook_factory or nullcontext

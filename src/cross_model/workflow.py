@@ -35,7 +35,7 @@ def gate_report(config, config_path, candidate_path, dataset, scores, developmen
     dev = read_sealed(development_report)
     if dev['stage'] != 'development': raise ValueError('gate requires development report')
     dr, ds, _, _ = score_info(dev['scores_path'], dev['dataset_path'], config, config_path, candidate_path, 'development')
-    if dev['scores_sha256'] != sha256_file(dev['scores_path']) or dev['dataset_sha256'] != sha256_file(dev['dataset_path']) or evaluate(dr, ds) != dev['evaluation']: raise ValueError('development report differs from underlying scores')
+    if dev['scores_sha256'] != sha256_file(dev['scores_path']) or dev['dataset_sha256'] != sha256_file(dev['dataset_path']) or evaluate(dr, ds, gate=False) != dev['evaluation']: raise ValueError('development report differs from underlying scores')
     rows, scored, info, side = score_info(scores, dataset, config, config_path, candidate_path, 'frozen_gate')
     if info.get('development_report_sha256') != sha256_file(development_report):
         raise ValueError('gate dataset has wrong development lineage')

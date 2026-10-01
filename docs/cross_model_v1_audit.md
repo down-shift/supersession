@@ -74,8 +74,8 @@ Some unspaced strings retokenize the encoded `Answer:` prefix. The fixed rule ex
 
 ## Validation completed during implementation
 
-- Final full cheap repository unit suite: 183 passed, including 33 cross-model framework tests. Tests use synthetic scores, temporary artifacts and tiny native models; no pretrained weights or confirmatory effects.
-- Offline Stage 0 CLI validation succeeded for Qwen, Mistral and Phi: each checked 96 unique prefixes, 80 actual edit pairs, and 896 exhaustive candidate/slot substitutions. All counterfactual spans align, and every substitution preserves length within each tokenizer.
-- Sealed maps: `outputs/cross_model_v1/tokenizer_validation_20261001_final/{qwen3_8b,mistral7b,phi4_mini}.json`. Earlier validation maps remain preserved under `tokenizer_validation_20261001/`; the `_final` maps bind the final implementation code. These generated files follow the repository's ignored `outputs/` convention; preserve/export them with preregistration artifacts.
+- Final cheap repository unit suite after the review corrections: 190 passed, including synthetic score tests, temporary artifact tests and tiny native architecture tests. No pretrained weights or confirmatory effects were used.
+- The earlier Stage 0 maps checked 96 unique prefixes, 80 actual edit pairs, and 896 exhaustive candidate/slot substitutions for Qwen, Mistral and Phi. Those maps bind the superseded contract and code hash. They remain preserved but are not valid candidates for this revision.
+- Fresh Stage 0 maps for `review_1_before_logits` are written separately under `outputs/cross_model_v1/tokenizer_validation_review1_final_20261001/`. They are no-logit tokenizer/format audits; preserve/export them with preregistration artifacts.
 - Mistral spaced canonical sequences: amber [1605,1305], coral [2043,1050], jade [1229,1538], pearl [27615,29482], slate [1903,1148], teal [1479,1050], violet [1131,21114], ivory [20668,1463]. All four surface proposals and their distinct events are recorded in its map.
 - CLI help and whitespace checks passed. Llama tokenization/access, real pinned remote Phi hooks, GPU/int8 hooks, memory footprints, new semantic development, and new frozen competence gates remain unmeasured.

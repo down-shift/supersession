@@ -10,7 +10,7 @@ from src.cross_model.workflow import score_info, verify_confirmation
 from src.data.supersession_behavior import edited_member
 
 
-def selected_pairs(rows):
+def selected_pairs(rows, *, include_current=True):
     """First 12 fixed histories: 6 head discovery + 6 head reserve, never selected on R."""
     ids = sorted({r['history_id'] for r in rows})[:CONTRACT['mechanism_histories']]
     pairs = defaultdict(dict)
@@ -19,7 +19,7 @@ def selected_pairs(rows):
     # Additional current binding identity edits in superseded histories, fixed before results.
     for members in list(pairs.values()):
         b = members[0]
-        if b['condition'] != 'superseded': continue
+        if not include_current or b['condition'] != 'superseded': continue
         field = 'proposed_' + b['edited_variable']
         clone = {**b, 'edited_field':field, 'source_value':b['matching_values'][field],
                  'replacement_value':b['replacement_values'][field], 'edit_status':'accepted_current',
@@ -43,15 +43,17 @@ def site_map(row, tokenizer):
 
 def patch_pair(model, tokenizer, members, candidate, layer, component, site, head=None, cache=None):
     import torch
+    source, replacement = members[0]['source_value'], members[0]['replacement_value']
+    values = (source, replacement)
     prompts, positions, unpatched = {}, {}, {}
     for direction, row in members.items():
         prompts[direction], _ = semantic_positions(row, tokenizer)
         positions[direction] = site_map(row, tokenizer)[site]
-        if cache is not None and prompts[direction] in cache:
-            unpatched[direction] = cache[prompts[direction]]
-        else:
-            unpatched[direction] = score_prompt(model, tokenizer, prompts[direction], candidate['events'])[0]
-            if cache is not None: cache[prompts[direction]] = unpatched[direction]
+        known = cache.setdefault(prompts[direction], {}) if cache is not None else {}
+        missing = [v for v in values if v not in known]
+        if missing:
+            known.update(score_prompt(model, tokenizer, prompts[direction], candidate['events'], values=missing)[0])
+        unpatched[direction] = {v:known[v] for v in values}
     deltas = []
     dtypes = []
     for donor, recipient in ((1,0), (0,1)):
@@ -62,7 +64,7 @@ def patch_pair(model, tokenizer, members, candidate, layer, component, site, hea
         if activation is None: raise RuntimeError('hook failed to capture')
         dtypes.append(str(activation.dtype))
         factory = lambda: ActivationHook(model, layer, component, positions[recipient], source=activation, head=head)
-        patched = score_prompt(model, tokenizer, prompts[recipient], candidate['events'], factory)[0]
+        patched = score_prompt(model, tokenizer, prompts[recipient], candidate['events'], factory, values=values)[0]
         source, replacement = members[0]['source_value'], members[0]['replacement_value']
         def margin(mass): return mass[replacement]-mass[source]
         sign = 1 if donor == 1 else -1
@@ -119,6 +121,38 @@ def depth_summary(records, count):
             'interpretation':'Two fixed depth/position contrasts; no literal information movement'}
 
 
+def build_tasks(ids, pairs, tokenizer, count, *, heads=False, model=None):
+    """Fixed task grid, inspectable cheaply without pretrained weights in core mode."""
+    tasks = []
+    core = CONTRACT['mechanism_core']
+    late = sorted({round(x*(count-1)) for x in core['secondary_depths']})
+    for pid,members in sorted(pairs.items()):
+        row = members[0]
+        if not heads:
+            if row['condition'] not in core['conditions'] or not row['edited_field'].startswith('initial_'):
+                continue
+            sites = site_map(row,tokenizer)
+            for layer in range(count):
+                for site in core['all_layer_sites']:
+                    if site not in sites: raise ValueError('missing required core semantic site')
+                    tasks.append((pid,layer,'block_output',site,None))
+            for layer in late:
+                for component in ('attention_output','mlp_output'):
+                    tasks.append((pid,layer,component,'final_preanswer',None))
+                if row['history_id'] in ids[:core['secondary_histories']]:
+                    for site in core['secondary_sites']:
+                        if site not in sites: raise ValueError('missing required secondary semantic site')
+                        tasks.append((pid,layer,'block_output',site,None))
+        else:
+            discovery = row['history_id'] in ids[:CONTRACT['head_discovery_histories']]
+            if discovery and not (row['condition']=='superseded' and row['edited_field'].startswith('initial')):
+                continue
+            for layer in late:
+                qheads,_,_ = head_dimensions(model,layer)
+                for head in range(qheads):tasks.append((pid,layer,'query_head','final_preanswer',head))
+    return tasks
+
+
 def run(a, config, candidate):
     from src.cross_model.runtime import load_pinned_model, hook_smoke
     from src.data.progress import prepare_jsonl_progress, append_jsonl_record
@@ -127,7 +161,9 @@ def run(a, config, candidate):
     rows, info = verify_confirmation(a.dataset, config, a.config, a.candidates)
     score_info(a.scores, a.dataset, config, a.config, a.candidates, 'confirmatory')
     # Hooks run only after gate and completed confirmatory behavioral scoring.
-    ids, pairs = selected_pairs(rows)
+    ids, pairs = selected_pairs(rows, include_current=a.heads)
+    if not a.heads:
+        pairs = {pid:m for pid,m in pairs.items() if m[0]['condition'] in CONTRACT['mechanism_core']['conditions']}
     flat = [r for m in pairs.values() for r in m.values()]
     from scripts.cross_model import tokenizer
     tok = tokenizer(config, a.local_files_only); check_tokenizer(tok, candidate)
@@ -145,24 +181,7 @@ def run(a, config, candidate):
                 dataset_seed=sorted({r['seed'] for r in rows}), history_ids=ids,
                 resolved_device_map={k:str(v) for k,v in getattr(model,'hf_device_map',{}).items()},
                 mode='heads' if a.heads else 'core')
-    tasks = []
-    late = sorted({round(x*(n-1)) for x in (.75,.875,1)})
-    for pid,members in sorted(pairs.items()):
-        sites = site_map(members[0],tok)
-        if not a.heads:
-            for layer in range(n):
-                for site in sites: tasks.append((pid,layer,'block_output',site,None))
-            for layer in late:
-                for component in ('attention_output','mlp_output'):
-                    tasks.append((pid,layer,component,'final_preanswer',None))
-        else:
-            # Head discovery uses stale edits only; reserve profiles stale/historical/current.
-            discovery = members[0]['history_id'] in ids[:CONTRACT['head_discovery_histories']]
-            if discovery and not (members[0]['condition']=='superseded' and members[0]['edited_field'].startswith('initial')):
-                continue
-            for layer in late:
-                heads,_,_ = head_dimensions(model,layer)
-                for head in range(heads): tasks.append((pid,layer,'query_head','final_preanswer',head))
+    tasks = build_tasks(ids, pairs, tok, n, heads=a.heads, model=model)
     # Every head is recorded, but selection/profile analysis is strictly split by history.
     task_rows = [{'example_id':str(t), 'task':list(t)} for t in tasks]
     fingerprint = {k:v for k,v in prov.items() if k!='timestamp_utc'}
@@ -212,3 +231,27 @@ def run(a, config, candidate):
     else:
         write_new(analysis_path,sealed(analysis))
     write_new(a.output+'.provenance.json',sealed({'stage':'mechanism','scores_sha256':sha256_file(a.output),'provenance':prov}))
+
+
+def execution_plan(rows, tokenizer, candidate, count):
+    """Core workload estimate from fixed inputs only; never loads weights or logits."""
+    ids,pairs=selected_pairs(rows,include_current=False)
+    pairs={pid:m for pid,m in pairs.items() if m[0]['condition'] in CONTRACT['mechanism_core']['conditions']}
+    tasks=build_tasks(ids,pairs,tokenizer,count)
+    component_counts={c:sum(t[2]==c for t in tasks) for c in ('block_output','attention_output','mlp_output')}
+    patch_forwards=0
+    for pid,*_ in tasks:
+        b=pairs[pid][0]
+        classes=[candidate['events'][b[v]] for v in ('source_value','replacement_value')]
+        scoring_calls=1+sum(len(e['ids'])>1 for members in classes for e in members)
+        patch_forwards+=2+2*scoring_calls  # Two donor captures and two recipient scores.
+    prompts={semantic_positions(r,tokenizer)[0] for m in pairs.values() for r in m.values()}
+    full_scoring_calls=1+sum(len(e['ids'])>1 for members in candidate['events'].values() for e in members)
+    return {'history_ids':ids,'pair_count':len(pairs),'task_count':len(tasks),
+            'tasks_by_component':component_counts,'scored_classes_per_patch':2,
+            'donor_and_patched_forward_calls':patch_forwards,
+            'unpatched_forward_calls_upper_bound':len(prompts)*full_scoring_calls,
+            'total_forward_calls_upper_bound':patch_forwards+len(prompts)*full_scoring_calls,
+            'notes':['No wall-time or GPU-memory guarantee; batch one, no KV cache.',
+                     'Unpatched class masses cached per prompt; upper bound allows every class once.',
+                     'Core has two all-layer sites and late secondary sites on four fixed histories.']}

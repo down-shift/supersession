@@ -31,20 +31,20 @@ def summarize(history_rows):
     names = [k for k in history_rows[0] if k != 'history_id']
     result = {k: summarize_histories([r[k] for r in history_rows]) for k in names}
     # Ratio of model means with paired bootstrap; never average per-history ratios.
-    live = np.array([r['R_live'] for r in history_rows])
+    live = np.array([r['R_live_minus_R_irrelevant_counterbalanced'] for r in history_rows])
     primary = np.array([r['R_superseded_minus_R_irrelevant_counterbalanced'] for r in history_rows])
-    normalized = {'available': False, 'reason': 'live mean lower 95% history-bootstrap bound <= 1 nat'}
-    if result['R_live']['ci95_cluster_bootstrap'][0] > 1:
+    normalized = {'available': False, 'reason': 'irrelevant-corrected live mean lower 95% history-bootstrap bound <= 1 nat'}
+    if result['R_live_minus_R_irrelevant_counterbalanced']['ci95_cluster_bootstrap'][0] > 1:
         rng = np.random.default_rng(73021)
         indices = rng.integers(0, len(live), size=(2000, len(live)))
         denominators = live[indices].mean(1)
         if np.all(denominators > 1):
             ratios = primary[indices].mean(1)/denominators
-            normalized = {'available': True, 'ratio_of_means': float(primary.mean()/live.mean()),
+            normalized = {'available': True, 'definition':'mean(superseded-irrelevant_cb) / mean(live-irrelevant_cb)', 'ratio_of_means': float(primary.mean()/live.mean()),
                           'ci95_history_bootstrap': list(map(float, np.quantile(ratios, [.025, .975])))}
         else:
-            normalized = {'available': False, 'reason': 'a paired bootstrap live denominator <= 1 nat'}
-    return {'results': result, 'normalized_primary_relative_to_live': normalized,
+            normalized = {'available': False, 'reason': 'a paired bootstrap irrelevant-corrected live denominator <= 1 nat'}
+    return {'results': result, 'normalized_primary_relative_to_live_minus_irrelevant': normalized,
             'bootstrap_unit': 'history', 'bootstrap_draws': 2000, 'bootstrap_seed': 73021}
 
 

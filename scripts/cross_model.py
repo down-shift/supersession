@@ -8,7 +8,7 @@ from src.cross_model.protocol import (CONTRACT, COUNTS, GATE, VALUES, VERSION, c
     code_hash, digest, disjoint, evaluate, manifest, read_sealed, sealed, validate_config,
     validate_dataset, write_new)
 from src.cross_model.dataset import generate
-from src.cross_model.tokens import audit_pairs, check_tokenizer, validate
+from src.cross_model.tokens import audit_pairs, check_tokenizer, validate, surface_geometry_audit
 from src.cross_model.workflow import (dataset_info, gate_report, score_info, verify_confirmation, verify_gate)
 from src.data.io import read_jsonl, sha256_file
 from src.utils import load_config
@@ -18,6 +18,8 @@ def load_candidate(a, c):
     candidate = read_sealed(a.candidates)
     check_manifest(candidate['provenance'], c, a.config)
     if candidate.get('contract') != CONTRACT: raise ValueError('candidate contract mismatch')
+    if candidate.get('surface_geometry_audit') != surface_geometry_audit(candidate['events']):
+        raise ValueError('mandatory surface geometry audit missing or inconsistent')
     return candidate
 
 
@@ -51,7 +53,7 @@ def claim_stage(c, stage, output):
 
 def main():
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument('command', choices=['validate', 'generate', 'score', 'analyze', 'preflight', 'mechanism', 'sensitivity', 'smoke'])
+    p.add_argument('command', choices=['validate', 'generate', 'score', 'analyze', 'preflight', 'mechanism', 'sensitivity', 'smoke', 'mechanism-plan'])
     p.add_argument('--config', required=True); p.add_argument('--candidates')
     p.add_argument('--stage', choices=list(COUNTS)); p.add_argument('--dataset'); p.add_argument('--scores')
     p.add_argument('--output', required=True); p.add_argument('--development-report')
@@ -73,7 +75,8 @@ def main():
                           local_files_only=a.local_files_only).to_dict())
         write_new(a.output, sealed(result))
         print(json.dumps({'status': 'passed', 'raw_R_defined': result['canonical_raw_R_defined'],
-                          'aligned_pairs': result['edit_audit']['all_mechanism_aligned']})); return
+                          'aligned_pairs': result['edit_audit']['all_mechanism_aligned'],
+                          'surface_geometry_audit': result['surface_geometry_audit']})); return
     if not a.candidates: p.error('--candidates required')
     candidate = load_candidate(a, c)
     if a.command == 'smoke':
@@ -98,9 +101,8 @@ def main():
             if not a.development_report: p.error('--development-report required')
             dev = read_sealed(a.development_report)
             dr, ds, _, _ = score_info(dev['scores_path'], dev['dataset_path'], c, a.config, a.candidates, 'development')
-            if evaluate(dr, ds) != dev['evaluation']: raise ValueError('development report mismatch')
+            if evaluate(dr, ds, gate=False) != dev['evaluation']: raise ValueError('development report mismatch')
             # Fixed prompt, vocabulary and format: no per-model redevelopment in v1.
-            if not dev['evaluation']['pass']: raise ValueError('development semantic criteria failed; record stop')
             info.update(development_report_sha256=sha256_file(a.development_report))
             prior.append(dev['dataset_path'])
         if a.stage == 'confirmatory':
@@ -178,11 +180,11 @@ def main():
         else:
             rows, scores, _, _ = score_info(a.scores, a.dataset, c, a.config, a.candidates, a.stage)
             if a.stage == 'development':
-                evaluation = evaluate(rows, scores)
+                evaluation = evaluate(rows, scores, gate=False)
                 result = {'stage': 'development', 'evaluation':evaluation,
                     'dataset_path':str(Path(a.dataset).resolve()), 'scores_path':str(Path(a.scores).resolve()),
                     'dataset_sha256':sha256_file(a.dataset), 'scores_sha256':sha256_file(a.scores),
-                    'stop_reason': None if evaluation['pass'] else 'fixed development semantic criteria failed'}
+                    'stop_reason': None, 'eligibility_decision': 'descriptive_only'}
             else:
                 verify_confirmation(a.dataset, c, a.config, a.candidates)
                 if any(s['score_kind'] != 'confirmatory' for s in scores): raise ValueError('wrong scoring mode')
@@ -201,10 +203,11 @@ def main():
         dev = read_sealed(gate['development_report_path'])
         report = {'stage':'preflight', 'gate_sha256':sha256_file(a.gate), 'model':c['model'],
                   'vocabulary':VALUES, 'surface_policy':CONTRACT['surfaces'],
+                  'surface_geometry_audit': candidate['surface_geometry_audit'],
                   'development_competence':dev['evaluation'], 'frozen_gate_criteria':GATE,
                   'frozen_gate_competence':gate['evaluation'], 'expected_cells':64,
                   'confirmatory_estimands':{'primary':'R_superseded - R_irrelevant_counterbalanced',
-                    'secondary':'R_live - R_superseded', 'score':'complete surface-class log probability mass',
+                    'secondary':'R_live - R_superseded', 'score':'bounded surface-class continuation mass (prefix events, no termination)',
                     'original_raw_R_defined':candidate['canonical_raw_R_defined']},
                   'mechanistic_hooks':['block_output','attention_output (post projection)','mlp_output'],
                   'head_hooks':'pre-o_proj; runtime dimension and hook checks required',
@@ -214,6 +217,17 @@ def main():
                              , 'raw_logit_comparability':'available only when all canonical values are one-token; do not compare to sequence masses'},
                   'provenance':manifest(c, a.config, a.candidates, gate['dataset_path'])}
         write_new(a.output, sealed(report)); print(json.dumps(report, indent=2)); return
+    if a.command == 'mechanism-plan':
+        if not a.dataset: p.error('--dataset required')
+        if a.heads: p.error('mechanism-plan describes the core battery')
+        fresh_bundle(a.output)
+        rows,_ = verify_confirmation(a.dataset,c,a.config,a.candidates)
+        tok = tokenizer(c,a.local_files_only);check_tokenizer(tok,candidate)
+        from src.cross_model.mechanism import execution_plan
+        result = execution_plan(rows,tok,candidate,candidate['model_config']['num_hidden_layers'])
+        write_new(a.output,sealed({'stage':'mechanism_plan',**result,
+            'provenance':manifest(c,a.config,a.candidates,a.dataset)}))
+        print(json.dumps(result,indent=2)); return
     if a.command == 'sensitivity':
         if not a.dataset or not a.scores: p.error('--dataset and --scores required')
         fresh_bundle(a.output)

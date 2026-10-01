@@ -11,6 +11,7 @@ model:
   chat_template: true
   attn_implementation: eager
 cross_model:
+  preregistration_revision: review_1_before_logits
   protocol: cross_model_v1
   causal_protocol: cross_model_sequence_mass_v1
   values:
@@ -23,8 +24,9 @@ cross_model:
   - violet
   - ivory
   gate:
+    scope: unique prompts within each focal condition; 64 cells diagnostic
     semantic_accuracy_min: 0.99
-    mean_semantic_rank_max: 1.01
+    candidate_rank_policy: strict rank-one accuracy >= .99; mean rank diagnostic only
     mean_current_minus_stale_min: 0.0
   seeds:
     validation: 20261201
@@ -38,7 +40,11 @@ cross_model:
   template: nora_v1
   surfaces: lower/title x zero/one leading ASCII space; exclude unspaced prefix-changing
     forms; deduplicate token events
-  candidate_score: logsumexp of complete unnormalized sequence log probabilities
+  candidate_score: bounded surface-class continuation mass; logsumexp of sequence
+    log probabilities; no termination
+  development_policy: descriptive only; no eligibility decision or redevelopment
+  surface_geometry_audit: mandatory per-value event count, every event length and
+    represented strings; unequal classes visible, not rejected
   span_policy: patch all tokens; require exact pair alignment outside edited span
   bootstrap:
     unit: history
@@ -46,14 +52,34 @@ cross_model:
     seed: 73021
   mechanism_histories: 12
   head_discovery_histories: 6
+  mechanism_core:
+    conditions:
+    - live
+    - superseded
+    - irrelevant_counterbalanced
+    binding: initial
+    all_layer_sites:
+    - historical_value_span
+    - final_preanswer
+    secondary_histories: 4
+    secondary_depths:
+    - 0.75
+    - 0.875
+    - 1
+    secondary_sites:
+    - current_value_span
+    - distractor_value_span
+    - queried_entity
+    scored_values: source and replacement only; identical margin estimand
   depth_shift:
     early_max: 0.25
     late_min: 0.75
     contrasts:
     - early_historical_minus_readout
     - late_readout_minus_historical
-  normalized_secondary: primary / live mean; available iff live bootstrap lower CI
-    > 1 nat
+  normalized_secondary: mean(superseded-irrelevant_cb) / mean(live-irrelevant_cb);
+    available iff corrected live bootstrap lower CI and every draw denominator > 1
+    nat
   quantization_sensitivity:
     models:
     - Qwen/Qwen3-8B

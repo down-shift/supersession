@@ -31,14 +31,31 @@ def continuations(tokenizer, prompt):
                 raise ValueError('cross-semantic token collision')
             owners[sequence] = value
             if sequence not in seen:
-                events[value].append({'text': text, 'ids': list(sequence)})
+                events[value].append({'text': text, 'ids': list(sequence), 'surface_strings': [text]})
                 seen.add(sequence)
+            else:
+                next(e for e in events[value] if tuple(e['ids']) == sequence)['surface_strings'].append(text)
     sequences = list(owners)
     for a in sequences:
         for b in sequences:
             if len(a) < len(b) and b[:len(a)] == a:
                 raise ValueError('surface token events are not prefix-free; probability sum would double count')
     return events
+
+
+def surface_geometry_audit(events):
+    """Visible tokenizer geometry, not a balance-based vocabulary selector."""
+    if set(events) != set(VALUES): raise ValueError('surface audit requires all fixed values')
+    table = {}
+    for value, members in events.items():
+        if not members: raise ValueError('empty semantic surface class')
+        table[value] = {'distinct_event_count': len(members),
+                        'events': [{'token_length': len(e['ids']), 'token_ids': e['ids'],
+                                    'surface_strings': e['surface_strings']} for e in members]}
+    return {'by_value': table,
+            'equal_event_counts': len({len(m) for m in events.values()}) == 1,
+            'equal_token_length_profiles': len({tuple(sorted(len(e['ids']) for e in m)) for m in events.values()}) == 1,
+            'policy': 'Mandatory disclosure before logits; unequal event counts/lengths are not exclusions'}
 
 
 def token_span(tokenizer, prompt, start, end):
@@ -135,7 +152,7 @@ def validate(tokenizer, rows):
         ids = encode(tokenizer, prompts[0]+' '+value)[len(encode(tokenizer, prompts[0])):]
         if len(ids) == 1: canonical[value] = ids[0]
     if len(set(canonical.values())) != len(canonical): raise ValueError('canonical token collision')
-    return {'events': events, 'surface_rule': 'four proposals; unspaced prefix-changing forms excluded tokenizer-only',
+    return {'events': events, 'surface_geometry_audit': surface_geometry_audit(events), 'surface_rule': 'four proposals; unspaced prefix-changing forms excluded tokenizer-only',
             'excluded_surfaces': {v: [s for s in surfaces(v) if encode(tokenizer, prompts[0]+s)[:len(encode(tokenizer, prompts[0]))] != encode(tokenizer, prompts[0])] for v in VALUES},
             'canonical_one_token_ids': canonical,
             'canonical_raw_R_defined': set(canonical) == set(VALUES),

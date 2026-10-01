@@ -169,8 +169,8 @@ def test_resume_fingerprint_and_duplicate_ids(tmp_path):
 
 def test_normalized_effect_unavailable_at_small_denominator():
     from src.cross_model.analysis import summarize
-    rows=[{'history_id':str(i),'R_live':.1,'R_superseded_minus_R_irrelevant_counterbalanced':1.} for i in range(24)]
-    assert not summarize(rows)['normalized_primary_relative_to_live']['available']
+    rows=[{'history_id':str(i),'R_live':.1,'R_live_minus_R_irrelevant_counterbalanced':.1,'R_superseded_minus_R_irrelevant_counterbalanced':1.} for i in range(24)]
+    assert not summarize(rows)['normalized_primary_relative_to_live_minus_irrelevant']['available']
 
 
 def test_hash_bound_stage_chain_and_changed_raw_scores(tmp_path):
@@ -183,6 +183,8 @@ def test_hash_bound_stage_chain_and_changed_raw_scores(tmp_path):
     def stage_files(stage,development=None):
         rows=generate(stage,24);data=tmp_path/(stage+'.jsonl');scores=tmp_path/(stage+'_scores.jsonl')
         data.write_text(''.join(json.dumps(r)+'\n' for r in rows));scored=scores_for(rows)
+        if stage=='development':
+            for s in scored:s['semantic_log_mass']={v:0. for v in VALUES}
         scores.write_text(''.join(json.dumps(s)+'\n' for s in scored))
         info={'stage':stage,'history_signatures':sorted(history_signatures(rows)),
               'prior_datasets':[], 'provenance':manifest(config,config_path,candidate,data)}
@@ -195,7 +197,7 @@ def test_hash_bound_stage_chain_and_changed_raw_scores(tmp_path):
         return data,scores,rows,scored
     dd,ds,dr,dsc=stage_files('development');dev=tmp_path/'dev_report.json'
     write_new(dev,sealed({'stage':'development','dataset_path':str(dd),'scores_path':str(ds),
-        'dataset_sha256':sha256_file(dd),'scores_sha256':sha256_file(ds),'evaluation':evaluate(dr,dsc)}))
+        'dataset_sha256':sha256_file(dd),'scores_sha256':sha256_file(ds),'evaluation':evaluate(dr,dsc,gate=False)}))
     gd,gs,_,_=stage_files('frozen_gate',dev);g=tmp_path/'gate.json'
     report=gate_report(config,config_path,candidate,gd,gs,dev);write_new(g,sealed(report))
     assert verify_gate(g,config,config_path,candidate)['evaluation']['pass']
@@ -272,3 +274,122 @@ def test_fresh_run_rejects_orphan_analysis_before_model_load(tmp_path):
     output=tmp_path/'mechanism.jsonl'
     (tmp_path/'mechanism.jsonl.analysis.json').write_text('{}')
     with pytest.raises(FileExistsError):fresh_bundle(output)
+
+
+def test_one_semantic_error_does_not_fail_tiny_cells_gate():
+    rows=generate('frozen_gate',24);scores=scores_for(rows)
+    prompt=next(s['prompt'] for s in scores if s['condition']=='superseded' and s['pair_direction']==0)
+    for s in scores:
+        if s['prompt']==prompt:
+            wrong=next(v for v in VALUES if v!=s['answer'])
+            s['semantic_log_mass'][s['answer']]=-20.  # Rank eight: one error still fits the 99% aggregate rule.
+    result=evaluate(rows,scores)
+    assert result['pass']
+    assert result['condition_summary']['superseded']['semantic_accuracy']<1
+    assert any(c['semantic_accuracy']<.99 for c in result['cells'].values())
+
+
+def test_development_is_descriptive_even_when_all_semantic_answers_tie():
+    rows=generate('development',24);scores=scores_for(rows)
+    for s in scores:s['semantic_log_mass']={v:0. for v in VALUES}
+    result=evaluate(rows,scores,gate=False)
+    assert result['pass'] is None
+    assert result['eligibility_decision']=='descriptive_only'
+    assert not result['failed_conditions']
+    assert result['condition_summary']['live']['semantic_accuracy']==0
+
+
+def test_surface_geometry_preserves_deduplicated_aliases_and_unequal_classes():
+    from src.cross_model.tokens import surface_geometry_audit
+    class AliasTokenizer(CharTokenizer):
+        def __call__(self,text,**kw):
+            if text.startswith('Answer:'):
+                suffix=text[len('Answer:'):]
+                if suffix in (' jade','jade'):text='Answer:jade'
+            return super().__call__(text,**kw)
+    events=continuations(AliasTokenizer(),'Answer:')
+    table=surface_geometry_audit(events)
+    assert table['by_value']['jade']['distinct_event_count']==3
+    assert table['by_value']['coral']['distinct_event_count']==4
+    assert not table['equal_event_counts']
+    jade=next(e for e in table['by_value']['jade']['events'] if ' jade' in e['surface_strings'])
+    assert jade['surface_strings']==[' jade','jade']
+    assert jade['token_length']==4
+
+
+def test_restricted_mass_is_identical_and_uses_fewer_patched_forwards():
+    torch=pytest.importorskip('torch')
+    from src.cross_model.scoring import score_prompt
+    class Tiny(torch.nn.Module):
+        def __init__(self):super().__init__();self.embedding=torch.nn.Embedding(128,4);self.calls=0
+        def get_input_embeddings(self):return self.embedding
+        def forward(self,input_ids,use_cache=False):
+            self.calls+=1
+            # Nonuniform conditional logits depend on the previous input token.
+            grid=torch.arange(128).reshape(1,1,128)
+            logits=-((grid-input_ids.unsqueeze(-1))**2).float()/1000
+            return SimpleNamespace(logits=logits)
+    model=Tiny();events=continuations(CharTokenizer(),'A:')
+    full=score_prompt(model,CharTokenizer(),'A:',events)[0];all_calls=model.calls
+    model.calls=0
+    small=score_prompt(model,CharTokenizer(),'A:',events,values=['jade','pearl'])[0]
+    assert set(small)=={'jade','pearl'}
+    assert small=={v:full[v] for v in small}
+    assert model.calls<all_calls/3
+    with pytest.raises(ValueError):score_prompt(model,CharTokenizer(),'A:',events,values=['missing'])
+
+
+def test_normalization_uses_irrelevant_corrected_live_and_guard():
+    from src.cross_model.analysis import summarize
+    rows=[{'history_id':str(i),'R_live':10.,'R_live_minus_R_irrelevant_counterbalanced':8.,
+           'R_superseded_minus_R_irrelevant_counterbalanced':4.} for i in range(24)]
+    norm=summarize(rows)['normalized_primary_relative_to_live_minus_irrelevant']
+    assert norm['ratio_of_means']==.5
+    # A large raw live signal must not bypass the corrected denominator guard.
+    for r in rows:r['R_live_minus_R_irrelevant_counterbalanced']=.5
+    assert not summarize(rows)['normalized_primary_relative_to_live_minus_irrelevant']['available']
+
+
+def test_core_grid_is_narrow_and_controls_complete(monkeypatch):
+    from src.cross_model import mechanism
+    rows=generate('confirmatory',96);ids,pairs=mechanism.selected_pairs(rows,include_current=False)
+    monkeypatch.setattr(mechanism,'site_map',lambda *args:{s:[0] for s in
+        ['historical_value_span','final_preanswer','current_value_span','distractor_value_span','queried_entity']})
+    tasks=mechanism.build_tasks(ids,pairs,None,36)
+    assert len(tasks)==15552
+    all_layer=[t for t in tasks if t[2]=='block_output' and t[3] in ['historical_value_span','final_preanswer']]
+    assert len(all_layer)==12*16*36*2
+    assert {pairs[t[0]][0]['condition'] for t in all_layer}=={'live','superseded','irrelevant_counterbalanced'}
+    assert all(pairs[t[0]][0]['edited_field'].startswith('initial_') for t in tasks)
+    assert not any(pairs[t[0]][0]['condition']=='irrelevant' for t in tasks)
+    secondary=[t for t in tasks if t[3] in ['current_value_span','distractor_value_span','queried_entity']]
+    assert {pairs[t[0]][0]['history_id'] for t in secondary}==set(ids[:4])
+    assert {t[1] for t in secondary}=={26,31,35}
+
+
+def test_patched_pair_only_scoring_matches_full_class_reference(monkeypatch):
+    torch=pytest.importorskip('torch');transformers=pytest.importorskip('transformers')
+    from src.cross_model import mechanism
+    from src.cross_model.scoring import score_prompt
+    cfg=transformers.Qwen3Config(vocab_size=128,hidden_size=32,intermediate_size=64,
+        num_hidden_layers=2,num_attention_heads=4,num_key_value_heads=2,head_dim=8)
+    cfg._attn_implementation='eager';torch.manual_seed(77)
+    model=transformers.Qwen3ForCausalLM(cfg).eval();tok=CharTokenizer()
+    base={'pair_id':'p','history_id':'h','condition':'superseded','edited_field':'initial_x',
+          'edited_variable':'x','query':'x','source_value':'jade','replacement_value':'pearl'}
+    members={d:{**base,'pair_direction':d} for d in (0,1)}
+    monkeypatch.setattr(mechanism,'semantic_positions',lambda r,t:('A:' if r['pair_direction']==0 else 'B:',{}))
+    monkeypatch.setattr(mechanism,'site_map',lambda *args:{'edited_value_span':[0]})
+    candidate={'events':continuations(tok,'A:')};requested=[]
+    def restricted(*args,**kw):
+        requested.append(set(kw.get('values',[])))
+        return score_prompt(*args,**kw)
+    monkeypatch.setattr(mechanism,'score_prompt',restricted)
+    small=mechanism.patch_pair(model,tok,members,candidate,0,'block_output','edited_value_span',cache={})
+    assert requested and all(v=={'jade','pearl'} for v in requested)
+    def full_reference(*args,**kw):
+        kw.pop('values',None)
+        return score_prompt(*args,**kw)
+    monkeypatch.setattr(mechanism,'score_prompt',full_reference)
+    full=mechanism.patch_pair(model,tok,members,candidate,0,'block_output','edited_value_span',cache={})
+    assert small['directions']==pytest.approx(full['directions'],abs=1e-7)

@@ -13,21 +13,30 @@ from src.utils import provenance
 VERSION = 'cross_model_v1'
 CAUSAL_VERSION = 'cross_model_sequence_mass_v1'
 VALUES = ['amber', 'coral', 'jade', 'pearl', 'slate', 'teal', 'violet', 'ivory']
-GATE = {'semantic_accuracy_min': .99, 'mean_semantic_rank_max': 1.01,
+GATE = {'scope': 'unique prompts within each focal condition; 64 cells diagnostic',
+        'semantic_accuracy_min': .99,
+        'candidate_rank_policy': 'strict rank-one accuracy >= .99; mean rank diagnostic only',
         'mean_current_minus_stale_min': 0.0}
 SEEDS = {'validation': 20261201, 'development': 20261202,
          'frozen_gate': 20261203, 'confirmatory': 20261204}
 COUNTS = {'development': 24, 'frozen_gate': 24, 'confirmatory': 96}
-CONTRACT = {'protocol': VERSION, 'causal_protocol': CAUSAL_VERSION, 'values': VALUES,
+CONTRACT = {'preregistration_revision': 'review_1_before_logits', 'protocol': VERSION, 'causal_protocol': CAUSAL_VERSION, 'values': VALUES,
             'gate': GATE, 'seeds': SEEDS, 'counts': COUNTS, 'template': 'nora_v1',
             'surfaces': 'lower/title x zero/one leading ASCII space; exclude unspaced prefix-changing forms; deduplicate token events',
-            'candidate_score': 'logsumexp of complete unnormalized sequence log probabilities',
+            'candidate_score': 'bounded surface-class continuation mass; logsumexp of sequence log probabilities; no termination',
+            'development_policy': 'descriptive only; no eligibility decision or redevelopment',
+            'surface_geometry_audit': 'mandatory per-value event count, every event length and represented strings; unequal classes visible, not rejected',
             'span_policy': 'patch all tokens; require exact pair alignment outside edited span',
             'bootstrap': {'unit': 'history', 'draws': 2000, 'seed': 73021},
             'mechanism_histories': 12, 'head_discovery_histories': 6,
+            'mechanism_core': {'conditions': ['live','superseded','irrelevant_counterbalanced'],
+                               'binding': 'initial', 'all_layer_sites': ['historical_value_span','final_preanswer'],
+                               'secondary_histories': 4, 'secondary_depths': [.75,.875,1],
+                               'secondary_sites': ['current_value_span','distractor_value_span','queried_entity'],
+                               'scored_values': 'source and replacement only; identical margin estimand'},
             'depth_shift': {'early_max': .25, 'late_min': .75,
                             'contrasts': ['early_historical_minus_readout', 'late_readout_minus_historical']},
-            'normalized_secondary': 'primary / live mean; available iff live bootstrap lower CI > 1 nat',
+            'normalized_secondary': 'mean(superseded-irrelevant_cb) / mean(live-irrelevant_cb); available iff corrected live bootstrap lower CI and every draw denominator > 1 nat',
             'quantization_sensitivity': {'models': ['Qwen/Qwen3-8B', 'microsoft/Phi-4-mini-instruct'],
                                         'histories': 6, 'comparison': 'int8 versus unquantized float16',
                                         'patch_depths': [.125, .875], 'sites': ['edited_value_span','final_preanswer']}}
@@ -127,7 +136,7 @@ def validate_dataset(rows, stage):
         raise ValueError('dataset differs from fixed stage contract')
 
 
-def evaluate(rows, scores):
+def evaluate(rows, scores, *, gate=True):
     """Recompute every semantic diagnostic from likelihoods; ties fail rank one."""
     expected = {r['example_id']: r for r in rows}
     actual = {r['example_id']: r for r in scores}
@@ -170,11 +179,6 @@ def evaluate(rows, scores):
                    'exact_token_accuracy_diagnostic': sum(d[3] for d in ds if d[4])/sum(d[4] for d in ds) if any(d[4] for d in ds) else None,
                    'exact_token_diagnostic_defined_n': sum(d[4] for d in ds)}
         name = '|'.join(map(str, key)); summary[name] = metrics
-        reasons = []
-        if metrics['semantic_accuracy'] < GATE['semantic_accuracy_min']: reasons.append('semantic_accuracy')
-        if metrics['mean_semantic_rank'] > GATE['mean_semantic_rank_max']: reasons.append('semantic_rank')
-        if margins and metrics['mean_current_minus_stale'] <= 0: reasons.append('current_minus_stale')
-        if reasons: failures.append({'cell': name, 'reasons': reasons})
     condition_summary = {}
     from collections import Counter
     for condition, prompts in condition_prompts.items():
@@ -183,6 +187,7 @@ def evaluate(rows, scores):
         condition_summary[condition] = {
             'unique_prompts':len(entries), 'semantic_accuracy':sum(d[0] for d in ds)/len(ds),
             'mean_semantic_rank':sum(d[1] for d in ds)/len(ds),
+            'mean_current_minus_stale':sum(d[2] for d in ds if d[2] is not None)/sum(d[2] is not None for d in ds) if any(d[2] is not None for d in ds) else None,
             'exact_token_defined_n':sum(d[4] for d in ds),
             'exact_token_accuracy':sum(d[3] for d in ds if d[4])/sum(d[4] for d in ds) if any(d[4] for d in ds) else None,
             'case_only_next_token_misses_diagnostic':sum(str(e[2]).strip().lower()==e[1] for e in wrong),
@@ -191,5 +196,13 @@ def evaluate(rows, scores):
                         {prefix+v.title() for v in VALUES for prefix in ('',' ')} for e in entries)/len(entries),
             'common_raw_greedy_tokens':dict(Counter(e[2] for e in entries).most_common(10)),
             'normalization_note':'case classification is diagnostic only; no outputs or probabilities normalized'}
-    return {'pass': not failures, 'condition_summary':condition_summary, 'cells': summary, 'failed_cells': failures,
+    for condition in ('live','superseded','irrelevant_counterbalanced'):
+        metrics = condition_summary[condition]
+        reasons = []
+        if metrics['semantic_accuracy'] < GATE['semantic_accuracy_min']: reasons.append('semantic_accuracy')
+        margin = metrics['mean_current_minus_stale']
+        if margin is not None and margin <= GATE['mean_current_minus_stale_min']: reasons.append('current_minus_stale')
+        if reasons: failures.append({'condition': condition, 'reasons': reasons})
+    return {'pass': not failures if gate else None, 'eligibility_decision': 'frozen_gate' if gate else 'descriptive_only',
+            'condition_summary':condition_summary, 'cells': summary, 'failed_conditions': failures if gate else [],
             'expected_cell_count': 64, 'unique_prompts': len(unique)}
