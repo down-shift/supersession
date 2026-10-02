@@ -107,7 +107,8 @@ def manifest(config, config_path, candidate_path=None, dataset_path=None):
     return result
 
 
-def check_manifest(saved, config, config_path, candidate_path=None, dataset_path=None):
+def check_manifest(saved, config, config_path, candidate_path=None, dataset_path=None,
+                   allow_dtype_change=False):
     current = manifest(config, config_path, candidate_path, dataset_path)
     # Config/code/commit/device-map hashes remain in every manifest for audit,
     # but operational edits do not invalidate fixed scientific evidence. The
@@ -115,11 +116,15 @@ def check_manifest(saved, config, config_path, candidate_path=None, dataset_path
     for k in ('protocol', 'causal_protocol', 'contract_sha256',
               'renderer_sha256', 'candidate_map_sha256', 'dataset_sha256', 'model_id', 'model_revision',
               'tokenizer_id', 'tokenizer_revision', 'dtype', 'quantization'):
+        if allow_dtype_change and k == 'dtype':
+            continue
         if saved.get(k) != current.get(k):
             raise ValueError(f'provenance mismatch: {k}')
     saved_config = json.loads(json.dumps(saved.get('config', {})))
     current_config = json.loads(json.dumps(current.get('config', {})))
     runtime_keys = {'device', 'device_map', 'require_full_gpu'}
+    if allow_dtype_change:
+        runtime_keys.add('dtype')
     for model_config in (saved_config, current_config):
         for key in list(model_config):
             if key.startswith('resolved_'):

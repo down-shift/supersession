@@ -21,7 +21,9 @@ logger = logging.getLogger("cross_model")
 
 def load_candidate(a, c):
     candidate = read_sealed(a.candidates)
-    check_manifest(candidate['provenance'], c, a.config)
+    # The continuation map is tokenizer-derived, so runtime compute dtype does
+    # not affect it.
+    check_manifest(candidate['provenance'], c, a.config, allow_dtype_change=True)
     if candidate.get('contract') != CONTRACT: raise ValueError('candidate contract mismatch')
     if candidate.get('surface_geometry_audit') != surface_geometry_audit(candidate['events']):
         raise ValueError('mandatory surface geometry audit missing or inconsistent')

@@ -47,7 +47,11 @@ def dataset_info(path, config, config_path, candidate_path, stage=None):
         except FileNotFoundError: pass
     if sorted(disjoint(rows, prior_paths)) != info['history_signatures']:
         raise ValueError('dataset history lineage mismatch')
-    check_manifest(info['provenance'], config, config_path, candidate_path, path)
+    # Candidate maps and rendered histories are independent of model compute
+    # dtype. This permits a numerical-stability retry while score manifests
+    # remain exact about the dtype that produced likelihoods.
+    check_manifest(info['provenance'], config, config_path, candidate_path, path,
+                   allow_dtype_change=True)
     return rows, info
 
 
