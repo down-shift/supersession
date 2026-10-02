@@ -81,7 +81,16 @@ The v4 gate and confirmation used the pinned Qwen3-8B model/tokenizer revisions.
 
 Gemma 3 4B and Phi-4-mini are supported through frozen configs in `configs/downstream_transfer_v1/`. Their tokenizer and model revisions are pinned. Both use the new `gemma_phi_panel_v1` history seed profile (development 20261040, gate 20261041, confirmation 20261042), so their concrete histories and randomized codebooks match for paired model comparisons. These histories are distinct from Qwen v4 histories. Pass the existing Qwen development, gate, and confirmatory datasets as `--prior-dataset` exclusions when generating the panel datasets. Model-specific tokenizer audits and output directories keep their provenance isolated.
 
-Run the following sequence once for each `MODEL` (`gemma3_4b` or `phi4_mini`), setting `MODEL` and `OUT` accordingly. No inference is needed to create or audit datasets; scoring commands below are the inference stages.
+### Recorded panel outcomes
+
+| Model | Development candidate accuracy | Frozen gate candidate accuracy | Decision | Downstream confirmation |
+|---|---:|---:|---|---|
+| Gemma 3 4B | 42/48 (87.5%) | 45/48 (93.75%) | Failed; requires ≥47/48 | Not generated; no causal result |
+| Phi-4-mini | 31/48 (64.58%) | 33/48 (68.75%) | Failed; requires ≥47/48 | Not generated; no causal result |
+
+The saved sealed gate reports both record `pass: false`. The tokenizer audits passed their stable two-token continuation checks; that does not change the competence decision. Greedy unrestricted generation is diagnostic only and does not determine eligibility. These outcomes apply only to the downstream-transfer extension and do not change the separate `cross_model_v1` behavioral/causal results. The commands below document the frozen workflow; the recorded output paths are completed failed-gate runs and must not be overwritten or continued to confirmation.
+
+For a future authorized fresh run, the following sequence documents the panel workflow for each `MODEL` (`gemma3_4b` or `phi4_mini`), setting `MODEL` and `OUT` accordingly. No inference is needed to create or audit datasets; scoring commands below are the inference stages.
 
 ```bash
 MODEL=gemma3_4b # change to phi4_mini for the second model

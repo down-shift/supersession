@@ -1,21 +1,21 @@
 # Supersession Without Erasure: cross_model_v1
 
-Status: logged protocol (`review_2_progress_20261002`), preregistration-ready implementation, **not an externally registered protocol**. Existing Qwen results and stopped version-chain/status branches remain preserved. The original exact-token Mistral/Phi failures remain failed; under `cross_model_v1`, Phi passed the frozen competence gate and Mistral failed it. Read [the preimplementation audit](cross_model_v1_audit.md) first.
+Status: logged protocol (`review_2_progress_20261002`), preregistration-ready implementation, **not an externally registered protocol**. The behavioral stages are complete for the current paper. Original Qwen results and stopped version-chain/status branches remain preserved; the original exact-token Mistral/Phi failures retain their original status. Under `cross_model_v1`, Qwen, Gemma, and Phi completed confirmatory behavior; Mistral failed its frozen gate. Phi's real CUDA hook smoke and mechanism battery, and the Qwen/Phi precision sensitivity panel, remain outstanding and are not needed for the behavioral claim. Read [the preimplementation audit](cross_model_v1_audit.md) first.
 
 ## Execution outcomes recorded 2026-10-02
 
 | Model | Stage reached | Outcome |
 |---|---|---|
 | Qwen3-8B | 96-history confirmatory | Positive primary contrast: `R_superseded - R_irrelevant_counterbalanced = 3.50` nats (95% history-bootstrap CI `[3.20, 3.80]`, positive in 94/96 histories). This is the new bounded surface-class estimand; it is distinct from the earlier 4.52-logit result. |
-| Phi-4-mini | Frozen competence gate | Passed: rank-one semantic accuracy 1.00 in all 64 cells. No confirmatory or mechanistic results yet. |
+| Phi-4-mini | 96-history confirmatory | Positive primary contrast: `R_superseded - R_irrelevant_counterbalanced = 5.53` nats (95% history-bootstrap CI `[5.27, 5.79]`, positive in 96/96 histories). Behavioral result complete; real CUDA hook smoke and mechanistic battery remain outstanding. |
 | Mistral-7B-Instruct-v0.3 | Frozen competence gate | Failed: counterbalanced-irrelevant semantic accuracy 281/288 (97.57%), below the fixed 99% aggregate threshold. Live and superseded accuracy were 100%; no confirmatory or mechanistic results were generated. |
-| Gemma 3 4B | Gate scoring | Pending in the last checked status; no gate decision recorded here. |
+| Gemma 3 4B | 96-history confirmatory and 12-history mechanism battery | Positive behavioral primary contrast: `1.76` nats (95% history-bootstrap CI `[1.51, 2.03]`, positive in 88/96 histories). Mechanism battery completed; early historical-value localization is supported, while the planned early-versus-late window shift is inconclusive. Per-head profiling was not run. |
 
 For Mistral, development was descriptive: live and superseded accuracy were 100%; ordinary irrelevant was 140/144 (97.22%), and counterbalanced irrelevant was 283/288 (98.26%). The frozen gate’s seven counterbalanced-irrelevant misses comprised six rank-2 and one rank-3 prompts. Superseded current-over-stale semantic-mass margins remained positive (gate mean 16.50), but this is a competence diagnostic, not a causal `R` result and does not override the failed gate. Four live diagnostic cells had 11 unique prompts rather than 12 because two histories rendered the same prompt; all 64 required cells were present. Mistral’s candidate continuations are multi-token, so canonical raw-logit `R` is undefined for this vocabulary.
 
 The saved Mistral development and gate reports recompute from their score rows and have valid score hashes. The old `FileExistsError` marker records an earlier collision with the existing candidate-map path; it is not the gate outcome. The gate report’s `pass: false` is the actual frozen decision. See `outputs/mistral7b_review2/gate_report.json` and `outputs/mistral7b_review2/gate_scores.jsonl.provenance.json`.
 
-Cross-model causal generalization is **not established**: Phi has only passed competence, Mistral did not pass competence, and no cross-model confirmatory `R` results are available for either. Do not describe the Mistral gate failure as evidence that the causal phenomenon is absent.
+The bounded surface-class continuation-mass behavioral effect is supported in Qwen3-8B, Gemma 3 4B, and Phi-4-mini under this protocol. This is evidence across three model families, not broad architecture-level generalization, and it does not establish a shared mechanism. Mistral did not pass competence; do not describe its gate failure as evidence that the causal phenomenon is absent. Report the original Qwen 4.52-logit result and these continuation-mass results as distinct estimands.
 
 ## Frozen scientific design
 
@@ -96,7 +96,7 @@ secondary = R_live - R_superseded
 
 Average counterbalanced irrelevant slot orders **before** relevance contrasts. Ordinary irrelevant remains diagnostic. All histories/trials remain in causal estimates, including any errors during confirmation; do not filter on observed competence or effect sign.
 
-This is an explicit **new bounded surface-class continuation mass estimand**, version `cross_model_sequence_mass_v1`, measured in log probability odds (nats). It is not silently substituted for Qwen's old raw single-token effect. The existing estimator is separately recomputed on canonical raw logits when the **entire shared universe** is one-token validated (currently Qwen/Phi, not Mistral). For single-token singleton classes, sequence log-odds differences reduce exactly to raw logit differences. Multiple surface variants/multiple tokens change the estimand. Qwen must undergo the same new protocol to bridge those measurements; compare neither old 4.52 logits nor its old vocabulary directly to the new Mistral sequence estimate.
+This is an explicit **new bounded surface-class continuation mass estimand**, version `cross_model_sequence_mass_v1`, measured in log probability odds (nats). It is not silently substituted for Qwen's old raw single-token effect. The existing estimator is separately recomputed on canonical raw logits when the **entire shared universe** is one-token validated (currently Qwen/Phi, not Mistral). For single-token singleton classes, sequence log-odds differences reduce exactly to raw logit differences. Multiple surface variants/multiple tokens change the estimand. The new Qwen run provides the same-protocol result for comparison; compare neither old 4.52 logits nor its old vocabulary directly to the new continuation-mass estimates.
 
 Raw logit and log-probability odds magnitudes are not calibrated across architectures; subtracting log-normalizers does not solve temperature/training-scale differences. Report each model's raw effects and sign consistency separately. Secondary dimensionless retention is the **ratio of model means**:
 
