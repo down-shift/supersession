@@ -9,14 +9,33 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from src.cross_model.progress import configure_logging
-from src.data.downstream_transfer import COUNTS, SCHEMA, generate
+from src.data.downstream_transfer import COUNTS, SCHEMA, audit, generate
 from src.data.io import read_jsonl, sha256_file
 from src.experiments.downstream_transfer import (
-    frozen_metadata, validate_dataset, validate_gate, validate_token_audit, write_json_create,
+    frozen_metadata, validate_gate, validate_token_audit, write_json_create,
 )
 from src.utils import load_config
 
 logger = logging.getLogger(__name__)
+
+
+def validate_exclusion_dataset(path, values, codes):
+    """Validate a prior downstream dataset as a fresh-history exclusion.
+
+    Model/config provenance may differ across model panels; dataset bytes,
+    schema, and semantic vocabularies must still be intact.
+    """
+    rows = read_jsonl(path)
+    audit(rows)
+    provenance_path = Path(str(path) + ".provenance.json")
+    provenance = json.loads(provenance_path.read_text())
+    if (provenance.get("protocol") != SCHEMA or
+            provenance.get("stage") != rows[0]["stage"] or
+            provenance.get("dataset_sha256") != sha256_file(path)):
+        raise ValueError(f"prior dataset integrity/protocol mismatch: {path}")
+    if any(row["value_vocabulary"] != values or row["code_vocabulary"] != codes for row in rows):
+        raise ValueError(f"prior dataset uses different value/code vocabularies: {path}")
+    return rows
 
 
 def main(argv=None):
@@ -53,13 +72,14 @@ def main(argv=None):
         logger.info("Loading prior histories: %s", path)
         prior_rows = read_jsonl(path)
         if prior_rows and prior_rows[0].get("schema") == SCHEMA:
-            prior_rows, _ = validate_dataset(path, metadata)
+            prior_rows = validate_exclusion_dataset(path, values, codes)
             has_development |= prior_rows[0]["stage"] == "development"
         excluded.extend(prior_rows)
     if args.stage == "frozen_gate" and not has_development:
         raise ValueError("frozen gate generation requires a development --prior-dataset")
     rows = generate(args.stage, COUNTS[args.stage], values, codes,
-                    excluded=excluded, show_progress=True)
+                    excluded=excluded, show_progress=True,
+                    seed_profile=config.get("data_seed_profile", "qwen3_8b_v1"))
     output.parent.mkdir(parents=True, exist_ok=True)
     with output.open("x", encoding="utf8") as stream:
         for row in rows:

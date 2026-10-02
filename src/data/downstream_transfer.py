@@ -9,6 +9,10 @@ logger = logging.getLogger(__name__)
 
 SCHEMA = "downstream_transfer_v1"
 SEEDS = {"development": 20261030, "frozen_gate": 20261031, "confirmatory": 20261032}
+SEED_PROFILES = {
+    "qwen3_8b_v1": SEEDS,
+    "gemma_phi_panel_v1": {"development": 20261040, "frozen_gate": 20261041, "confirmatory": 20261042},
+}
 COUNTS = {"development": 24, "frozen_gate": 24, "confirmatory": 96}
 QUERIES = ("current_x", "current_z")
 VALUES = ("amber","birch","coral","denim","elm","frost","grape","hazel","indigo","jade","khaki","lilac","maple","navy","pearl","rust")
@@ -45,10 +49,12 @@ def render(row, tokenizer=None, chat=True):
     from src.data.supersession_behavior import _answer_prefix
     return _answer_prefix("\n".join(lines), tokenizer, chat)
 
-def generate(stage,n,values=VALUES,codes=CODES,seed=None,excluded=(),show_progress=False):
+def generate(stage,n,values=VALUES,codes=CODES,seed=None,excluded=(),show_progress=False,seed_profile="qwen3_8b_v1"):
     if stage not in COUNTS or n!=COUNTS[stage]: raise ValueError("invalid stage or frozen history count")
-    seed=SEEDS[stage] if seed is None else seed
-    if seed!=SEEDS[stage]: raise ValueError("stage seeds are frozen")
+    if seed_profile not in SEED_PROFILES: raise ValueError("unknown frozen seed profile")
+    seeds=SEED_PROFILES[seed_profile]
+    seed=seeds[stage] if seed is None else seed
+    if seed!=seeds[stage]: raise ValueError("stage seeds are frozen")
     if any(r.get("seed")==seed for r in excluded): raise ValueError("stage seed overlaps an excluded dataset")
     if len(values)<8 or len(values)!=len(codes) or len(set(values))!=len(values) or len(set(codes))!=len(codes): raise ValueError("value/code vocabularies must be equal-length and unique (at least eight)")
     rng=random.Random(seed); seen=set(); rows=[]
@@ -74,6 +80,8 @@ def generate(stage,n,values=VALUES,codes=CODES,seed=None,excluded=(),show_progre
               "variables":["Nora","Owen"] if i%2==0 else ["Owen","Nora"],"variable_pair":["x","z"],"attribute":"badge",
               "matching_values":mv,"codebook":cb,"value_vocabulary":list(values),"code_vocabulary":list(codes),
               "orientation":i%2}
+        if seed_profile != "qwen3_8b_v1":
+            base["seed_profile"] = seed_profile
         if stage!="confirmatory":
             for q in QUERIES:
                 val=mv[q]; rows.append({**base,"record_type":"competence","query_id":q,"answer_code":cb[val],
@@ -100,6 +108,9 @@ def audit(rows):
     if not rows or rows[0].get("stage") not in COUNTS:
         raise ValueError("empty dataset or invalid stage")
     stage = rows[0]["stage"]
+    seed_profile = rows[0].get("seed_profile", "qwen3_8b_v1")
+    if seed_profile not in SEED_PROFILES: raise ValueError("unknown frozen seed profile")
+    seeds = SEED_PROFILES[seed_profile]
     bindings = ("old_x", "old_z", "current_x", "current_z")
     expected = set(QUERIES) if stage != "confirmatory" else {
         (b, q, d) for b in bindings for q in QUERIES for d in (0, 1)
@@ -111,7 +122,8 @@ def audit(rows):
     histories = defaultdict(dict)
     ids, seen = set(), set()
     for row in rows:
-        if row.get("schema") != SCHEMA or row.get("stage") != stage or row.get("seed") != SEEDS[stage]:
+        if (row.get("schema") != SCHEMA or row.get("stage") != stage or
+                row.get("seed") != seeds[stage] or row.get("seed_profile", "qwen3_8b_v1") != seed_profile):
             raise ValueError("mixed protocol/stage or unfrozen seed")
         if row["value_vocabulary"] != values or row["code_vocabulary"] != codes:
             raise ValueError("vocabularies change within dataset")
@@ -147,7 +159,7 @@ def audit(rows):
         index = reference["history_index"]
         if not isinstance(index, int) or not 0 <= index < COUNTS[stage]:
             raise ValueError("invalid history index")
-        if hid != f"downstream_transfer_{stage}_{SEEDS[stage]}_{index:06d}":
+        if hid != f"downstream_transfer_{stage}_{seeds[stage]}_{index:06d}":
             raise ValueError("invalid history identifier")
         replacements = {}
         for row in cells.values():

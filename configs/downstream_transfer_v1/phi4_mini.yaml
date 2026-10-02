@@ -1,0 +1,16 @@
+seed: 20261034
+data_seed_profile: gemma_phi_panel_v1
+thresholds:
+  gate_accuracy: 0.97
+model:
+  id: microsoft/Phi-4-mini-instruct
+  revision: cfbefacb99257ffa30c83adab238a50856ac3083
+  tokenizer_id: microsoft/Phi-4-mini-instruct
+  tokenizer_revision: cfbefacb99257ffa30c83adab238a50856ac3083
+  chat_template: true
+  dtype: float16
+  quantization: int8
+  attn_implementation: eager
+  device_map: 0
+  require_full_gpu: true
+  trust_remote_code: true

@@ -1,0 +1,15 @@
+seed: 20261034
+data_seed_profile: gemma_phi_panel_v1
+thresholds:
+  gate_accuracy: 0.97
+model:
+  id: google/gemma-3-4b-it
+  revision: 093f9f388b31de276ce2de164bdc2081324b9767
+  tokenizer_id: google/gemma-3-4b-it
+  tokenizer_revision: 093f9f388b31de276ce2de164bdc2081324b9767
+  chat_template: true
+  dtype: bfloat16
+  quantization: int8
+  attn_implementation: eager
+  device_map: 0
+  require_full_gpu: true

@@ -130,6 +130,50 @@ def test_dataset_freshness_and_stage_audit():
  with pytest.raises(ValueError):generate('development',24,excluded=d)
  assert audit(generate('confirmatory',96))
 
+def test_model_panel_seed_profile_is_shared_and_fresh_from_qwen():
+ from src.data.downstream_transfer import SEED_PROFILES
+ assert SEED_PROFILES['gemma_phi_panel_v1']=={'development':20261040,'frozen_gate':20261041,'confirmatory':20261042}
+ assert 'seed_profile' not in generate('development',24)[0]  # Preserve the established Qwen row schema.
+ legacy_all=[]
+ for stage,count in (('development',24),('frozen_gate',24),('confirmatory',96)):
+  legacy_all.extend(generate(stage,count))
+ for stage,count in (('development',24),('frozen_gate',24),('confirmatory',96)):
+  panel_a=generate(stage,count,excluded=legacy_all,seed_profile='gemma_phi_panel_v1')
+  panel_b=generate(stage,count,excluded=legacy_all,seed_profile='gemma_phi_panel_v1')
+  assert panel_a==panel_b  # Shared concrete histories/codebooks for paired models.
+  assert audit(panel_a)
+  old={(signature(r)) for r in legacy_all}
+  fresh={(signature(r)) for r in panel_a}
+  assert old.isdisjoint(fresh)
+  assert {r['seed_profile'] for r in panel_a}=={'gemma_phi_panel_v1'}
+
+def test_model_configs_are_pinned_and_use_shared_panel_profile():
+ from src.utils import load_config
+ expected={
+  'gemma3_4b':('google/gemma-3-4b-it','093f9f388b31de276ce2de164bdc2081324b9767'),
+  'phi4_mini':('microsoft/Phi-4-mini-instruct','cfbefacb99257ffa30c83adab238a50856ac3083'),
+ }
+ for name,(model_id,revision) in expected.items():
+  config=load_config(f'configs/downstream_transfer_v1/{name}.yaml')
+  assert config['model']['id']==model_id
+  assert config['model']['revision']==revision
+  assert config['model']['tokenizer_revision']==revision
+  assert config['data_seed_profile']=='gemma_phi_panel_v1'
+  assert config['thresholds']['gate_accuracy']==.97
+
+def test_prior_exclusion_validation_allows_other_model_provenance(tmp_path):
+ from scripts.generate_downstream_transfer import validate_exclusion_dataset
+ from src.data.io import sha256_file
+ rows=generate('development',24)
+ path=tmp_path/'prior.jsonl'
+ path.write_text(''.join(json.dumps(row,sort_keys=True)+'\n' for row in rows))
+ from src.data.downstream_transfer import template_hash
+ provenance={'protocol':'downstream_transfer_v1','stage':'development',
+             'dataset_sha256':sha256_file(path),'template_sha256':template_hash(),
+             'model_revision':'different-model-revision'}
+ Path(str(path)+'.provenance.json').write_text(json.dumps(provenance))
+ assert validate_exclusion_dataset(path,rows[0]['value_vocabulary'],rows[0]['code_vocabulary'])==rows
+
 def test_gate_seal_and_create_only_generation(tmp_path):
  doc=seal_artifact({'pass':True});assert verify_sealed_artifact(doc)=={'pass':True};doc['pass']=False
  with pytest.raises(ValueError):verify_sealed_artifact(doc)

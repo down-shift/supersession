@@ -21,13 +21,11 @@ Phi-4-mini has now also passed its frozen gate and confirmatory run: `R_supersed
 - Existing Qwen patching localizes causal influence near the historical value token early and at the final query/readout computation late. Gemma's 12-history mechanism battery finds positive superseded-binding relevance at early historical-value positions and at late pre-answer states. Its preregistered early-historical-minus-readout window contrast is positive (1.53 nats, 95% CI `[1.08, 2.04]`), but its late-readout-minus-historical contrast is inconclusive and trends negative (-0.16 nats, 95% CI `[-0.48, 0.19]`). This supports late readout causal relevance, but not a consistent depth-window shift in Gemma. These are qualitative localizations, not literal movement of information or evidence for a dedicated stale-information circuit. Qwen's current head results are more consistent with generic binding retrieval.
 - The bounded surface-class behavioral/causal effect has now replicated in Qwen3-8B, Gemma 3 4B, and Phi-4-mini. This supports generalization to two additional model families, not broad architecture-level generalization. Phi's mechanistic result is still pending. Mistral-7B-Instruct-v0.3 failed its gate; that failure is not evidence that the causal effect is absent.
 
-## Reserved for downstream transfer
+## Downstream transfer evidence
 
-Do not claim this from the current evidence:
+The Qwen3-8B `downstream_transfer_v1` confirmation supports the scoped claim that manipulating a superseded contextual binding causally shifts preference in a derived-code representation, with the shift stronger for the associated entity's current query than for the other entity's query, while the current binding and correct derived code stay fixed. The primary history-level contrast was 5.54 nats (95% history-bootstrap CI [5.16, 5.94]), positive in 96/96 histories; the live-binding control was 12.84 nats (CI [12.42, 13.26]), also positive in 96/96.
 
-> Obsolete bindings can causally influence computations derived from the obsolete state even while the model correctly uses the current state.
-
-This requires downstream-transfer evidence.
+Current-code candidate-ranking accuracy across stale pairs was 93.75% before and 94.79% after editing. Paired correct-code log-probability and margin intervals included zero; this is not proof of zero interference. The confirmatory run did not measure unrestricted generation. The gate's unrestricted greedy-generation diagnostic yielded 0/48 exact code strings because outputs were Markdown-bold; removing the markers gives the correct code in 48/48. This diagnostic was not part of the frozen gate rule. Do not claim that obsolete information caused overt current-state errors, that the model failed to forget, or that this result generalizes beyond this model/task without further evidence.
 
 ## Interpretation limits
 
@@ -35,5 +33,6 @@ This requires downstream-transfer evidence.
 - Gemma's mechanism results use int8 weights, bfloat16 activations, and 12 histories; no Gemma full-precision sensitivity run or head profiling was performed. Treat the component/localization results as model- and setup-specific.
 - Phi's confirmatory result uses int8 weights and float16 activations. Its real pinned remote-model CUDA hook smoke and mechanistic battery remain outstanding; do not infer mechanistic localization from behavioral results.
 - A competence-gate pass establishes eligibility for causal testing, not supersession-without-erasure.
+- The downstream-transfer result is one Qwen3-8B task/protocol result. Candidate-sequence preference is not the same measure as unrestricted answer generation.
 - Do not infer a dedicated circuit, suppression mechanism, or homologous heads from behavioral effects or qualitative patching localization.
 - The original exact-token Mistral and Phi gates remain failed; the later `cross_model_v1` Phi pass and Mistral failure have their own protocol status and do not rewrite those records.

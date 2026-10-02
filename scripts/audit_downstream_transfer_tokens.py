@@ -51,7 +51,8 @@ def main(argv=None):
     )
     values = json.loads(Path(args.values_json).read_text())
     codes = json.loads(Path(args.codes_json).read_text())
-    rows = generate("development", 24, values, codes)
+    rows = generate("development", 24, values, codes,
+                    seed_profile=config.get("data_seed_profile", "qwen3_8b_v1"))
     # Offline edited representatives cover both entity orientations and both
     # queries without generating a confirmatory dataset or evaluating a model.
     edits = []

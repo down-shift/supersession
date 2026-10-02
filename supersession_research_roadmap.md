@@ -140,6 +140,13 @@ The version-chain branch stopped after its single allowed replication failed the
   - Phi-4-mini passed its gate and completed confirmation: primary `R_superseded - R_irrelevant_counterbalanced = 5.53` nats, 95% history-bootstrap CI `[5.27, 5.79]`, positive in 96/96 histories. `R_live=17.14`, `R_superseded=5.39`, `R_irrelevant_counterbalanced=-0.14`; live-minus-superseded was 11.75 nats, CI `[11.43, 12.06]`, positive in 96/96 histories. The effect varied by semantic variable (x 2.30; z 8.75 nats).
   - Phi used int8 weights and float16 activations. Its confirmatory result does not establish a mechanism; real pinned-model hook smoke and mechanistic analysis remain pending. Analysis: `outputs/phi4_mini_review2/confirmatory_analysis.json`.
 
+- [x] **Downstream transfer from superseded binding into derived code** — **SUPPORTED IN QWEN3-8B UNDER THE FROZEN TASK**
+  - Frozen gate passed complete-sequence candidate ranking at 48/48; unrestricted greedy exact-code generation was 0/48 because outputs were Markdown-bold (48/48 parse after marker stripping), and remained diagnostic only.
+  - Confirmatory primary `R_stale_derived` was 5.54 nats (95% history-bootstrap CI [5.16, 5.94]), positive in 96/96 histories; live control was 12.84 nats (CI [12.42, 13.26]), positive in 96/96.
+  - Matching-entity stale E averaged 9.27 nats versus 3.72 nats under the irrelevant-entity query, demonstrating why the query subtraction is necessary.
+  - Current-code candidate accuracy across stale pairs was 93.75% baseline and 94.79% edited. Correct-code log-probability and margin changes were uncertain; the confirmatory run did not measure unrestricted generation.
+  - Supported scope: obsolete contextual bindings can remain causally active in this downstream derived-code computation after supersession. Do not infer stale-caused current-state errors, a forgetting failure, a dedicated circuit, or generalization beyond this setup. Analysis: `outputs/downstream_transfer_v1/analysis_v4/downstream_transfer_summary.json`.
+
 - [ ] **Broaden model-family replication** — **OPTIONAL NEXT STEP**
   - Any additional model must follow the frozen protocol and model panel policies. Do not pick a model based on its causal result.
 
@@ -154,6 +161,7 @@ The version-chain branch stopped after its single allowed replication failed the
 - [x] Stale information becomes causally available at the late query/readout state.
 - [x] Prominent late heads are more consistent with generic binding retrieval than with a stale-specific mechanism.
 - [x] The bounded surface-class causal contrast replicates in two additional families (Gemma 3 4B and Phi-4-mini). Gemma's mechanistic battery finds early historical-position and late readout relevance but does not establish the preregistered broad depth-window shift; Phi mechanism remains untested.
+- [x] Manipulating a superseded binding shifts preference toward its associated derived code more under the associated entity's current query than under the other entity's query in Qwen3-8B, with the correct current code unchanged. This is downstream transfer evidence for one task/model setup, not evidence of stale-caused behavioral errors or a dedicated mechanism.
 
 ### Not established yet
 
