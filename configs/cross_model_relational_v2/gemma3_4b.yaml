@@ -1,0 +1,13 @@
+seed: 20261031
+model:
+  id: google/gemma-3-4b-it
+  revision: 093f9f388b31de276ce2de164bdc2081324b9767
+  tokenizer_id: null
+  tokenizer_revision: 093f9f388b31de276ce2de164bdc2081324b9767
+  device: cuda
+  dtype: bfloat16
+  quantization: int8
+  device_map: 0
+  require_full_gpu: true
+  chat_template: true
+  attn_implementation: eager
