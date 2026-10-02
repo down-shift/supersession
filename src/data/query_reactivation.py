@@ -33,6 +33,14 @@ def verify_sealed_artifact(document):
     if seal!=expected: raise ValueError('query_reactivation_v1 artifact seal mismatch')
     return body
 
+def candidate_values_digest(values):
+    return hashlib.sha256(json.dumps(list(values),separators=(',',':')).encode()).hexdigest()
+
+def verify_gate_values(values, gate):
+    if list(values)!=gate.get('candidate_values') or candidate_values_digest(values)!=gate.get('candidate_values_sha256'):
+        raise ValueError('candidate values differ from frozen competence gate')
+    return True
+
 def render(row,tokenizer=None,chat=True):
     x,z=row['variables']; v=dict(row['matching_values']); attr=row['attribute']
     if row.get('stage')=='confirmatory' and row.get('pair_direction')==1:
@@ -95,9 +103,12 @@ def generate(stage,n,values=VALUES,seed=None,excluded=()):
 def audit(rows):
     if not rows: raise ValueError('empty query-reactivation dataset')
     stage=rows[0]['stage']; expected=QUERIES if stage!='confirmatory' else tuple((b,q,d) for b in ('old_x','old_z') for q in QUERIES for d in (0,1))
-    histories=defaultdict(dict); ids=set(); signatures=set()
+    histories=defaultdict(dict); ids=set(); signatures=set(); candidates=rows[0].get('candidate_values')
+    if not isinstance(candidates,list) or len(candidates)<6 or len(set(candidates))!=len(candidates):
+        raise ValueError('candidate value list must be fixed, unique, and contain at least six values')
     for r in rows:
         if r.get('schema')!=SCHEMA or r.get('stage')!=stage: raise ValueError('mixed/invalid protocol schema')
+        if r.get('candidate_values')!=candidates: raise ValueError('candidate-value vocabulary changes within dataset')
         if r['example_id'] in ids: raise ValueError('duplicate example')
         if stage!='confirmatory' and {'pair_id','pair_direction','edited_binding','source_value','replacement_value','identity_transfer'} & r.keys():
             raise ValueError('development/gate must not contain edit or causal-effect fields')
@@ -134,3 +145,10 @@ def audit(rows):
                 if r['answer']!=expected_edit or r['roles']!={'target':expected_edit}:
                     raise ValueError('counterfactual answer/orientation mismatch')
     return True
+
+def validated_stage(rows):
+    audit(rows)
+    stage=rows[0]['stage']
+    if stage not in ('development','frozen_gate','confirmatory'):
+        raise ValueError('unsupported protocol stage')
+    return stage

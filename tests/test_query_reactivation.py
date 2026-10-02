@@ -3,8 +3,8 @@ import hashlib
 import subprocess
 import sys
 import pytest
-from src.data.query_reactivation import generate, audit, signature, render, template_hash, validate_dataset_provenance, seal_artifact, verify_sealed_artifact
-from src.analysis.query_reactivation import history_contrasts, summarize_histories
+from src.data.query_reactivation import generate, audit, signature, render, template_hash, validate_dataset_provenance, seal_artifact, verify_sealed_artifact, validated_stage, candidate_values_digest, verify_gate_values
+from src.analysis.query_reactivation import history_contrasts, summarize_histories, score_protocol_record, evaluate_competence_gate
 
 def test_fresh_histories_and_semantic_cells_are_matched_and_disjoint():
     dev=generate('development',24); gate=generate('frozen_gate',24,excluded=dev)
@@ -25,6 +25,34 @@ def test_confirmatory_old_edits_semantics_and_orientation():
             assert cells[b,f'initial_{b[-1]}',0]['answer']==cells[b,f'initial_{b[-1]}',0]['source_value']
             assert cells[b,f'initial_{b[-1]}',1]['answer']==cells[b,f'initial_{b[-1]}',1]['replacement_value']
             assert cells[b,f'current_{b[-1]}',1]['answer']==cells[b,f'current_{b[-1]}',1]['matching_values'][f'current_{b[-1]}']
+
+def test_scorer_routes_synthetic_confirmatory_pair_and_computes_identity_transfer():
+    rows=generate('confirmatory',96)
+    base=next(r for r in rows if r['edited_binding']=='old_x' and r['query_id']=='current_x' and r['pair_direction']==0)
+    edit=next(r for r in rows if r['pair_id']==base['pair_id'] and r['pair_direction']==1)
+    stage=validated_stage(rows)
+    source,replacement=base['source_value'],base['replacement_value']
+    cache={}
+    def fake_score(row):
+        logits={source:0.,replacement:0.}
+        if row['pair_direction']==1: logits.update({source:-1.,replacement:2.})
+        return {**row,'candidate_logits':logits,'candidate_probabilities':{source:.5,replacement:.5}}
+    first=score_protocol_record(base,fake_score,cache,stage)
+    second=score_protocol_record(edit,fake_score,cache,stage)
+    assert 'identity_transfer' not in first
+    assert second['identity_transfer']==pytest.approx(3.)
+    assert second['causal_effects_computed'] is True
+
+def test_aggregate_competence_gate_keeps_orientation_cells_diagnostic():
+    rows=generate('frozen_gate',24)
+    scores=[{**r,'full_vocab_next_token_accuracy':int(i!=0),'causal_effects_computed':False} for i,r in enumerate(rows)]
+    result=evaluate_competence_gate(rows,scores)
+    assert result['pass'] is True
+    assert result['aggregate_task_competence']['current']['n']==48
+    assert result['aggregate_task_competence']['current']['full_vocab_accuracy']==pytest.approx(47/48)
+    assert min(c['full_vocab_accuracy'] for c in result['query_variable_orientation_diagnostics'].values())<.97
+    bad=[{**r,'full_vocab_next_token_accuracy':0,'causal_effects_computed':False} for r in rows]
+    assert evaluate_competence_gate(rows,bad)['pass'] is False
 
 def test_primary_contrast_xz_symmetry_and_history_not_pair_aggregation():
     rows=[]
@@ -68,6 +96,12 @@ def test_gate_artifact_seal_rejects_mutation():
     assert verify_sealed_artifact(sealed)=={'stage':'frozen_gate','pass':True,'threshold':.99}
     sealed['pass']=False
     with pytest.raises(ValueError,match='seal mismatch'): verify_sealed_artifact(sealed)
+
+def test_frozen_gate_binds_candidate_values():
+    values=['amber','coral','denim','elm','frost','grape']
+    gate={'candidate_values':values,'candidate_values_sha256':candidate_values_digest(values)}
+    assert verify_gate_values(values,gate)
+    with pytest.raises(ValueError,match='candidate values'): verify_gate_values(values[:-1]+['new'],gate)
 
 def test_generator_preserves_existing_artifact(tmp_path):
     out=tmp_path/'already.jsonl';out.write_text('keep\n')

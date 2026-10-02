@@ -3,7 +3,7 @@
 import argparse, json
 from pathlib import Path
 from src.data.io import read_jsonl, write_jsonl, sha256_file
-from src.data.query_reactivation import generate, template_hash, verify_sealed_artifact
+from src.data.query_reactivation import generate, template_hash, verify_sealed_artifact, verify_gate_values
 
 p=argparse.ArgumentParser(description=__doc__); p.add_argument('--stage',choices=('development','frozen_gate','confirmatory'),required=True)
 p.add_argument('--output',required=True); p.add_argument('--n',type=int)
@@ -18,6 +18,7 @@ if a.stage=='confirmatory':
  if not a.gate: raise ValueError('confirmatory generation requires a frozen gate artifact')
  gate=verify_sealed_artifact(json.loads(Path(a.gate).read_text()))
  if gate.get('stage')!='frozen_gate' or gate.get('pass') is not True: raise ValueError('invalid/failed frozen gate')
+ verify_gate_values(values,gate)
  excluded += read_jsonl(gate['dataset_path'])
  if gate['template_sha256']!=template_hash() or gate['dataset_sha256']!=sha256_file(gate['dataset_path']): raise ValueError('gate provenance changed')
 rows=generate(a.stage,a.n or {'development':24,'frozen_gate':24,'confirmatory':96}[a.stage],values,excluded=excluded)

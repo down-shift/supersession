@@ -52,6 +52,53 @@ def derive_effects(pair_rows):
     return cells
 
 
+def score_protocol_record(row, raw_scorer, baseline_cache, stage):
+    """Apply the isolated protocol's stage routing to one raw scored example."""
+    scored = raw_scorer(row)
+    if stage != 'confirmatory':
+        for key in ('candidate_logits','candidate_probabilities','identity_transfer','matched_edit_effect'):
+            scored.pop(key, None)
+        scored['causal_effects_computed'] = False
+        return scored
+    if row.get('pair_direction') == 0:
+        baseline_cache[row['pair_id']] = scored
+        return scored
+    baseline = baseline_cache.get(row['pair_id'])
+    if baseline is None:
+        raise ValueError('edited member lacks baseline')
+    source, replacement = row['source_value'], row['replacement_value']
+    lb, le = baseline['candidate_logits'], scored['candidate_logits']
+    scored['identity_transfer'] = float((le[replacement]-le[source])-(lb[replacement]-lb[source]))
+    scored['causal_effects_computed'] = True
+    return scored
+
+
+def evaluate_competence_gate(rows, scores, threshold=.97):
+    """Aggregate current/historical competence; strata remain diagnostic only."""
+    expected={r['example_id']:r for r in rows}; actual={r['example_id']:r for r in scores}
+    if len(expected)!=len(rows) or len(actual)!=len(scores) or set(expected)!=set(actual):
+        raise ValueError('gate scores must exactly cover the dataset')
+    tasks={'current':[],'historical':[]}; diagnostics=defaultdict(list)
+    for eid,row in expected.items():
+        score=actual[eid]
+        if any(score.get(k)!=v for k,v in row.items()): raise ValueError('gate score metadata differs from dataset')
+        if any(k in score for k in ('identity_transfer','matched_edit_effect')) or score.get('causal_effects_computed') is not False:
+            raise ValueError('gate score contains or permits causal effects')
+        acc=score.get('full_vocab_next_token_accuracy')
+        if acc not in (0,1): raise ValueError('invalid full-vocabulary competence score')
+        task='current' if row['query_id'].startswith('current_') else 'historical'
+        tasks[task].append(acc)
+        variable=row['query_id'][-1]
+        diagnostics[(task,variable,row['orientation'])].append(acc)
+    summary={k:{'n':len(v),'full_vocab_accuracy':float(np.mean(v))} for k,v in sorted(tasks.items())}
+    by_cell={'|'.join(map(str,k)):{'n':len(v),'full_vocab_accuracy':float(np.mean(v))} for k,v in sorted(diagnostics.items())}
+    passed=all(summary[k]['n']>0 and summary[k]['full_vocab_accuracy']>=threshold for k in tasks)
+    return {'pass':passed,'threshold':threshold,'aggregate_task_competence':summary,
+            'query_variable_orientation_diagnostics':by_cell,
+            'decision_scope':'aggregate current and historical competence only; x/z/orientation cells diagnostic, not veto criteria',
+            'causal_effects_computed':False}
+
+
 def history_contrasts(pair_rows):
     cells = derive_effects(pair_rows)
     required = [(b, q) for b in ('old_x','old_z')
