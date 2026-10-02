@@ -17,6 +17,7 @@ from src.analysis.downstream_transfer import (
 )
 from src.experiments.downstream_transfer import (
     frozen_metadata, validate_dataset, validate_gate, validate_token_audit, write_json_create,
+    verify_sealed_artifact,
 )
 from src.utils import load_config
 
@@ -56,6 +57,10 @@ def main(argv=None):
     rows, dsprov = validate_dataset(args.dataset, metadata)
     scores = read_jsonl(args.scores)
     side = json.loads(Path(args.scores + ".provenance.json").read_text())
+    complete_path = Path(args.scores + ".complete.json")
+    if not complete_path.exists():
+        raise ValueError("sealed confirmatory score completion manifest is required")
+    complete = verify_sealed_artifact(json.loads(complete_path.read_text()))
     if rows[0]["stage"] != "confirmatory" or side.get("protocol") != SCHEMA or side.get("stage") != "confirmatory":
         raise ValueError("confirmatory dataset and scores are required")
     expected = {
@@ -65,6 +70,21 @@ def main(argv=None):
     for key, value in expected.items():
         if side.get(key) != value or dsprov.get(key) != value:
             raise ValueError(f"confirmatory frozen artifact mismatch: {key}")
+    for key, value in {
+            "protocol": SCHEMA, "stage": "confirmatory",
+            "scores_path": str(Path(args.scores).resolve()),
+            "scores_sha256": sha256_file(args.scores),
+            "dataset_path": str(Path(args.dataset).resolve()),
+            "dataset_sha256": sha256_file(args.dataset),
+            "gate_path": str(Path(args.gate).resolve()),
+            "gate_sha256": sha256_file(args.gate),
+            "config_sha256": metadata["config_sha256"],
+            "scoring_code_sha256": metadata["scoring_code_sha256"],
+            "model_revision": metadata["model_revision"],
+            "tokenizer_revision": metadata["tokenizer_revision"],
+    }.items():
+        if complete.get(key) != value:
+            raise ValueError(f"confirmatory completion manifest mismatch: {key}")
     if side.get("causal_effects_computed") is not True:
         raise ValueError("confirmatory score provenance has wrong scoring mode")
     validate_scores(rows, scores, "confirmatory")

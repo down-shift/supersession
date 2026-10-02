@@ -95,7 +95,7 @@ def score_codes(model, tokenizer, prompt, codes, token_audit, progress_callback=
     return probabilities
 
 
-def generate_unrestricted_code(model, tokenizer, prompt, codes, token_audit):
+def generate_unrestricted_code(model, tokenizer, prompt, codes, token_audit, progress_callback=None):
     """Greedily generate a short answer and accept only an exact code label."""
     import torch
     encoded = tokenizer(prompt, return_tensors="pt", add_special_tokens=False)
@@ -106,6 +106,8 @@ def generate_unrestricted_code(model, tokenizer, prompt, codes, token_audit):
     with torch.inference_mode():
         generated = model.generate(**encoded, max_new_tokens=max_new_tokens,
                                    do_sample=False, num_beams=1)
+    if progress_callback:
+        progress_callback()
     continuation = generated[0, prefix_length:]
     text = tokenizer.decode(continuation, skip_special_tokens=True)
     parsed = text.strip()

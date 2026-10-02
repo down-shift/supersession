@@ -11,7 +11,9 @@ def _scored_rows(rows,effects):
   if r['pair_direction']:
    e=effects[(r['edited_binding'],r['query_id'])]
    lp[cb[r['replacement_value']]]=e/2;lp[cb[r['source_value']]]=-e/2
-  out.append({**r,'candidate_logprobs':lp,'current_code_accuracy':1,'causal_effects_computed':True})
+  out.append({**r,'candidate_logprobs':lp,'current_code_accuracy':1,
+             'unrestricted_generated_text':r['answer_code'],'unrestricted_generated_code':r['answer_code'],
+             'unrestricted_code_accuracy':1,'causal_effects_computed':True})
  return out
 
 def test_render_codebook_and_prompt_queries():
@@ -78,9 +80,13 @@ def test_xz_symmetry_history_aggregation_and_deterministic_bootstrap():
 
 def test_gate_threshold_and_effect_separation():
  rows=generate('frozen_gate',24)
- scores=[{**r,'current_code_accuracy':int(i>0),'causal_effects_computed':False} for i,r in enumerate(rows)]
+ scores=[{**r,'current_code_accuracy':int(i>0),'unrestricted_generated_text':r['answer_code'] if i>0 else 'wrong',
+          'unrestricted_generated_code':r['answer_code'] if i>0 else None,'unrestricted_code_accuracy':int(i>0),
+          'causal_effects_computed':False} for i,r in enumerate(rows)]
  assert evaluate_competence_gate(rows,scores)['pass'] is True
- bad=[{**r,'current_code_accuracy':0,'causal_effects_computed':False} for r in rows]
+ bad=[{**r,'current_code_accuracy':0,'unrestricted_generated_text':'wrong',
+       'unrestricted_generated_code':None,'unrestricted_code_accuracy':0,
+       'causal_effects_computed':False} for r in rows]
  assert not evaluate_competence_gate(rows,bad)['pass']
  badscores=[{**s,'derived_transfer':0.1} for s in scores]
  with pytest.raises(ValueError):evaluate_competence_gate(rows,badscores)
@@ -99,6 +105,24 @@ def test_multitoken_complete_sequence_score():
    return type('O',(),{'logits':logits})()
  score=sequence_logprob(Model(),Tok(),'P','AB')
  assert score==pytest.approx(float(torch.log_softmax(torch.tensor([0.,2.,0.]),0)[1]+torch.log_softmax(torch.tensor([0.,0.,3.]),0)[2]))
+
+def test_unrestricted_generation_accepts_only_an_exact_code_label():
+ torch=pytest.importorskip('torch')
+ from src.experiments.downstream_transfer import generate_unrestricted_code
+ class Tokenizer:
+  def __init__(self,text):self.text=text
+  def __call__(self,prompt,return_tensors,add_special_tokens):
+   return {'input_ids':torch.tensor([[1,2]])}
+  def decode(self,tokens,skip_special_tokens):return self.text
+ class Model:
+  def __init__(self):self.embedding=torch.nn.Embedding(3,2)
+  def get_input_embeddings(self):return self.embedding
+  def generate(self,input_ids,**kwargs):return torch.cat([input_ids,torch.tensor([[2]])],dim=1)
+ audit={'codes':{'M2':{'n_tokens':1},'K7':{'n_tokens':1}}}
+ result=generate_unrestricted_code(Model(),Tokenizer('M2'), 'prompt',['M2','K7'],audit)
+ assert result['unrestricted_generated_code']=='M2'
+ result=generate_unrestricted_code(Model(),Tokenizer('The code is M2.'),'prompt',['M2','K7'],audit)
+ assert result['unrestricted_generated_code'] is None
 
 def test_dataset_freshness_and_stage_audit():
  d=generate('development',24);g=generate('frozen_gate',24,excluded=d)
@@ -157,8 +181,20 @@ def test_reject_duplicate_pairs_nonfinite_statistics_and_wrong_sources():
 
 def test_gate_46_of_48_fails():
  rows=generate('frozen_gate',24)
- scores=[{**r,'current_code_accuracy':int(i>=2),'causal_effects_computed':False} for i,r in enumerate(rows)]
+ scores=[{**r,'current_code_accuracy':int(i>=2),'unrestricted_generated_text':r['answer_code'],
+          'unrestricted_generated_code':r['answer_code'],'unrestricted_code_accuracy':1,
+          'causal_effects_computed':False} for i,r in enumerate(rows)]
  assert evaluate_competence_gate(rows,scores)['pass'] is False
+
+def test_gate_requires_unrestricted_generated_code_not_only_candidate_rank():
+ rows=generate('frozen_gate',24)
+ scores=[{**r,'current_code_accuracy':1,'unrestricted_generated_text':r['answer_code'] if i>=2 else 'wrong',
+          'unrestricted_generated_code':r['answer_code'] if i>=2 else None,'unrestricted_code_accuracy':int(i>=2),
+          'causal_effects_computed':False} for i,r in enumerate(rows)]
+ result=evaluate_competence_gate(rows,scores)
+ assert result['current_derived_code_accuracy']==1.0
+ assert result['current_unrestricted_generation_accuracy']==pytest.approx(46/48)
+ assert result['pass'] is False
 
 
 @pytest.fixture
@@ -191,6 +227,13 @@ def synthetic_workflow(tmp_path,monkeypatch):
   if progress_callback:progress_callback()
   return {code:(-1.0 if code==codebook[current] else -10.0) for code in candidates}
  monkeypatch.setattr(runner,'score_codes',fake_scores)
+ def fake_generation(model,tokenizer,prompt,candidates,audit,progress_callback=None):
+  entity=re.search(r"Which code corresponds to (\w+)'s",prompt).group(1)
+  current=re.search(r"Later, "+entity+r"'s badge was changed to (\w+)\.",prompt).group(1)
+  codebook=dict(re.findall(r'(\w+) -> (\w+)',prompt)); code=codebook[current]
+  if progress_callback:progress_callback()
+  return {'unrestricted_generated_text':code,'unrestricted_generated_code':code}
+ monkeypatch.setattr(runner,'generate_unrestricted_code',fake_generation)
  dev=tmp_path/'development.jsonl';gate_data=tmp_path/'gate.jsonl';gate_scores=tmp_path/'gate_scores.jsonl'
  generator.main(common+['--stage','development','--output',str(dev)])
  generator.main(common+['--stage','frozen_gate','--output',str(gate_data),'--prior-dataset',str(dev)])
@@ -230,6 +273,7 @@ def test_interrupted_pair_resume_complete_checkpoint_and_analysis(synthetic_work
  monkeypatch.setattr(w['runner'],'score_codes',w['fake_scores'])
  w['runner'].main(args+['--resume'])
  assert len(read_jsonl(scores))==1536
+ assert Path(str(scores)+'.complete.json').exists()
  loads=len(w['calls']);w['runner'].main(args+['--resume'])
  assert len(w['calls'])==loads
  summary=analyze(w['common']+['--dataset',str(confirmation),'--scores',str(scores),
@@ -240,6 +284,13 @@ def test_interrupted_pair_resume_complete_checkpoint_and_analysis(synthetic_work
  assert summary['estimands']['R_live_derived']['mean']==pytest.approx(18)
  assert summary['current_answer_stability']['delta_correct_logprob']['n_histories']==96
  assert summary['current_answer_stability']['edited_accuracy']['mean']==pytest.approx(1)
+
+def test_prior_artifact_path_resolves_after_same_directory_relocation(tmp_path):
+ from src.experiments.downstream_transfer import resolve_artifact_path
+ original=tmp_path/'old-host'/'development.jsonl'
+ local=tmp_path/'new-host'/'development.jsonl'
+ local.parent.mkdir();local.write_text('artifact\n')
+ assert resolve_artifact_path(original,local)==local
 
 
 @pytest.mark.parametrize('artifact',['config','values','codes','audit','gate_data','gate_scores','dataset_provenance','score_provenance'])

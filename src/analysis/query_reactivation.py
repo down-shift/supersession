@@ -83,6 +83,21 @@ def score_protocol_record(row, raw_scorer, baseline_cache, stage):
     return scored
 
 
+def resume_baseline_cache(completed, stage):
+    """Rebuild only baseline pairs; edited checkpoints must have a saved baseline."""
+    if stage != 'confirmatory':
+        return {}
+    cache = {}
+    for row in completed:
+        if row.get('pair_direction') == 0:
+            if row['pair_id'] in cache:
+                raise ValueError(f"duplicate baseline checkpoint: {row['pair_id']}")
+            cache[row['pair_id']] = row
+        elif row.get('pair_direction') == 1 and row.get('pair_id') not in cache:
+            raise ValueError(f"checkpoint edited member lacks baseline: {row.get('pair_id')}")
+    return cache
+
+
 def evaluate_competence_gate(rows, scores, threshold=.97):
     """Aggregate current/historical competence; strata remain diagnostic only."""
     if threshold != .97:

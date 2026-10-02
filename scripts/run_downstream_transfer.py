@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Resumable complete-sequence scoring; development/gate are competence-only."""
 import argparse
+from contextlib import nullcontext
 import json
 import logging
 import sys
@@ -64,6 +65,7 @@ def main(argv=None):
     }}
     side = Path(args.output + ".provenance.json")
     gate_path = Path(args.output + ".gate.json")
+    complete_path = Path(args.output + ".complete.json")
     side_data = {
         "protocol": SCHEMA, "stage": stage, **metadata,
         "dataset_path": str(Path(args.dataset).resolve()),
@@ -76,6 +78,11 @@ def main(argv=None):
         raise FileExistsError("choose a fresh output path or use --resume")
     if side.exists() and json.loads(side.read_text()) != side_data:
         raise ValueError("score provenance differs; refuse resume")
+    if complete_path.exists():
+        saved_complete = verify_sealed_artifact(json.loads(complete_path.read_text()))
+        if (saved_complete.get("scores_sha256") != sha256_file(args.output) or
+                saved_complete.get("dataset_sha256") != sha256_file(args.dataset)):
+            raise ValueError("completed confirmatory score artifact was modified")
     done = prepare_jsonl_progress(args.output, args.dataset, args.codes_json,
                                   fingerprint, rows, resume=args.resume)
     completed = read_jsonl(args.output) if Path(args.output).exists() else []
@@ -100,28 +107,34 @@ def main(argv=None):
         with logging_redirect_tqdm(), progress(
                 total=len(pending) * forwards_per_record,
                 desc="Candidate forwards", unit="forward", leave=False) as forwards:
-            def scorer(row):
-                prompt = render(row, tokenizer, config["model"].get("chat_template", True))
-                lp = score_codes(model, tokenizer, prompt, codes, token_audit,
-                                 progress_callback=forwards.update)
-                accuracy = int(all(lp[row["answer_code"]] > value
-                                   for code, value in lp.items() if code != row["answer_code"]))
-                result = {**row, "candidate_logprobs": lp, "current_code_accuracy": accuracy}
-                if stage in ("development", "frozen_gate"):
-                    generated = generate_unrestricted_code(model, tokenizer, prompt, codes, token_audit)
-                    generated["unrestricted_code_accuracy"] = int(
-                        generated["unrestricted_generated_code"] == row["answer_code"])
-                    result.update(generated)
-                return result
+            generation_context = (progress(total=len(pending), desc="Unrestricted greedy generations",
+                                            unit="generation", leave=False)
+                                  if stage in ("development", "frozen_gate") else nullcontext(None))
+            with generation_context as generations:
+                def scorer(row):
+                    prompt = render(row, tokenizer, config["model"].get("chat_template", True))
+                    lp = score_codes(model, tokenizer, prompt, codes, token_audit,
+                                     progress_callback=forwards.update)
+                    accuracy = int(all(lp[row["answer_code"]] > value
+                                       for code, value in lp.items() if code != row["answer_code"]))
+                    result = {**row, "candidate_logprobs": lp, "current_code_accuracy": accuracy}
+                    if stage in ("development", "frozen_gate"):
+                        generated = generate_unrestricted_code(
+                            model, tokenizer, prompt, codes, token_audit,
+                            progress_callback=generations.update)
+                        generated["unrestricted_code_accuracy"] = int(
+                            generated["unrestricted_generated_code"] == row["answer_code"])
+                        result.update(generated)
+                    return result
 
-            for row in progress(pending, desc=f"Scoring {stage}", unit="record"):
-                try:
-                    score = score_protocol_record(row, scorer, cache, stage)
-                    append_jsonl_record(args.output, score)
-                except Exception:
-                    logger.exception("Scoring interrupted at %s; completed records can be resumed",
-                                     row["example_id"])
-                    raise
+                for row in progress(pending, desc=f"Scoring {stage}", unit="record"):
+                    try:
+                        score = score_protocol_record(row, scorer, cache, stage)
+                        append_jsonl_record(args.output, score)
+                    except Exception:
+                        logger.exception("Scoring interrupted at %s; completed records can be resumed",
+                                         row["example_id"])
+                        raise
     else:
         logger.info("Checkpoint is complete; model loading skipped")
     scores = read_jsonl(args.output)
@@ -148,6 +161,24 @@ def main(argv=None):
             write_json_create(gate_path, artifact)
         logger.info("Gate pass=%s; current-code accuracy=%.4f (%d trials); artifact=%s",
                     result["pass"], result["current_derived_code_accuracy"], result["n"], gate_path)
+    elif stage == "confirmatory":
+        if not args.gate:
+            raise ValueError("confirmatory score completion requires --gate")
+        complete = seal_artifact({
+            "protocol": SCHEMA, "stage": "confirmatory", "scores_path": str(Path(args.output).resolve()),
+            "scores_sha256": sha256_file(args.output), "dataset_path": str(Path(args.dataset).resolve()),
+            "dataset_sha256": sha256_file(args.dataset), "gate_path": str(Path(args.gate).resolve()),
+            "gate_sha256": sha256_file(args.gate), "config_sha256": metadata["config_sha256"],
+            "scoring_code_sha256": metadata["scoring_code_sha256"],
+            "model_revision": metadata["model_revision"],
+            "tokenizer_revision": metadata["tokenizer_revision"],
+        })
+        if complete_path.exists():
+            if json.loads(complete_path.read_text()) != complete:
+                raise ValueError("existing confirmatory completion manifest differs from recomputed scores")
+        else:
+            write_json_create(complete_path, complete)
+        logger.info("Wrote sealed confirmatory score manifest: %s", complete_path)
     logger.info("Completed %s: %d records at %s", stage, len(rows), args.output)
 
 

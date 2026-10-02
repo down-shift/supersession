@@ -8,7 +8,7 @@ from src.data.io import read_jsonl,sha256_file
 from src.data.progress import prepare_jsonl_progress,append_jsonl_record
 from src.data.query_reactivation import validated_stage,render,template_hash,validate_dataset_provenance,verify_sealed_artifact,seal_artifact,candidate_values_digest,verify_gate_values
 from src.data.token_validation import continuation_token_id
-from src.analysis.query_reactivation import score_protocol_record,evaluate_competence_gate
+from src.analysis.query_reactivation import score_protocol_record,evaluate_competence_gate,resume_baseline_cache
 from src.experiments.behavior import score_example
 from src.models.loader import load_model
 from src.utils import load_config,provenance,save_json
@@ -22,7 +22,8 @@ scoring_code_sha256=hashlib.sha256(b''.join(path.read_bytes() for path in score_
 if stage=='confirmatory':
  if not a.gate: raise ValueError('confirmatory scoring requires frozen gate')
  gate=verify_sealed_artifact(json.loads(Path(a.gate).read_text()))
- if gate.get('pass') is not True: raise ValueError('invalid/failed gate seal')
+ if gate.get('pass') is not True or gate.get('threshold') != .97: raise ValueError('invalid/failed gate seal or threshold')
+ if gate.get('config_sha256') != sha256_file(a.config): raise ValueError('confirmatory config differs from frozen gate')
  if (gate['template_sha256']!=template_hash() or gate.get('scores_sha256')!=sha256_file(gate.get('scores_path',''))
      or gate.get('dataset_sha256')!=sha256_file(gate.get('dataset_path',''))
      or dsprov.get('gate_sha256')!=sha256_file(a.gate)
@@ -47,6 +48,12 @@ if stage=='confirmatory':
      or gate_side.get('token_map_sha256')!=gate.get('token_map_sha256')
      or gate_side.get('scoring_code_sha256')!=scoring_code_sha256):
   raise ValueError('frozen gate score provenance is invalid')
+ gate_rows=read_jsonl(gate['dataset_path'])
+ gate_prov=validate_dataset_provenance(gate['dataset_path'],gate['dataset_path']+'.provenance.json')
+ gate_scores=read_jsonl(gate['scores_path'])
+ recomputed=evaluate_competence_gate(gate_rows,gate_scores,threshold=.97)
+ if any(gate.get(key)!=value for key,value in recomputed.items()):
+  raise ValueError('frozen gate decision does not recompute from its score rows')
 if not a.resume and any(Path(a.output+s).exists() for s in ('','.run.json','.provenance.json')): raise FileExistsError('choose a fresh score path')
 model,tok=load_model(c); chat=c['model'].get('chat_template',True)
 for r in rows:
@@ -63,11 +70,7 @@ if not side.exists():
   'causal_effects_computed':stage=='confirmatory','scoring_mode':'competence_only' if stage!='confirmatory' else 'paired_baseline_counterfactual'}
  save_json(side_data,side)
 completed=read_jsonl(a.output) if Path(a.output).exists() else []
-cache={r['pair_id']:r for r in completed
-       if stage=='confirmatory' and r.get('pair_direction')==0}
-for record in completed:
- if stage=='confirmatory' and record.get('pair_direction')==1 and record.get('pair_id') not in cache:
-  raise ValueError(f"checkpoint edited member lacks baseline: {record.get('pair_id')}")
+cache=resume_baseline_cache(completed,stage)
 for r in tqdm(rows,desc='query_reactivation scoring'):
  if r['example_id'] in done: continue
  s=score_protocol_record(r,lambda row:score_example(model,tok,row,ids,chat=chat,renderer=render,preserve_metadata=True),cache,stage)

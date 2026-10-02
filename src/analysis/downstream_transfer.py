@@ -95,6 +95,12 @@ def evaluate_competence_gate(rows,scores,threshold=.97):
         generated=s.get("unrestricted_code_accuracy")
         if generated not in (0,1) or not isinstance(s.get("unrestricted_generated_text"),str):
             raise ValueError("missing unrestricted greedy-generation competence diagnostic")
+        parsed=s.get("unrestricted_generated_code")
+        exact_text=s["unrestricted_generated_text"].strip()
+        if parsed is not None and (parsed not in r["code_vocabulary"] or parsed != exact_text):
+            raise ValueError("unrestricted generation was not parsed as exactly one code label")
+        if generated != int(parsed == r["answer_code"]):
+            raise ValueError("unrestricted generation accuracy differs from exact parsed code")
         unrestricted["current"].append(generated)
     candidate_accuracy=float(np.mean(groups["current"])) if groups["current"] else 0.0
     generated_accuracy=float(np.mean(unrestricted["current"])) if unrestricted["current"] else 0.0
