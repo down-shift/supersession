@@ -1,6 +1,21 @@
 # Supersession Without Erasure: cross_model_v1
 
-Status: logged protocol (`review_2_progress_20261002`), preregistration-ready implementation, **not a completed replication or externally registered protocol**. Existing sealed Qwen development/gate artifacts remain eligible when their scientific inputs and score lineage recompute under the fixed gate. Read [the preimplementation audit](cross_model_v1_audit.md) first. Established Qwen experiments, failed Mistral/Phi gates, and stopped version-chain/status branches remain preserved.
+Status: logged protocol (`review_2_progress_20261002`), preregistration-ready implementation, **not an externally registered protocol**. Existing Qwen results and stopped version-chain/status branches remain preserved. The original exact-token Mistral/Phi failures remain failed; under `cross_model_v1`, Phi passed the frozen competence gate and Mistral failed it. Read [the preimplementation audit](cross_model_v1_audit.md) first.
+
+## Execution outcomes recorded 2026-10-02
+
+| Model | Stage reached | Outcome |
+|---|---|---|
+| Qwen3-8B | 96-history confirmatory | Positive primary contrast: `R_superseded - R_irrelevant_counterbalanced = 3.50` nats (95% history-bootstrap CI `[3.20, 3.80]`, positive in 94/96 histories). This is the new bounded surface-class estimand; it is distinct from the earlier 4.52-logit result. |
+| Phi-4-mini | Frozen competence gate | Passed: rank-one semantic accuracy 1.00 in all 64 cells. No confirmatory or mechanistic results yet. |
+| Mistral-7B-Instruct-v0.3 | Frozen competence gate | Failed: counterbalanced-irrelevant semantic accuracy 281/288 (97.57%), below the fixed 99% aggregate threshold. Live and superseded accuracy were 100%; no confirmatory or mechanistic results were generated. |
+| Gemma 3 4B | Gate scoring | Pending in the last checked status; no gate decision recorded here. |
+
+For Mistral, development was descriptive: live and superseded accuracy were 100%; ordinary irrelevant was 140/144 (97.22%), and counterbalanced irrelevant was 283/288 (98.26%). The frozen gate’s seven counterbalanced-irrelevant misses comprised six rank-2 and one rank-3 prompts. Superseded current-over-stale semantic-mass margins remained positive (gate mean 16.50), but this is a competence diagnostic, not a causal `R` result and does not override the failed gate. Four live diagnostic cells had 11 unique prompts rather than 12 because two histories rendered the same prompt; all 64 required cells were present. Mistral’s candidate continuations are multi-token, so canonical raw-logit `R` is undefined for this vocabulary.
+
+The saved Mistral development and gate reports recompute from their score rows and have valid score hashes. The old `FileExistsError` marker records an earlier collision with the existing candidate-map path; it is not the gate outcome. The gate report’s `pass: false` is the actual frozen decision. See `outputs/mistral7b_review2/gate_report.json` and `outputs/mistral7b_review2/gate_scores.jsonl.provenance.json`.
+
+Cross-model causal generalization is **not established**: Phi has only passed competence, Mistral did not pass competence, and no cross-model confirmatory `R` results are available for either. Do not describe the Mistral gate failure as evidence that the causal phenomenon is absent.
 
 ## Frozen scientific design
 
@@ -176,7 +191,7 @@ The helper defaults to `outputs/<model>_review2`; set `CROSS_MODEL_RUN_DIR` to c
 
 ## Review corrections and unresolved execution work
 
-`natural_competence_v2`, original Qwen results, and failed Mistral/Phi experiments retain their original thresholds/statuses. The Qwen review2 gate is not discarded because of later runtime-only edits; new same-model stage generation checks history overlap against the earlier Qwen cross-model run and available legacy natural-language artifacts.
+`natural_competence_v2`, original Qwen results, and the original exact-token Mistral/Phi failures retain their original thresholds/statuses. The Qwen review2 gate is not discarded because of later runtime-only edits; new same-model stage generation checks history overlap against the earlier Qwen cross-model run and available legacy natural-language artifacts.
 
 The CLI emits INFO logs and stderr progress bars for tokenizer audits, history generation, model loading, individual score forwards and rows, competence recomputation, hook checks, mechanism tasks, and precision-sensitivity tasks. Instrumentation and adapters change the recorded code hash but do not change the fixed competence estimand. The full-GPU requirement applies to new model loads; it does not retroactively invalidate an already scored competence gate. No original artifact is overwritten.
 

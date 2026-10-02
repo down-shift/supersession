@@ -1,25 +1,81 @@
 #!/usr/bin/env python3
-"""Create isolated downstream_transfer_v1 stages without overwriting artifacts."""
-import argparse,json
-from pathlib import Path
+"""Create isolated downstream stages without overwriting artifacts."""
+import argparse
+import json
+import logging
 import sys
-sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
-from src.data.io import read_jsonl,write_jsonl,sha256_file
-from src.data.downstream_transfer import generate,template_hash,verify_sealed_artifact
-p=argparse.ArgumentParser(description=__doc__);p.add_argument('--stage',choices=('development','frozen_gate','confirmatory'),required=True);p.add_argument('--output',required=True);p.add_argument('--prior-dataset',action='append',default=[]);p.add_argument('--gate');p.add_argument('--token-audit');p.add_argument('--config',default='configs/downstream_transfer_v1.yaml');p.add_argument('--values-json',default='configs/downstream_transfer_values.json');p.add_argument('--codes-json',default='configs/downstream_transfer_codes.json')
-a=p.parse_args();out=Path(a.output)
-if any(Path(str(out)+s).exists() for s in ('','.provenance.json')): raise FileExistsError('preserve prior outputs; choose a new path')
-values=json.loads(Path(a.values_json).read_text());codes=json.loads(Path(a.codes_json).read_text());prior=[read_jsonl(x) for x in a.prior_dataset];excluded=[r for ds in prior for r in ds];gate=None
-if a.stage=='confirmatory':
- if not a.gate: raise ValueError('confirmatory generation requires --gate')
- gate=verify_sealed_artifact(json.loads(Path(a.gate).read_text()))
- if gate.get('pass') is not True: raise ValueError('frozen gate failed')
- for key,path in [('config_sha256',a.config),('values_sha256',a.values_json),('codes_sha256',a.codes_json)]:
-  if gate.get(key)!=sha256_file(path): raise ValueError(f'frozen {key} changed')
- if gate.get('template_sha256')!=template_hash(): raise ValueError('frozen template changed')
- if gate.get('dataset_sha256')!=sha256_file(gate.get('dataset_path','')) or gate.get('scores_sha256')!=sha256_file(gate.get('scores_path','')): raise ValueError('frozen gate dataset/scores changed')
- if not a.token_audit or gate.get('token_audit_sha256')!=sha256_file(a.token_audit): raise ValueError('confirmatory generation requires the frozen tokenizer audit')
- excluded+=read_jsonl(gate['dataset_path'])
-rows=generate(a.stage,{'development':24,'frozen_gate':24,'confirmatory':96}[a.stage],values,codes,excluded=excluded);write_jsonl(rows,out)
-prov={'protocol':'downstream_transfer_v1','stage':a.stage,'dataset_path':str(out.resolve()),'dataset_sha256':sha256_file(out),'template_sha256':template_hash(),'config_sha256':sha256_file(a.config),'values_sha256':sha256_file(a.values_json),'codes_sha256':sha256_file(a.codes_json),'token_audit_sha256':sha256_file(a.token_audit) if a.token_audit else None,'prior_dataset_paths':[str(Path(x).resolve()) for x in a.prior_dataset],'prior_dataset_sha256':[sha256_file(x) for x in a.prior_dataset],'gate_path':str(Path(a.gate).resolve()) if a.gate else None,'gate_sha256':sha256_file(a.gate) if a.gate else None}
-Path(str(out)+'.provenance.json').write_text(json.dumps(prov,indent=2)+'\n');print(f'wrote {len(rows)} {a.stage} records')
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from src.cross_model.progress import configure_logging
+from src.data.downstream_transfer import COUNTS, SCHEMA, generate
+from src.data.io import read_jsonl, sha256_file
+from src.experiments.downstream_transfer import (
+    frozen_metadata, validate_dataset, validate_gate, validate_token_audit, write_json_create,
+)
+from src.utils import load_config
+
+logger = logging.getLogger(__name__)
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--stage", choices=tuple(COUNTS), required=True)
+    parser.add_argument("--output", required=True)
+    parser.add_argument("--prior-dataset", action="append", default=[])
+    parser.add_argument("--gate")
+    parser.add_argument("--token-audit")
+    parser.add_argument("--config", default="configs/downstream_transfer_v1.yaml")
+    parser.add_argument("--values-json", default="configs/downstream_transfer_values.json")
+    parser.add_argument("--codes-json", default="configs/downstream_transfer_codes.json")
+    args = parser.parse_args(argv)
+    configure_logging()
+    output = Path(args.output)
+    if any(Path(str(output) + suffix).exists() for suffix in ("", ".provenance.json")):
+        raise FileExistsError("preserve prior outputs; choose a new path")
+    config = load_config(args.config)
+    metadata = frozen_metadata(config, args.config, args.values_json, args.codes_json)
+    values = json.loads(Path(args.values_json).read_text())
+    codes = json.loads(Path(args.codes_json).read_text())
+    priors = list(args.prior_dataset)
+    if args.stage == "confirmatory":
+        if not args.gate or not args.token_audit:
+            raise ValueError("confirmatory generation requires --gate and --token-audit")
+        gate, gate_prov = validate_gate(args.gate, metadata, args.token_audit)
+        validate_token_audit(args.token_audit, config, metadata, codes)
+        priors += gate_prov["prior_dataset_paths"] + [gate["dataset_path"]]
+        logger.info("Verified passing frozen gate: %s", args.gate)
+    priors = list(dict.fromkeys(str(Path(p).resolve()) for p in priors))
+    excluded = []
+    has_development = False
+    for path in priors:
+        logger.info("Loading prior histories: %s", path)
+        prior_rows = read_jsonl(path)
+        if prior_rows and prior_rows[0].get("schema") == SCHEMA:
+            prior_rows, _ = validate_dataset(path, metadata)
+            has_development |= prior_rows[0]["stage"] == "development"
+        excluded.extend(prior_rows)
+    if args.stage == "frozen_gate" and not has_development:
+        raise ValueError("frozen gate generation requires a development --prior-dataset")
+    rows = generate(args.stage, COUNTS[args.stage], values, codes,
+                    excluded=excluded, show_progress=True)
+    output.parent.mkdir(parents=True, exist_ok=True)
+    with output.open("x", encoding="utf8") as stream:
+        for row in rows:
+            stream.write(json.dumps(row, sort_keys=True) + "\n")
+    provenance = {
+        "protocol": SCHEMA, "stage": args.stage, **metadata,
+        "dataset_path": str(output.resolve()), "dataset_sha256": sha256_file(output),
+        "token_audit_sha256": sha256_file(args.token_audit) if args.token_audit else None,
+        "prior_dataset_paths": priors,
+        "prior_dataset_sha256": [sha256_file(path) for path in priors],
+        "gate_path": str(Path(args.gate).resolve()) if args.gate else None,
+        "gate_sha256": sha256_file(args.gate) if args.gate else None,
+    }
+    write_json_create(str(output) + ".provenance.json", provenance)
+    logger.info("Wrote %d %s records to %s", len(rows), args.stage, output)
+
+
+if __name__ == "__main__":
+    main()

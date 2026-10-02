@@ -23,34 +23,42 @@ All stages use fixed seeds in src/data/downstream_transfer.py; generator also ac
 
 ## Launch
 
+Use the repository uv environment (`uv sync --extra model --extra dev` on the experiment machine). All commands below run from the repository root.
+
 First perform the tokenizer-only audit. It loads the frozen tokenizer, never the model:
 
 ```sh
-python scripts/audit_downstream_transfer_tokens.py --output outputs/downstream_transfer_v1/token_audit.json
+uv run python scripts/audit_downstream_transfer_tokens.py --output outputs/downstream_transfer_v1/token_audit.json
 ```
 
 Then generate and score development:
 
 ```sh
-python scripts/generate_downstream_transfer.py --stage development --output outputs/downstream_transfer_v1/development.jsonl
-python scripts/run_downstream_transfer.py --dataset outputs/downstream_transfer_v1/development.jsonl --token-audit outputs/downstream_transfer_v1/token_audit.json --output outputs/downstream_transfer_v1/development_scores.jsonl
+uv run python scripts/generate_downstream_transfer.py --stage development --output outputs/downstream_transfer_v1/development.jsonl
+uv run python scripts/run_downstream_transfer.py --dataset outputs/downstream_transfer_v1/development.jsonl --token-audit outputs/downstream_transfer_v1/token_audit.json --output outputs/downstream_transfer_v1/development_scores.jsonl
 ```
 
 Generate and score the frozen gate only after development:
 
 ```sh
-python scripts/generate_downstream_transfer.py --stage frozen_gate --prior-dataset outputs/downstream_transfer_v1/development.jsonl --output outputs/downstream_transfer_v1/gate.jsonl
-python scripts/run_downstream_transfer.py --dataset outputs/downstream_transfer_v1/gate.jsonl --token-audit outputs/downstream_transfer_v1/token_audit.json --output outputs/downstream_transfer_v1/gate_scores.jsonl
+uv run python scripts/generate_downstream_transfer.py --stage frozen_gate --prior-dataset outputs/downstream_transfer_v1/development.jsonl --output outputs/downstream_transfer_v1/gate.jsonl
+uv run python scripts/run_downstream_transfer.py --dataset outputs/downstream_transfer_v1/gate.jsonl --token-audit outputs/downstream_transfer_v1/token_audit.json --output outputs/downstream_transfer_v1/gate_scores.jsonl
 ```
 
 After the sealed gate passes, generate/score confirmation and analyze:
 
 ```sh
-python scripts/generate_downstream_transfer.py --stage confirmatory --prior-dataset outputs/downstream_transfer_v1/development.jsonl --token-audit outputs/downstream_transfer_v1/token_audit.json --gate outputs/downstream_transfer_v1/gate_scores.jsonl.gate.json --output outputs/downstream_transfer_v1/confirmatory.jsonl
-python scripts/run_downstream_transfer.py --dataset outputs/downstream_transfer_v1/confirmatory.jsonl --token-audit outputs/downstream_transfer_v1/token_audit.json --gate outputs/downstream_transfer_v1/gate_scores.jsonl.gate.json --output outputs/downstream_transfer_v1/confirmatory_scores.jsonl
-python scripts/analyze_downstream_transfer.py --dataset outputs/downstream_transfer_v1/confirmatory.jsonl --scores outputs/downstream_transfer_v1/confirmatory_scores.jsonl --gate outputs/downstream_transfer_v1/gate_scores.jsonl.gate.json --output-dir outputs/downstream_transfer_v1/analysis
+uv run python scripts/generate_downstream_transfer.py --stage confirmatory --prior-dataset outputs/downstream_transfer_v1/development.jsonl --token-audit outputs/downstream_transfer_v1/token_audit.json --gate outputs/downstream_transfer_v1/gate_scores.jsonl.gate.json --output outputs/downstream_transfer_v1/confirmatory.jsonl
+uv run python scripts/run_downstream_transfer.py --dataset outputs/downstream_transfer_v1/confirmatory.jsonl --token-audit outputs/downstream_transfer_v1/token_audit.json --gate outputs/downstream_transfer_v1/gate_scores.jsonl.gate.json --output outputs/downstream_transfer_v1/confirmatory_scores.jsonl
+uv run python scripts/analyze_downstream_transfer.py --dataset outputs/downstream_transfer_v1/confirmatory.jsonl --scores outputs/downstream_transfer_v1/confirmatory_scores.jsonl --gate outputs/downstream_transfer_v1/gate_scores.jsonl.gate.json --output-dir outputs/downstream_transfer_v1/analysis
 ```
 
 Add each applicable supplied prior dataset as a separate --prior-dataset argument at generation. Use --resume only with the same dataset, code vocabulary, config, and output checkpoint.
 
-No model inference has been run for this experiment. The tokenizer audit must pass before development or gate scoring; its realized token lengths are recorded in the audit artifact.
+The tokenizer-only review audit passed for the pinned Qwen3 tokenizer: all 16 code labels are stable two-token continuations across 64 representative prefixes, covering both queries, both entity orientations, and stale/live edits. Run the audit command to create the sealed launch artifact; scoring checks its exact tokenizer, chat template, candidate sequences, and frozen hashes.
+
+Accuracy means that the correct code has strictly greater complete-sequence log probability than every other code; ties fail. This measures competence within the fixed candidate vocabulary. It does not by itself measure unrestricted generated-answer accuracy. Sequence scores are answer-prefix probabilities, with no termination event and no length normalization, matching the existing scorer.
+
+All four commands emit timestamped INFO logs and tqdm progress on stderr. Generation reports histories and exclusions; the tokenizer audit reports prefixes and code lengths; scoring reports checkpoint coverage and candidate forwards; analysis reports validation and history statistics. Development and gate logs contain competence and counts only. Complete checkpoints resume without loading a model, and an existing gate is verified rather than overwritten.
+
+No experiment-model inference has been run. Scientific configs, code/value vocabularies, stage seeds, counts, the primary estimand, and the 97% gate criterion are unchanged.

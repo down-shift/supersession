@@ -80,3 +80,16 @@ Some unspaced strings retokenize the encoded `Answer:` prefix. The fixed rule ex
 - Mistral spaced canonical sequences: amber [1605,1305], coral [2043,1050], jade [1229,1538], pearl [27615,29482], slate [1903,1148], teal [1479,1050], violet [1131,21114], ivory [20668,1463]. All four surface proposals and their distinct events are recorded in its map.
 - CLI help and whitespace checks passed. Llama tokenization/access, real pinned remote Phi hooks, GPU/int8 hooks, memory footprints, new semantic development, and new frozen competence gates remain unmeasured.
 - Revision 2 adds INFO logs and progress bars and changes the protocol revision/seeds; its candidate maps and gates must be regenerated at fresh paths. Shell syntax, Python compilation, CLI help, and all four config/contract matches passed after the instrumentation edit. The 190-test result above predates this instrumentation revision.
+
+## `cross_model_v1` execution outcomes recorded 2026-10-02
+
+These outcomes postdate the implementation audit above; they do not alter the historical exact-token failures or any stopped branch.
+
+- **Qwen3-8B:** the 96-history confirmatory run had `R_superseded - R_irrelevant_counterbalanced = 3.50` nats (95% history-bootstrap CI `[3.20, 3.80]`), positive in 94/96 histories. This bounded surface-class continuation-mass estimand is distinct from the earlier 4.52-logit result.
+- **Phi-4-mini:** passed the frozen semantic competence gate with rank-one accuracy 1.00 in all 64 required cells. No confirmatory causal or mechanistic result is available; the gate pass is not a causal replication.
+- **Mistral-7B-Instruct-v0.3:** failed the frozen gate: counterbalanced-irrelevant accuracy was 281/288 (97.57%), below the fixed 99% criterion. Live and superseded accuracy were 100%. Its seven counterbalanced errors were six rank-2 and one rank-3 prompts. The positive mean superseded current-over-stale semantic-mass margin (16.50) is a competence diagnostic, not causal `R`. No confirmatory or mechanistic run was generated. Multi-token candidate continuations make canonical raw-logit `R` undefined for this candidate map.
+- **Gemma 3 4B:** gate scoring was still in progress in the last recorded status; no gate decision is recorded here.
+
+The Mistral development and gate reports recompute from their score rows with valid score hashes. Four live diagnostic cells have 11 unique prompts rather than 12 because two histories rendered the same prompt; all 64 required cells are present. The gate failure is the aggregate counterbalanced-irrelevant criterion, not the duplicate prompt. The earlier `FileExistsError` was an output-path collision and is not the gate result. See `outputs/mistral7b_review2/gate_report.json` and its score provenance sidecar.
+
+No cross-model causal generalization is established by the Phi gate or the Mistral failure. Do not inspect or infer unrun causal effects. The intended claim hierarchy and evidence limits are recorded in [paper_claims.md](paper_claims.md).

@@ -92,8 +92,10 @@ def test_multitoken_complete_sequence_score():
   def __call__(self,s,add_special_tokens=False):return {'input_ids':[0] if s=='P' else ([0,1,2] if s=='PAB' else [0,1])}
  class Model:
   def parameters(self):yield torch.nn.Parameter(torch.zeros(1))
+  def get_input_embeddings(self):return torch.nn.Embedding(3,1)
   def __call__(self,input_ids,use_cache=False):
-   logits=torch.zeros((1,input_ids.shape[1],3));logits[0,0,1]=2;logits[0,1,2]=3
+   logits=torch.zeros((1,input_ids.shape[1],3));logits[0,0,1]=2
+   if input_ids.shape[1]>1:logits[0,1,2]=3
    return type('O',(),{'logits':logits})()
  score=sequence_logprob(Model(),Tok(),'P','AB')
  assert score==pytest.approx(float(torch.log_softmax(torch.tensor([0.,2.,0.]),0)[1]+torch.log_softmax(torch.tensor([0.,0.,3.]),0)[2]))
@@ -120,7 +122,7 @@ def test_frozen_vocabulary_mutation_rejected_before_confirmatory_generation(tmp_
  doc={'protocol':'downstream_transfer_v1','stage':'frozen_gate','pass':True,'dataset_path':str(dataset),'dataset_sha256':sha256_file(dataset),'scores_path':str(scores),'scores_sha256':sha256_file(scores),'template_sha256':template_hash(),'config_sha256':sha256_file(cfg),'values_sha256':sha256_file(vals),'codes_sha256':sha256_file(codes)}
  gate=tmp_path/'gate.json';gate.write_text(json.dumps(seal_artifact(doc)))
  cfg.write_text(cfg.read_text()+'# mutation\n')
- proc=subprocess.run([sys.executable,'scripts/generate_downstream_transfer.py','--stage','confirmatory','--gate',str(gate),'--config',str(cfg),'--output',str(tmp_path/'confirmation.jsonl')],capture_output=True,text=True)
+ proc=subprocess.run([sys.executable,'scripts/generate_downstream_transfer.py','--stage','confirmatory','--gate',str(gate),'--token-audit',str(tmp_path/'audit.json'),'--config',str(cfg),'--output',str(tmp_path/'confirmation.jsonl')],capture_output=True,text=True)
  assert proc.returncode!=0 and 'frozen config_sha256 changed' in proc.stderr
 
 def test_checkpoint_resumability_fingerprint(tmp_path):
@@ -136,3 +138,151 @@ def test_scoring_stage_strips_effect_fields():
  r=generate('development',24)[0]
  got=score_protocol_record(r,lambda x:{**x,'candidate_logprobs':{'K7':1},'derived_transfer':3}, {},'development')
  assert 'derived_transfer' not in got and got['causal_effects_computed'] is False
+
+
+def test_reject_duplicate_pairs_nonfinite_statistics_and_wrong_sources():
+ import copy
+ rows=generate('confirmatory',96)
+ effects={(b,q):0.0 for b in ('old_x','old_z','current_x','current_z') for q in ('current_x','current_z')}
+ scores=_scored_rows(rows,effects)
+ with pytest.raises(ValueError,match='duplicate pair direction'):
+  history_contrasts(scores+[scores[0]])
+ with pytest.raises(ValueError,match='nonfinite'):
+  summarize_histories([1.0,float('nan')])
+ broken=copy.deepcopy(rows)
+ broken[0]['source_value']=broken[0]['matching_values']['current_x']
+ with pytest.raises(ValueError,match='source/replacement'):
+  audit(broken)
+
+
+def test_gate_46_of_48_fails():
+ rows=generate('frozen_gate',24)
+ scores=[{**r,'current_code_accuracy':int(i>=2),'causal_effects_computed':False} for i,r in enumerate(rows)]
+ assert evaluate_competence_gate(rows,scores)['pass'] is False
+
+
+@pytest.fixture
+def synthetic_workflow(tmp_path,monkeypatch):
+ import re
+ import scripts.generate_downstream_transfer as generator
+ import scripts.run_downstream_transfer as runner
+ from src.experiments.downstream_transfer import frozen_metadata,write_json_create
+ from src.utils import load_config
+ config=tmp_path/'config.yaml';config.write_text(Path('configs/downstream_transfer_v1.yaml').read_text())
+ values=tmp_path/'values.json';values.write_text(Path('configs/downstream_transfer_values.json').read_text())
+ codes=tmp_path/'codes.json';codes.write_text(Path('configs/downstream_transfer_codes.json').read_text())
+ common=['--config',str(config),'--values-json',str(values),'--codes-json',str(codes)]
+ metadata=frozen_metadata(load_config(config),config,values,codes)
+ code_list=json.loads(codes.read_text());audit_path=tmp_path/'token_audit.json'
+ doc={'protocol':'downstream_transfer_v1','audit':'tokenizer_only_no_model_inference',**metadata,
+      'tokenizer_id':load_config(config)['model']['id'],'chat_template':True,
+      'continuation_prefix_stable':True,'prompts_checked':64,
+      'tokenizer_sha256':'synthetic','chat_template_sha256':'synthetic',
+      'codes':{code:{'token_ids':[i+1,20],'n_tokens':2} for i,code in enumerate(code_list)}}
+ write_json_create(audit_path,seal_artifact(doc))
+ calls=[]
+ monkeypatch.setattr(runner,'load_model',lambda c:(calls.append('load') or object(),None))
+ monkeypatch.setattr(runner,'check_tokenizer',lambda *args:None)
+ def fake_scores(model,tokenizer,prompt,candidates,audit,progress_callback=None):
+  # Synthetic oracle reads the current value and codebook; no pretrained model.
+  entity=re.search(r"Which code corresponds to (\w+)'s",prompt).group(1)
+  current=re.search(r"Later, "+entity+r"'s badge was changed to (\w+)\.",prompt).group(1)
+  codebook=dict(re.findall(r'(\w+) -> (\w+)',prompt))
+  if progress_callback:progress_callback()
+  return {code:(-1.0 if code==codebook[current] else -10.0) for code in candidates}
+ monkeypatch.setattr(runner,'score_codes',fake_scores)
+ dev=tmp_path/'development.jsonl';gate_data=tmp_path/'gate.jsonl';gate_scores=tmp_path/'gate_scores.jsonl'
+ generator.main(common+['--stage','development','--output',str(dev)])
+ generator.main(common+['--stage','frozen_gate','--output',str(gate_data),'--prior-dataset',str(dev)])
+ score_args=common+['--dataset',str(gate_data),'--token-audit',str(audit_path),'--output',str(gate_scores)]
+ runner.main(score_args)
+ return dict(root=tmp_path,common=common,config=config,values=values,codes=codes,
+             metadata=metadata,audit=audit_path,dev=dev,gate_data=gate_data,gate_scores=gate_scores,
+             gate=Path(str(gate_scores)+'.gate.json'),runner=runner,generator=generator,
+             score_args=score_args,calls=calls,fake_scores=fake_scores)
+
+
+def test_interrupted_pair_resume_complete_checkpoint_and_analysis(synthetic_workflow,monkeypatch):
+ from src.data.io import read_jsonl
+ from scripts.analyze_downstream_transfer import main as analyze
+ w=synthetic_workflow
+ initial_loads=len(w['calls'])
+ w['runner'].main(w['score_args']+['--resume'])
+ assert len(w['calls'])==initial_loads
+ confirmation=w['root']/'confirmatory.jsonl'
+ w['generator'].main(w['common']+['--stage','confirmatory','--gate',str(w['gate']),
+                      '--token-audit',str(w['audit']),'--output',str(confirmation)])
+ # No explicit development argument: its exclusion is inherited from the gate.
+ prov=json.loads(Path(str(confirmation)+'.provenance.json').read_text())
+ assert str(w['dev']) in prov['prior_dataset_paths']
+ assert prov['model_revision']==w['metadata']['model_revision']
+ scores=w['root']/'confirmatory_scores.jsonl'
+ args=w['common']+['--dataset',str(confirmation),'--gate',str(w['gate']),
+                   '--token-audit',str(w['audit']),'--output',str(scores)]
+ counts=[]
+ def interrupted(*a,**k):
+  counts.append(1)
+  if len(counts)==2:raise RuntimeError('synthetic interruption')
+  return w['fake_scores'](*a,**k)
+ monkeypatch.setattr(w['runner'],'score_codes',interrupted)
+ with pytest.raises(RuntimeError,match='synthetic interruption'):w['runner'].main(args)
+ assert len(read_jsonl(scores))==1
+ monkeypatch.setattr(w['runner'],'score_codes',w['fake_scores'])
+ w['runner'].main(args+['--resume'])
+ assert len(read_jsonl(scores))==1536
+ loads=len(w['calls']);w['runner'].main(args+['--resume'])
+ assert len(w['calls'])==loads
+ summary=analyze(w['common']+['--dataset',str(confirmation),'--scores',str(scores),
+                            '--gate',str(w['gate']),'--output-dir',str(w['root']/'analysis'),
+                            '--bootstrap-draws','20'])
+ assert summary['n_histories']==96
+ assert summary['estimands']['R_stale_derived']['mean']==pytest.approx(0)
+ assert summary['estimands']['R_live_derived']['mean']==pytest.approx(18)
+ assert summary['current_answer_stability']['delta_correct_logprob']['n_histories']==96
+ assert summary['current_answer_stability']['edited_accuracy']['mean']==pytest.approx(1)
+
+
+@pytest.mark.parametrize('artifact',['config','values','codes','audit','gate_data','gate_scores','dataset_provenance','score_provenance'])
+def test_any_frozen_file_mutation_rejected(synthetic_workflow,artifact):
+ from src.experiments.downstream_transfer import validate_gate
+ w=synthetic_workflow
+ path=(Path(str(w['gate_data'])+'.provenance.json') if artifact=='dataset_provenance' else
+       Path(str(w['gate_scores'])+'.provenance.json') if artifact=='score_provenance' else w[artifact])
+ path.write_text(path.read_text()+'\n')
+ metadata=w['metadata']
+ if artifact in ('config','values','codes'):
+  from src.experiments.downstream_transfer import frozen_metadata
+  from src.utils import load_config
+  metadata=frozen_metadata(load_config(w['config']),w['config'],w['values'],w['codes'])
+ with pytest.raises(ValueError):validate_gate(w['gate'],metadata,w['audit'])
+
+
+def test_changed_scoring_hash_rejected(synthetic_workflow):
+ from src.experiments.downstream_transfer import validate_gate
+ w=synthetic_workflow
+ with pytest.raises(ValueError,match='scoring_code_sha256'):
+  validate_gate(w['gate'],{**w['metadata'],'scoring_code_sha256':'changed'},w['audit'])
+
+
+def test_create_only_score_output_rejected_before_model_loading(synthetic_workflow):
+ w=synthetic_workflow;loads=len(w['calls'])
+ with pytest.raises(FileExistsError):w['runner'].main(w['score_args'])
+ assert len(w['calls'])==loads
+
+
+def test_gate_requires_development_exclusion(tmp_path):
+ from scripts.generate_downstream_transfer import main
+ with pytest.raises(ValueError,match='development --prior-dataset'):
+  main(['--stage','frozen_gate','--output',str(tmp_path/'gate.jsonl')])
+ assert not (tmp_path/'gate.jsonl').exists()
+
+
+def test_code_label_permutation_preserves_history_estimands():
+ rows=generate('confirmatory',96)
+ effects={(b,q):float(b[-1]==q[-1]) for b in ('old_x','old_z','current_x','current_z') for q in ('current_x','current_z')}
+ scores=_scored_rows(rows,effects)
+ codes=rows[0]['code_vocabulary'];permutation=dict(zip(codes,codes[::-1]))
+ permuted=[{**r,'codebook':{v:permutation[c] for v,c in r['codebook'].items()},
+            'candidate_logprobs':{permutation[c]:v for c,v in r['candidate_logprobs'].items()}}
+           for r in scores]
+ assert history_contrasts(scores)==history_contrasts(permuted)
