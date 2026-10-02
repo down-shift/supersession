@@ -41,8 +41,7 @@ def render(row, tokenizer=None, chat=True):
            f"Later, {z}'s badge was changed to {vals['current_z']}."]
     entity=x if row["query_id"]=="current_x" else z
     lines += [f"Codebook: "+", ".join(f"{v} -> {cb[v]}" for v in sorted(cb)),
-              f"Which code corresponds to {entity}'s current badge?",
-              "Respond with only the code, with no explanation."]
+              f"Which code corresponds to {entity}'s current badge?"]
     from src.data.supersession_behavior import _answer_prefix
     return _answer_prefix("\n".join(lines), tokenizer, chat)
 
