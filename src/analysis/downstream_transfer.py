@@ -82,7 +82,7 @@ def evaluate_competence_gate(rows,scores,threshold=.97):
         raise ValueError("frozen gate requires the frozen stage and 0.97 threshold")
     exp={r["example_id"]:r for r in rows}; got={r["example_id"]:r for r in scores}
     if len(exp)!=len(rows) or set(exp)!=set(got) or len(got)!=len(scores): raise ValueError("gate scores must exactly cover dataset")
-    groups=defaultdict(list); diag=defaultdict(list)
+    groups=defaultdict(list); unrestricted=defaultdict(list); diag=defaultdict(list)
     for eid,r in exp.items():
         s=got[eid]
         if any(s.get(k)!=v for k,v in r.items()): raise ValueError("score metadata differs")
@@ -92,8 +92,16 @@ def evaluate_competence_gate(rows,scores,threshold=.97):
         acc=s.get("current_code_accuracy")
         if acc not in (0,1): raise ValueError("invalid current code accuracy")
         groups["current"].append(acc); diag[(r["query_id"],r["orientation"])].append(acc)
-    return {"pass":len(groups["current"])>0 and float(np.mean(groups["current"]))>=threshold,"threshold":threshold,
+        generated=s.get("unrestricted_code_accuracy")
+        if generated not in (0,1) or not isinstance(s.get("unrestricted_generated_text"),str):
+            raise ValueError("missing unrestricted greedy-generation competence diagnostic")
+        unrestricted["current"].append(generated)
+    candidate_accuracy=float(np.mean(groups["current"])) if groups["current"] else 0.0
+    generated_accuracy=float(np.mean(unrestricted["current"])) if unrestricted["current"] else 0.0
+    return {"pass":len(groups["current"])>0 and candidate_accuracy>=threshold and generated_accuracy>=threshold,"threshold":threshold,
       "n":len(groups["current"]),"current_derived_code_accuracy":float(np.mean(groups["current"])),
+      "current_unrestricted_generation_accuracy":generated_accuracy,
+      "competence_rule":"candidate sequence rank and greedy unrestricted generation must each meet threshold",
       "query_orientation_diagnostics":{"|".join(map(str,k)):{"n":len(v),"accuracy":float(np.mean(v))} for k,v in sorted(diag.items())},
       "causal_effects_computed":False}
 

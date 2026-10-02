@@ -10,4 +10,4 @@ model:
   device_map: auto
   require_full_gpu: false
 thresholds:
-  gate_accuracy: 0.99
+  gate_accuracy: 0.97

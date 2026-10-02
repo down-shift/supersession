@@ -23,12 +23,14 @@ if stage=='confirmatory':
  if not a.gate: raise ValueError('confirmatory scoring requires frozen gate')
  gate=verify_sealed_artifact(json.loads(Path(a.gate).read_text()))
  if gate.get('pass') is not True: raise ValueError('invalid/failed gate seal')
-if (gate['template_sha256']!=template_hash() or gate.get('scores_sha256')!=sha256_file(gate.get('scores_path',''))
+ if (gate['template_sha256']!=template_hash() or gate.get('scores_sha256')!=sha256_file(gate.get('scores_path',''))
      or gate.get('dataset_sha256')!=sha256_file(gate.get('dataset_path',''))
      or dsprov.get('gate_sha256')!=sha256_file(a.gate)
      or gate.get('scoring_code_sha256')!=scoring_code_sha256):
   raise ValueError('gate dataset/scores/template/hash lineage changed')
 c=load_config(a.config);token_doc=json.loads(Path(a.token_ids).read_text());ids=token_doc['token_ids']
+threshold=c.get('thresholds',{}).get('gate_accuracy')
+if threshold != .97: raise ValueError('query_reactivation_v1 config must set thresholds.gate_accuracy to 0.97')
 for key in ('revision','tokenizer_revision'):
  if not re.fullmatch('[0-9a-f]{40}',str(c['model'].get(key))): raise ValueError(f'frozen query_reactivation_v1 requires immutable {key}')
  if token_doc.get(key) and token_doc[key]!=c['model'][key]: raise ValueError(f'token map {key} differs from scoring config')
@@ -60,7 +62,12 @@ if not side.exists():
   'dataset_path':str(Path(a.dataset).resolve()),'token_map_sha256':sha256_file(a.token_ids),'template_sha256':template_hash(),'scoring_code_sha256':scoring_code_sha256,
   'causal_effects_computed':stage=='confirmatory','scoring_mode':'competence_only' if stage!='confirmatory' else 'paired_baseline_counterfactual'}
  save_json(side_data,side)
-completed=read_jsonl(a.output) if Path(a.output).exists() else []; cache={r['example_id']:r for r in completed}
+completed=read_jsonl(a.output) if Path(a.output).exists() else []
+cache={r['pair_id']:r for r in completed
+       if stage=='confirmatory' and r.get('pair_direction')==0}
+for record in completed:
+ if stage=='confirmatory' and record.get('pair_direction')==1 and record.get('pair_id') not in cache:
+  raise ValueError(f"checkpoint edited member lacks baseline: {record.get('pair_id')}")
 for r in tqdm(rows,desc='query_reactivation scoring'):
  if r['example_id'] in done: continue
  s=score_protocol_record(r,lambda row:score_example(model,tok,row,ids,chat=chat,renderer=render,preserve_metadata=True),cache,stage)
@@ -68,7 +75,7 @@ for r in tqdm(rows,desc='query_reactivation scoring'):
 if stage=='frozen_gate':
  scores={r['example_id']:r for r in read_jsonl(a.output)}
  if set(scores)!={r['example_id'] for r in rows}: raise ValueError('gate scores do not exactly cover dataset')
- gate_result=evaluate_competence_gate(rows,list(scores.values()))
+ gate_result=evaluate_competence_gate(rows,list(scores.values()),threshold=threshold)
  artifact={'protocol':'query_reactivation_v1','stage':'frozen_gate',**gate_result,
   'candidate_values':rows[0]['candidate_values'],'candidate_values_sha256':candidate_values_digest(rows[0]['candidate_values']),
   'dataset_path':str(Path(a.dataset).resolve()),

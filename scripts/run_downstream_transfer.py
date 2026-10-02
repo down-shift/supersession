@@ -18,7 +18,7 @@ from src.analysis.downstream_transfer import (
     score_protocol_record, evaluate_competence_gate, validate_scores,
 )
 from src.experiments.downstream_transfer import (
-    frozen_metadata, score_codes, validate_dataset, validate_gate,
+    frozen_metadata, score_codes, generate_unrestricted_code, validate_dataset, validate_gate,
     validate_token_audit, write_json_create,
 )
 from src.models.loader import load_model
@@ -106,7 +106,13 @@ def main(argv=None):
                                  progress_callback=forwards.update)
                 accuracy = int(all(lp[row["answer_code"]] > value
                                    for code, value in lp.items() if code != row["answer_code"]))
-                return {**row, "candidate_logprobs": lp, "current_code_accuracy": accuracy}
+                result = {**row, "candidate_logprobs": lp, "current_code_accuracy": accuracy}
+                if stage in ("development", "frozen_gate"):
+                    generated = generate_unrestricted_code(model, tokenizer, prompt, codes, token_audit)
+                    generated["unrestricted_code_accuracy"] = int(
+                        generated["unrestricted_generated_code"] == row["answer_code"])
+                    result.update(generated)
+                return result
 
             for row in progress(pending, desc=f"Scoring {stage}", unit="record"):
                 try:

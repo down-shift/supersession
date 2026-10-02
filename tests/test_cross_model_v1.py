@@ -25,6 +25,20 @@ def scores_for(rows):
     return result
 
 
+def test_text_decoder_layer_count_supports_gemma_multimodal_config():
+    from src.cross_model.mechanism import text_decoder_layer_count
+
+    assert text_decoder_layer_count({'text_config': {'num_hidden_layers': 34}}) == 34
+    assert text_decoder_layer_count({'num_hidden_layers': 32}) == 32
+    # Prefer the text decoder depth when a wrapper also has a distinct top-level depth.
+    assert text_decoder_layer_count({
+        'num_hidden_layers': 4,
+        'text_config': {'num_hidden_layers': 34},
+    }) == 34
+    with pytest.raises(ValueError, match='text decoder num_hidden_layers'):
+        text_decoder_layer_count({'text_config': {}})
+
+
 def test_semantic_gate_preserves_surface_failure_as_diagnostic():
     rows = generate('frozen_gate',24); validate_dataset(rows,'frozen_gate')
     result = evaluate(rows,scores_for(rows))

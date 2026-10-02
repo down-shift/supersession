@@ -9,7 +9,8 @@ SCHEMA='query_reactivation_v1'
 SEEDS={'development':20261020,'frozen_gate':20261021,'confirmatory':20261022}
 COUNTS={'development':24,'frozen_gate':24,'confirmatory':96}
 QUERIES=('current_x','initial_x','current_z','initial_z')
-VALUES=('amber','birch','coral','denim','elm','frost','grape','hazel','indigo','jade','khaki','lilac')
+_VALUES_PATH = Path(__file__).resolve().parents[2] / 'configs/query_reactivation_values.json'
+VALUES = tuple(json.loads(_VALUES_PATH.read_text()))
 
 def template_hash():
     return hashlib.sha256(Path(__file__).read_bytes()+Path('src/data/supersession_behavior.py').read_bytes()).hexdigest()

@@ -3,15 +3,17 @@
 import argparse, json
 from pathlib import Path
 from src.data.io import read_jsonl, write_jsonl, sha256_file
-from src.data.query_reactivation import generate, template_hash, verify_sealed_artifact, verify_gate_values
+from src.data.query_reactivation import VALUES, generate, template_hash, verify_sealed_artifact, verify_gate_values
 
 p=argparse.ArgumentParser(description=__doc__); p.add_argument('--stage',choices=('development','frozen_gate','confirmatory'),required=True)
 p.add_argument('--output',required=True); p.add_argument('--n',type=int)
-p.add_argument('--values-json',default='configs/replication_values.json'); p.add_argument('--prior-dataset',action='append',default=[])
+p.add_argument('--values-json',default='configs/query_reactivation_values.json'); p.add_argument('--prior-dataset',action='append',default=[])
 p.add_argument('--gate')
 a=p.parse_args(); out=Path(a.output)
 if out.exists() or Path(str(out)+'.provenance.json').exists(): raise FileExistsError('preserve existing artifacts; choose a new path')
-values=json.loads(Path(a.values_json).read_text()); prior=[read_jsonl(x) for x in a.prior_dataset]
+values=json.loads(Path(a.values_json).read_text())
+if values != list(VALUES): raise ValueError('values file differs from the single frozen query_reactivation_v1 vocabulary')
+prior=[read_jsonl(x) for x in a.prior_dataset]
 excluded=[r for rows in prior for r in rows]
 gate=None
 if a.stage=='confirmatory':

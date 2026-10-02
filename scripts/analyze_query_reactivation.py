@@ -23,9 +23,24 @@ if a.stage=='confirmatory':
  if not side.exists(): raise ValueError('confirmatory score provenance sidecar is required')
  prov=json.loads(side.read_text())
  if prov.get('protocol')!='query_reactivation_v1' or prov.get('stage')!='confirmatory' or prov.get('dataset_sha256')!=sha256_file(prov.get('dataset_path','')): raise ValueError('confirmatory score provenance/hash mismatch')
+if a.stage=='confirmatory':
+ if any(r.get('stage')!='confirmatory' for r in behavior_all):
+  raise ValueError('confirmatory analysis requires confirmatory query_reactivation_v1 scores')
+ baseline_behavior=[r for r in behavior_all if r.get('pair_direction')==0]
+ if len(baseline_behavior)==0 or len(baseline_behavior)*2!=len(behavior_all):
+  raise ValueError('confirmatory competence summaries require exactly the baseline member of each pair')
+else:
+ baseline_behavior=behavior_all
 behavior_by_cell={}
-for r in behavior_all:
- behavior_by_cell.setdefault((r['history_id'],r['query_id']),r)
+for r in baseline_behavior:
+ key=(r['history_id'],r['query_id'])
+ previous=behavior_by_cell.get(key)
+ if previous is not None:
+  fields=('prompt','answer','full_vocab_next_token_accuracy','full_vocab_rank','generated_first_token')
+  if any(previous.get(field)!=r.get(field) for field in fields):
+   raise ValueError(f'baseline behavior differs across matched bindings: {key}')
+ else:
+  behavior_by_cell[key]=r
 behavior=list(behavior_by_cell.values()); ids={r['history_id'] for r in behavior}
 if len(behavior)!=4*len(ids): raise ValueError('behavior must contain all four unique query records per history')
 if {r['query_id'] for r in behavior}!={'current_x','initial_x','current_z','initial_z'}: raise ValueError('expected four-query behavior cells')

@@ -10,7 +10,10 @@ from src.analysis.metrics import trimmed_mean
 
 def summarize_histories(values, seed=20261002, n_boot=10000, permutation=True):
     x = np.asarray(values, dtype=float)
-    x = x[np.isfinite(x)]
+    if not np.isfinite(x).all():
+        raise ValueError("nonfinite history statistic; histories must not be silently excluded")
+    if n_boot < 1:
+        raise ValueError("bootstrap draws must be positive")
     if not len(x):
         return {"n_histories": 0, "mean": None, "median": None,
                 "trimmed_mean_10pct": None, "fraction_positive": None,
@@ -31,18 +34,25 @@ def derive_effects(pair_rows):
     """Calculate unchanged identity_transfer from saved matched logits."""
     pairs = defaultdict(dict)
     for row in pair_rows:
-        pairs[row['pair_id']][int(row['pair_direction'])] = row
+        direction = row.get('pair_direction')
+        if direction not in (0, 1) or direction in pairs[row['pair_id']]:
+            raise ValueError(f"invalid or duplicate pair direction: {row.get('pair_id')}")
+        pairs[row['pair_id']][direction] = row
     cells = defaultdict(dict)
     for pid, members in pairs.items():
         if set(members) != {0, 1}:
             raise ValueError(f"pair {pid} must contain directions 0 and 1")
         base, edit = members[0], members[1]
-        if (base['history_id'], base['edited_binding'], base['query_id']) != (edit['history_id'], edit['edited_binding'], edit['query_id']):
+        if any(base.get(k) != edit.get(k) for k in (
+                'history_id', 'edited_binding', 'query_id', 'source_value',
+                'replacement_value', 'matching_values', 'variables', 'orientation')):
             raise ValueError(f"pair {pid} changes history/binding/query")
         source, replacement = base['source_value'], base['replacement_value']
         if source == replacement:
             raise ValueError(f"pair {pid} source and replacement must differ")
         lb, le = base['candidate_logits'], edit['candidate_logits']
+        if set(lb) != set(le) or not np.isfinite(list(lb.values()) + list(le.values())).all():
+            raise ValueError(f"pair {pid} has invalid or nonfinite candidate logits")
         value = (le[replacement]-le[source])-(lb[replacement]-lb[source])
         key = (base['edited_binding'], base['query_id'])
         hid = base['history_id']
@@ -75,6 +85,8 @@ def score_protocol_record(row, raw_scorer, baseline_cache, stage):
 
 def evaluate_competence_gate(rows, scores, threshold=.97):
     """Aggregate current/historical competence; strata remain diagnostic only."""
+    if threshold != .97:
+        raise ValueError('query_reactivation_v1 frozen gate threshold is 0.97')
     expected={r['example_id']:r for r in rows}; actual={r['example_id']:r for r in scores}
     if len(expected)!=len(rows) or len(actual)!=len(scores) or set(expected)!=set(actual):
         raise ValueError('gate scores must exactly cover the dataset')

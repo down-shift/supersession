@@ -51,6 +51,17 @@ def write_json_create(path, document):
         stream.write("\n")
 
 
+def resolve_artifact_path(recorded_path, current_artifact):
+    """Resolve a saved absolute path, then a same-directory relocated artifact."""
+    recorded = Path(recorded_path)
+    if recorded.exists():
+        return recorded
+    local = Path(current_artifact).resolve().parent / recorded.name
+    if local.exists():
+        return local
+    raise FileNotFoundError(f"saved artifact is unavailable: {recorded_path} (also checked {local})")
+
+
 def candidate_events(tokenizer, prompt, codes):
     """One fixed spaced continuation per code, with complete token sequences."""
     prefix = list(tokenizer(prompt, add_special_tokens=False)["input_ids"])
@@ -82,6 +93,25 @@ def score_codes(model, tokenizer, prompt, codes, token_audit, progress_callback=
         model, tokenizer, prompt, events, progress_callback=progress_callback,
     )
     return probabilities
+
+
+def generate_unrestricted_code(model, tokenizer, prompt, codes, token_audit):
+    """Greedily generate a short answer and accept only an exact code label."""
+    import torch
+    encoded = tokenizer(prompt, return_tensors="pt", add_special_tokens=False)
+    device = model.get_input_embeddings().weight.device
+    encoded = {key: value.to(device) for key, value in encoded.items()}
+    prefix_length = encoded["input_ids"].shape[1]
+    max_new_tokens = max(4, max(entry["n_tokens"] for entry in token_audit["codes"].values()) + 2)
+    with torch.inference_mode():
+        generated = model.generate(**encoded, max_new_tokens=max_new_tokens,
+                                   do_sample=False, num_beams=1)
+    continuation = generated[0, prefix_length:]
+    text = tokenizer.decode(continuation, skip_special_tokens=True)
+    parsed = text.strip()
+    code = parsed if parsed in codes else None
+    return {"unrestricted_generated_text": text,
+            "unrestricted_generated_code": code}
 
 
 def validate_token_audit(path, config, metadata, codes):
@@ -130,9 +160,10 @@ def validate_dataset(path, metadata=None):
     own = {signature(r) for r in rows}
     has_development = False
     for prior, expected in zip(paths, hashes):
-        if sha256_file(prior) != expected:
+        resolved_prior = resolve_artifact_path(prior, path)
+        if sha256_file(resolved_prior) != expected:
             raise ValueError("supplied prior dataset changed")
-        for record in read_jsonl(prior):
+        for record in read_jsonl(resolved_prior):
             has_development |= record.get("schema") == SCHEMA and record.get("stage") == "development"
             sig = signature(record)
             if sig in own or (sig[1], sig[0], sig[3], sig[2]) in own:

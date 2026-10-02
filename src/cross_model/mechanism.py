@@ -14,6 +14,21 @@ from src.cross_model.progress import progress
 logger = logging.getLogger(__name__)
 
 
+def text_decoder_layer_count(model_config):
+    """Read decoder depth from flat or multimodal AutoConfig dictionaries."""
+    text_config = model_config.get('text_config')
+    if isinstance(text_config, dict):
+        count = text_config.get('num_hidden_layers')
+        if count is not None:
+            if type(count) is not int or count < 1:
+                raise ValueError('invalid text decoder layer count in model_config.text_config')
+            return count
+    count = model_config.get('num_hidden_layers')
+    if type(count) is not int or count < 1:
+        raise ValueError('model config has no valid text decoder num_hidden_layers')
+    return count
+
+
 def selected_pairs(rows, *, include_current=True):
     """First 12 fixed histories: 6 head discovery + 6 head reserve, never selected on R."""
     ids = sorted({r['history_id'] for r in rows})[:CONTRACT['mechanism_histories']]

@@ -8,7 +8,9 @@ from src.utils import save_json
 from src.analysis.metrics import trimmed_mean
 
 def summarize(values,seed=0,n_boot=10000,total_histories=None):
-    x=np.asarray(values,dtype=float); x=x[np.isfinite(x)]
+    x=np.asarray(values,dtype=float)
+    if not np.isfinite(x).all(): raise ValueError("nonfinite history statistic; refusing to drop histories")
+    if n_boot<1: raise ValueError("bootstrap draws must be positive")
     if not len(x): return {"n_histories":0,"fraction_of_confirmatory_histories":0.0 if total_histories else None}
     rng=np.random.default_rng(seed); boots=np.mean(rng.choice(x,(n_boot,len(x)),replace=True),axis=1)
     return {"n_histories":int(len(x)),"fraction_of_confirmatory_histories":float(len(x)/total_histories) if total_histories else None,
@@ -20,6 +22,9 @@ def per_history(frame,metric,query=None,binding=None):
     f=frame
     if query is not None: f=f[f.query_id==query]
     if binding is not None: f=f[f.edited_binding==binding]
+    dimensions=[c for c in ("edited_binding","query_id") if c in f.columns]
+    if dimensions and f.duplicated(["history_id",*dimensions]).any():
+        raise ValueError("duplicate history-level binding/query cell")
     return f.groupby("history_id")[metric].mean().to_dict()
 
 def temporal_results(frame,total_histories,seed):
@@ -68,6 +73,11 @@ behavior=read_jsonl(a.behavior); pair_rows=read_jsonl(a.pairs)
 history_ids={r["history_id"] for r in behavior}; total_histories=len(history_ids)
 if len(behavior)!=4*total_histories or any(sum(r["history_id"]==h for r in behavior)!=4 for h in history_ids):
     raise ValueError("confirmatory behavior must contain exactly four queries per history")
+if len({(r["history_id"],r["query_id"]) for r in behavior})!=len(behavior):
+    raise ValueError("duplicate history/query behavior record")
+for hid in history_ids:
+    if {r["query_id"] for r in behavior if r["history_id"]==hid}!={"current_x","current_z","initial_x","initial_z"}:
+        raise ValueError(f"history {hid} has incomplete four-query behavior")
 
 # Unedited identity activity is secondary; the matched edit contrast below is primary.
 qmap={(r["history_id"],r["query_id"]):r for r in behavior}; activation=[]
@@ -78,11 +88,21 @@ for hid in sorted(history_ids):
 pd.DataFrame(activation).to_csv(out/"query_identity_contrast.csv",index=False)
 
 grouped=collections.defaultdict(dict)
-for r in pair_rows: grouped[r["pair_id"]][int(r["pair_direction"])]=r
+for r in pair_rows:
+    direction=r.get("pair_direction")
+    if direction not in (0,1) or direction in grouped[r["pair_id"]]:
+        raise ValueError(f"invalid or duplicate pair direction: {r.get('pair_id')}")
+    grouped[r["pair_id"]][direction]=r
 effects=[]
 for pair_id,m in grouped.items():
     if set(m)!={0,1}: raise ValueError(f"pair {pair_id} must contain baseline and edited records")
     base,edit=m[0],m[1]; source=base["source_value"]; target=base["replacement_value"]
+    for key in ("history_id","edited_binding","query_id","source_value","replacement_value","matching_values","variables","orientation"):
+        if base.get(key)!=edit.get(key): raise ValueError(f"pair {pair_id} metadata differs: {key}")
+    if source==target: raise ValueError(f"pair {pair_id} source equals replacement")
+    if set(base["candidate_logits"])!=set(edit["candidate_logits"]): raise ValueError(f"pair {pair_id} candidate sets differ")
+    if not np.isfinite(list(base["candidate_logits"].values())+list(edit["candidate_logits"].values())).all():
+        raise ValueError(f"pair {pair_id} has nonfinite candidate logits")
     lb=base["candidate_logits"]; le=edit["candidate_logits"]; answer=edit["roles"]["target"]
     effects.append({"history_id":base["history_id"],"pair_id":pair_id,"edited_binding":base["edited_binding"],"query_id":base["query_id"],
        "identity_transfer":float((le[target]-le[source])-(lb[target]-lb[source])),"target_logit_change":float(le[answer]-lb[answer]),
@@ -93,6 +113,9 @@ for pair_id,m in grouped.items():
        "correct_full_vocab_rank_change":int(edit["full_vocab_rank"]-base["full_vocab_rank"]),
        "full_vocab_next_token_correct_before":int(base["full_vocab_next_token_accuracy"]),"full_vocab_next_token_correct_after":int(edit["full_vocab_next_token_accuracy"]),
        "pair_both_full_vocab_next_token_correct":int(base["full_vocab_next_token_accuracy"] and edit["full_vocab_next_token_accuracy"])})
+required={(h,b,q) for h in history_ids for b in ("old_x","old_z","current_x","current_z") for q in ("current_x","initial_x","current_z","initial_z")}
+observed={(r["history_id"],r["edited_binding"],r["query_id"]) for r in effects}
+if observed!=required or len(effects)!=len(required): raise ValueError("matched edit effects do not form the complete unique history/binding/query grid")
 ef=pd.DataFrame(effects); ef.to_csv(out/"matched_edit_effects.csv",index=False)
 
 all_temporal=temporal_results(ef,total_histories,a.seed)

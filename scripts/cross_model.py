@@ -266,8 +266,10 @@ def main():
         fresh_bundle(a.output)
         rows,_ = verify_confirmation(a.dataset,c,a.config,a.candidates)
         tok = tokenizer(c,a.local_files_only);check_tokenizer(tok,candidate)
-        from src.cross_model.mechanism import execution_plan
-        result = execution_plan(rows,tok,candidate,candidate['model_config']['num_hidden_layers'])
+        from src.cross_model.mechanism import execution_plan, text_decoder_layer_count
+        layer_count = text_decoder_layer_count(candidate['model_config'])
+        logger.info("Planning mechanism workload for %d text decoder layers", layer_count)
+        result = execution_plan(rows,tok,candidate,layer_count)
         write_new(a.output,sealed({'stage':'mechanism_plan',**result,
             'provenance':manifest(c,a.config,a.candidates,a.dataset)}))
         print(json.dumps(result,indent=2)); return
