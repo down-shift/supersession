@@ -2,13 +2,19 @@
 import math
 
 from src.cross_model.protocol import VALUES
+from src.cross_model.protocol import digest
 from src.cross_model.tokens import continuations, encode
 from src.data.supersession_behavior import render_behavior_example
 
 
 def logsumexp(values):
-    if not values or not all(math.isfinite(v) for v in values):
-        raise ValueError('nonfinite or empty likelihood class')
+    if not values or any(math.isnan(v) or v == math.inf for v in values):
+        raise ValueError('likelihood class is empty or contains NaN/+infinity')
+    # A -infinity log probability is a valid zero-mass event. Ignore it when
+    # another surface in the same semantic class has nonzero probability.
+    values = [v for v in values if v != -math.inf]
+    if not values:
+        raise ValueError('all surface events in likelihood class have zero probability (-infinity)')
     maximum = max(values)
     return maximum + math.log(sum(math.exp(v-maximum) for v in values))
 
@@ -35,6 +41,11 @@ def score_prompt(model, tokenizer, prompt, events, hook_factory=None, *, values=
     def forward(ids):
         with context(), torch.inference_mode():
             logits = model(input_ids=torch.tensor([ids], device=device), use_cache=False).logits[0].float()
+        if not torch.isfinite(logits).all():
+            bad = int((~torch.isfinite(logits)).sum().item())
+            raise ValueError(
+                f'model produced {bad} nonfinite logits for prompt_sha256={digest(prompt)} '
+                f'input_length={len(ids)}; check model compute dtype/quantization')
         if progress_callback is not None:
             progress_callback()
         return logits
@@ -52,10 +63,22 @@ def score_prompt(model, tokenizer, prompt, events, hook_factory=None, *, values=
                 positions = logits[len(prefix)-1:len(prefix)+len(ids)-1].log_softmax(-1)
                 likelihood = float(positions[torch.arange(len(ids), device=positions.device),
                                              torch.tensor(ids, device=positions.device)].sum())
+            if math.isnan(likelihood) or likelihood == math.inf:
+                raise ValueError(
+                    f'invalid continuation likelihood prompt_sha256={digest(prompt)} '
+                    f'value={value!r} surface={event["text"]!r} token_ids={ids!r} '
+                    f'log_probability={likelihood!r}')
             likelihoods.append(likelihood)
         surface_likelihoods[value] = [{'text': e['text'], 'ids': e['ids'], 'log_probability': lp}
                                       for e, lp in zip(members, likelihoods)]
-        masses[value] = logsumexp(likelihoods)
+        try:
+            masses[value] = logsumexp(likelihoods)
+        except ValueError as error:
+            event_summary = [{'text': e['text'], 'ids': e['ids'], 'log_probability': lp}
+                             for e, lp in zip(members, likelihoods)]
+            raise ValueError(
+                f'{error}; prompt_sha256={digest(prompt)} value={value!r} '
+                f'events={event_summary!r}') from error
     greedy = int(initial.argmax())
     return masses, surface_likelihoods, initial, greedy
 

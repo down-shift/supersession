@@ -91,6 +91,11 @@ def validate_config(config):
 def manifest(config, config_path, candidate_path=None, dataset_path=None):
     validate_config(config)
     result = provenance(config, dataset_path)
+    # Loader compatibility shims are recorded as separate runtime provenance by
+    # provenance(), but may be appended to the mutable config while loading a
+    # remote-code model. Keep them out of the scientific config snapshot.
+    result['config'] = json.loads(json.dumps(config))
+    result['config'].pop('transformers_compatibility_shims', None)
     from src.data.supersession_behavior import NATURAL_TEMPLATES
     result.update(prompt_template=list(NATURAL_TEMPLATES['nora_v1']),
                   scoring_config_seed=config.get('seed'),
@@ -122,6 +127,8 @@ def check_manifest(saved, config, config_path, candidate_path=None, dataset_path
     for model_config in (saved_config.get('model', {}), current_config.get('model', {})):
         for key in runtime_keys:
             model_config.pop(key, None)
+    saved_config.pop('transformers_compatibility_shims', None)
+    current_config.pop('transformers_compatibility_shims', None)
     if saved_config != current_config:
         raise ValueError('provenance mismatch: scientific config')
     for k in ('config_sha256', 'code_sha256', 'device_map', 'git_commit'):

@@ -5,7 +5,7 @@ model:
   tokenizer_id: google/gemma-3-4b-it
   tokenizer_revision: UNPINNED
   device: cuda
-  dtype: float16
+  dtype: bfloat16
   quantization: int8
   device_map: 0
   require_full_gpu: true

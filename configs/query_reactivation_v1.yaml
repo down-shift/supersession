@@ -1,0 +1,13 @@
+seed: 20261023
+model:
+  id: Qwen/Qwen3-8B
+  revision: b968826d9c46dd6066d109eabc6255188de91218
+  tokenizer_revision: b968826d9c46dd6066d109eabc6255188de91218
+  chat_template: true
+  dtype: float16
+  quantization: int8
+  attn_implementation: sdpa
+  device_map: auto
+  require_full_gpu: false
+thresholds:
+  gate_accuracy: 0.99

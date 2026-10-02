@@ -1,0 +1,82 @@
+"""Post-hoc query-reactivation analysis for existing four-query outputs.
+
+This module is explicitly exploratory: it does not change the frozen experiment.
+All aggregation and resampling units are histories.
+"""
+from collections import defaultdict
+import numpy as np
+from src.analysis.metrics import trimmed_mean
+
+
+def summarize_histories(values, seed=20261002, n_boot=10000, permutation=True):
+    x = np.asarray(values, dtype=float)
+    x = x[np.isfinite(x)]
+    if not len(x):
+        return {"n_histories": 0, "mean": None, "median": None,
+                "trimmed_mean_10pct": None, "fraction_positive": None,
+                "ci95_cluster_bootstrap": None,
+                "sign_flip_permutation_p_two_sided": None}
+    rng = np.random.default_rng(seed)
+    boot = np.mean(rng.choice(x, (n_boot, len(x)), replace=True), axis=1)
+    signs = rng.choice([-1.0, 1.0], (n_boot, len(x)))
+    p = (np.sum(np.abs(np.mean(signs*x, axis=1)) >= abs(x.mean()))+1)/(n_boot+1)
+    return {"n_histories": int(len(x)), "mean": float(x.mean()),
+            "median": float(np.median(x)), "trimmed_mean_10pct": trimmed_mean(x, .1),
+            "fraction_positive": float(np.mean(x > 0)),
+            "ci95_cluster_bootstrap": [float(np.quantile(boot, .025)), float(np.quantile(boot, .975))],
+            "sign_flip_permutation_p_two_sided": float(p) if permutation else None}
+
+
+def derive_effects(pair_rows):
+    """Calculate unchanged identity_transfer from saved matched logits."""
+    pairs = defaultdict(dict)
+    for row in pair_rows:
+        pairs[row['pair_id']][int(row['pair_direction'])] = row
+    cells = defaultdict(dict)
+    for pid, members in pairs.items():
+        if set(members) != {0, 1}:
+            raise ValueError(f"pair {pid} must contain directions 0 and 1")
+        base, edit = members[0], members[1]
+        if (base['history_id'], base['edited_binding'], base['query_id']) != (edit['history_id'], edit['edited_binding'], edit['query_id']):
+            raise ValueError(f"pair {pid} changes history/binding/query")
+        source, replacement = base['source_value'], base['replacement_value']
+        if source == replacement:
+            raise ValueError(f"pair {pid} source and replacement must differ")
+        lb, le = base['candidate_logits'], edit['candidate_logits']
+        value = (le[replacement]-le[source])-(lb[replacement]-lb[source])
+        key = (base['edited_binding'], base['query_id'])
+        hid = base['history_id']
+        if key in cells[hid]:
+            raise ValueError(f"duplicate history edit/query cell for {hid}: {key}")
+        cells[hid][key] = float(value)
+    return cells
+
+
+def history_contrasts(pair_rows):
+    cells = derive_effects(pair_rows)
+    required = [(b, q) for b in ('old_x','old_z')
+                for q in ('current_x','initial_x','current_z','initial_z')]
+    output = []
+    for hid, e in sorted(cells.items()):
+        if any(k not in e for k in required):
+            raise ValueError(f"history {hid} missing required edit/query cells")
+        old_current = .5*((e['old_x','current_x']-e['old_x','current_z'])+
+                          (e['old_z','current_z']-e['old_z','current_x']))
+        old_historical = .5*((e['old_x','initial_x']-e['old_x','initial_z'])+
+                             (e['old_z','initial_z']-e['old_z','initial_x']))
+        current_cells=[('current_x',q) for q in ('current_x','current_z')]+[('current_z',q) for q in ('current_x','current_z')]
+        current_selectivity = (.5*((e['current_x','current_x']-e['current_x','current_z'])+
+                                   (e['current_z','current_z']-e['current_z','current_x']))
+                               if all(k in e for k in current_cells) else None)
+        output.append({'history_id': hid, 'R_old_current': old_current,
+                       'R_old_historical': old_historical,
+                       'Delta_reactivate': old_historical-old_current,
+                       'R_current_binding_selectivity': current_selectivity})
+    return output
+
+
+def summarize(rows, seed=20261002, n_boot=10000):
+    keys = ('R_old_current','R_old_historical','Delta_reactivate','R_current_binding_selectivity')
+    return {'analysis_status':'POST-HOC / EXPLORATORY for existing data; fresh query_reactivation_v1 data are confirmatory only under frozen protocol',
+            'bootstrap_unit':'history_id','n_histories':len(rows),
+            'estimands':{k:summarize_histories([r[k] for r in rows if r[k] is not None],seed,n_boot) for k in keys}}
