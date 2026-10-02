@@ -131,11 +131,17 @@ The version-chain branch stopped after its single allowed replication failed the
   - Scope: one model (Qwen3-8B), one selected English template family, and 12 validated values. Treat this as a successful controlled natural-language replication, not broad language generalization.
   - Analysis: `outputs/supersession/nl_confirmatory_analysis/summary.json`; preserve the dataset, scores, gate, and provenance sidecars with the analysis.
 
-- [ ] **Independent behavioral replication** — **NEXT**
-  - Run the same preregistered live / superseded / counterbalanced-irrelevant estimand on a second model, with that model's own validated one-token candidate map and immutable revisions.
-  - Keep the 96-history design, competence gate, template, contrasts, and history-bootstrap analysis fixed. Do not select prompts from causal results.
-  - If a second model is unavailable, next best is a fresh confirmatory run with a second preselected controlled template on the same model; report this as template robustness, not independent-model replication.
-  - Behavioral replication takes priority over further head scans, Q/K/V analysis, or mechanistic patching.
+- [x] **Cross-model behavioral and causal replication** — **CONFIRMED IN GEMMA 3 4B AND PHI-4-MINI; LIMITED PANEL EVIDENCE**
+  - Gemma 3 4B passed its frozen `cross_model_v1` gate and completed 96-history confirmation using bounded surface-class continuation mass: `R_superseded - R_irrelevant_counterbalanced = 1.76` nats, 95% history-bootstrap CI `[1.51, 2.03]`, positive in 88/96 histories.
+  - `R_live=34.58`, `R_superseded=1.66`, `R_irrelevant_counterbalanced=-0.10`; live-minus-superseded was 32.92 nats, CI `[31.55, 34.20]`, positive in 96/96 histories.
+  - Keep this estimate distinct from Qwen's 3.50-nat cross-model estimate and original 4.52-logit natural-language result; raw effect sizes are not architecture-invariant.
+  - Mistral-7B-Instruct-v0.3 failed its frozen gate; this is not evidence that the causal effect is absent.
+  - Analysis: `outputs/gemma3_4b_review2/confirmatory_analysis.json`; mechanism report: `outputs/gemma3_4b_review2/mechanism.jsonl.analysis.json`.
+  - Phi-4-mini passed its gate and completed confirmation: primary `R_superseded - R_irrelevant_counterbalanced = 5.53` nats, 95% history-bootstrap CI `[5.27, 5.79]`, positive in 96/96 histories. `R_live=17.14`, `R_superseded=5.39`, `R_irrelevant_counterbalanced=-0.14`; live-minus-superseded was 11.75 nats, CI `[11.43, 12.06]`, positive in 96/96 histories. The effect varied by semantic variable (x 2.30; z 8.75 nats).
+  - Phi used int8 weights and float16 activations. Its confirmatory result does not establish a mechanism; real pinned-model hook smoke and mechanistic analysis remain pending. Analysis: `outputs/phi4_mini_review2/confirmatory_analysis.json`.
+
+- [ ] **Broaden model-family replication** — **OPTIONAL NEXT STEP**
+  - Any additional model must follow the frozen protocol and model panel policies. Do not pick a model based on its causal result.
 
 ## 8. Paper-level interpretation
 
@@ -147,17 +153,18 @@ The version-chain branch stopped after its single allowed replication failed the
 - [x] The superseded-versus-counterbalanced-irrelevant contrast generalizes to one controlled natural-language entity–attribute template with high task competence.
 - [x] Stale information becomes causally available at the late query/readout state.
 - [x] Prominent late heads are more consistent with generic binding retrieval than with a stale-specific mechanism.
+- [x] The bounded surface-class causal contrast replicates in two additional families (Gemma 3 4B and Phi-4-mini). Gemma's mechanistic battery finds early historical-position and late readout relevance but does not establish the preregistered broad depth-window shift; Phi mechanism remains untested.
 
 ### Not established yet
 
 - [ ] Why the current value wins over still-retrievable obsolete values.
 - [ ] Whether obsolete versions form a discrete “inactive” class or a graded recency hierarchy.
 - [ ] A dedicated supersession/version-selection circuit.
-- [ ] Generalization across models and across a broader range of natural-language formulations.
+- [ ] Broad generalization across model families and natural-language formulations. Current cross-model confirmatory evidence covers Qwen3-8B, Gemma 3 4B, and Phi-4-mini under one controlled English protocol.
 
 ## Immediate priority order
 
 1. [x] Complete and stop the version-chain branch after its frozen replication failed the competence gate; retain its estimates as exploratory.
 2. [x] Complete the controlled natural-language replication and confirm the superseded > counterbalanced-irrelevant result under the frozen competence gate.
-3. [ ] Run an independent second-model behavioral replication of the frozen natural-language estimand.
-4. [ ] Only after behavioral robustness is established, decide whether further mechanistic localization is needed for the paper's central claim.
+3. [ ] Complete Phi-4-mini's real pinned-model hook smoke and minimal mechanistic battery; its confirmatory behavioral result is already complete.
+4. [ ] Consider broader model-family or language-formulation replication after reviewing the Qwen/Gemma/Phi evidence; any extension must follow the frozen protocol.

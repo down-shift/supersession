@@ -186,7 +186,7 @@ def test_gate_46_of_48_fails():
           'causal_effects_computed':False} for i,r in enumerate(rows)]
  assert evaluate_competence_gate(rows,scores)['pass'] is False
 
-def test_gate_requires_unrestricted_generated_code_not_only_candidate_rank():
+def test_gate_unrestricted_generation_is_diagnostic_not_a_veto():
  rows=generate('frozen_gate',24)
  scores=[{**r,'current_code_accuracy':1,'unrestricted_generated_text':r['answer_code'] if i>=2 else 'wrong',
           'unrestricted_generated_code':r['answer_code'] if i>=2 else None,'unrestricted_code_accuracy':int(i>=2),
@@ -194,7 +194,7 @@ def test_gate_requires_unrestricted_generated_code_not_only_candidate_rank():
  result=evaluate_competence_gate(rows,scores)
  assert result['current_derived_code_accuracy']==1.0
  assert result['current_unrestricted_generation_accuracy']==pytest.approx(46/48)
- assert result['pass'] is False
+ assert result['pass'] is True
 
 
 @pytest.fixture

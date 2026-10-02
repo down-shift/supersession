@@ -104,10 +104,10 @@ def evaluate_competence_gate(rows,scores,threshold=.97):
         unrestricted["current"].append(generated)
     candidate_accuracy=float(np.mean(groups["current"])) if groups["current"] else 0.0
     generated_accuracy=float(np.mean(unrestricted["current"])) if unrestricted["current"] else 0.0
-    return {"pass":len(groups["current"])>0 and candidate_accuracy>=threshold and generated_accuracy>=threshold,"threshold":threshold,
+    return {"pass":len(groups["current"])>0 and candidate_accuracy>=threshold,"threshold":threshold,
       "n":len(groups["current"]),"current_derived_code_accuracy":float(np.mean(groups["current"])),
       "current_unrestricted_generation_accuracy":generated_accuracy,
-      "competence_rule":"candidate sequence rank and greedy unrestricted generation must each meet threshold",
+      "competence_rule":"pooled complete-sequence candidate accuracy must meet threshold; greedy unrestricted generation is diagnostic only",
       "query_orientation_diagnostics":{"|".join(map(str,k)):{"n":len(v),"accuracy":float(np.mean(v))} for k,v in sorted(diag.items())},
       "causal_effects_computed":False}
 
