@@ -1,6 +1,50 @@
 # Relational/order v2 protocol
 
-**Status: inference hold.** Design revision `factorial_relation_counterbalanced_20261003` is frozen in a fresh path. No v2 model scoring has occurred. Qwen and Phi completed tokenizer-only validation for this revision. The final-freeze Gemma validation artifact is not present in this workspace. The user reports the pinned Gemma files are available on a remote PC; that machine has not been accessed, so its files and any validation result have not been independently checked. Do not score any model until the Gemma validation artifact is available for review and all freeze/lineage checks pass. This is a repository-frozen protocol, not externally preregistered.
+## Geometry validation implementation migration (2026-10-03)
+
+The first Gemma confirmation dataset contained 96 histories / 18,432 members, but scoring stopped in `dataset_info()` before model loading. The saved geometry deduplicated identical rendered prompts while incorrectly reusing abstract `x`/`z` span labels across opposite orientations. That dataset and all earlier artifacts remain preserved under `factorial_relation_counterbalanced_20261003`.
+
+The corrected validator stores a per-example semantic-field-to-physical-span map. The unchanged scientific design is sealed as implementation revision `factorial_relation_counterbalanced_geometryfix_20261003`, with a separate config directory and output namespace. Freeze `outputs/cross_model_relational_v2/factorial_relation_counterbalanced_geometryfix_20261003_r5/protocol_freeze.json` binds the current implementation and geometry schema 2. Stage claims now include the implementation hash, preventing collisions with claims from earlier code revisions.
+
+The migration command reaudits all rows with the model tokenizer, checks candidate events, tokenizer/chat-template hashes, row semantics, and rendered prompts against the old saved score rows, and writes new dataset, geometry, score, and migration provenance files. It records source hashes, original inference revision, corrected validation revision and reason. Saved scores remain characterized as scores from their original inference run. No model is loaded by this migration command.
+
+Qwen and Phi tokenizer validations pass under the new freeze. Their candidate events, tokenizer hashes, chat-template hashes and example prompt strings match the prior candidate artifacts. Gemma tokenizer validation is not available in this local environment. The failed remote confirmation dataset has not been imported; the new exclusion ledger therefore keeps confirmation generation blocked until its original bundle is supplied and its donor-independent physical-history signatures are added. Updating that ledger requires a new freeze and fresh validation artifacts.
+
+Example migration commands for Qwen are recorded here; use the matching `gemma3_4b` config and paths after its tokenizer validation succeeds. Migrate development first, analyze it, then migrate gate against that report, analyze the gate and create preflight. Use fresh, unused paths for each command:
+
+```bash
+REV=outputs/cross_model_relational_v2/factorial_relation_counterbalanced_geometryfix_20261003_r5
+OLD=outputs/cross_model_relational_v2/factorial_relation_counterbalanced_20261003/qwen3_8b
+NEW=$REV/qwen3_8b
+CONFIG=configs/cross_model_relational_v2_geometryfix/qwen3_8b.yaml
+
+.venv/bin/python -m scripts.robustness_v2 migrate --stage development --config "$CONFIG" \
+  --candidates "$NEW/candidates.json" --original-candidates "$OLD/candidates.json" \
+  --dataset "$OLD/development.jsonl" --scores "$OLD/development_scores.jsonl" \
+  --output "$NEW/migrated/development.jsonl" --local-files-only
+.venv/bin/python -m scripts.robustness_v2 analyze --stage development --config "$CONFIG" \
+  --candidates "$NEW/candidates.json" --dataset "$NEW/migrated/development.jsonl" \
+  --scores "$NEW/migrated/development.jsonl.scores.jsonl" \
+  --output "$NEW/migrated/development_report.json"
+.venv/bin/python -m scripts.robustness_v2 migrate --stage frozen_gate --config "$CONFIG" \
+  --candidates "$NEW/candidates.json" --original-candidates "$OLD/candidates.json" \
+  --dataset "$OLD/gate.jsonl" --scores "$OLD/gate_scores.jsonl" \
+  --prior-dataset "$NEW/migrated/development.jsonl" \
+  --development-report "$NEW/migrated/development_report.json" \
+  --output "$NEW/migrated/gate.jsonl" --local-files-only
+.venv/bin/python -m scripts.robustness_v2 analyze --stage frozen_gate --config "$CONFIG" \
+  --candidates "$NEW/candidates.json" --dataset "$NEW/migrated/gate.jsonl" \
+  --scores "$NEW/migrated/gate.jsonl.scores.jsonl" \
+  --development-report "$NEW/migrated/development_report.json" \
+  --output "$NEW/migrated/gate_report.json"
+.venv/bin/python -m scripts.robustness_v2 preflight --config "$CONFIG" \
+  --candidates "$NEW/candidates.json" --gate "$NEW/migrated/gate_report.json" \
+  --output "$NEW/migrated/preflight.json"
+```
+
+The Qwen and Phi migrations were validated from saved development/gate scores. Their recomputed development and gate evaluations exactly match the original reports. Qwen's migrated gate passes; Phi's migrated gate still fails `entity_mention` competence and remains ineligible. Qwen's migrated preflight passes. Gemma saved-stage migration awaits tokenizer-only validation on a machine with the pinned tokenizer. Confirmation for every model remains held until the failed Gemma attempt history is imported, excluded in a new freeze, and that freeze's audit prerequisites are satisfied.
+
+**Archived status for the original freeze:** `factorial_relation_counterbalanced_20261003` was the initial corrected design revision. Development and gate scoring did occur for Qwen, Gemma and Phi. Confirmation scoring did not occur; the reported Gemma confirmation attempt stopped before model loading. Its failed dataset was generated under that earlier freeze. The original Gemma final-freeze candidate/validation artifacts remain unavailable in this workspace; no remote host was accessed. The active implementation freeze and current hold are described above. This is a repository-frozen protocol, not externally preregistered.
 
 The earlier `relational_order_correction_20261003` freeze and the intermediate `factorial_coherent_controls_20261003` preparation freeze, candidate maps and previews remain unchanged. Qwen and Phi development datasets in the earlier directory cite the first freeze and are not valid development evidence for this design. The intermediate candidate maps cite a relation-confounded fractional allocation and are not valid for this final freeze. All partial outputs remain preserved. A read-only process check found no active Qwen/Phi v2 jobs on 2026-10-03.
 

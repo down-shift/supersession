@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Separately frozen relational stages and read-only archived v1 reanalysis."""
 import argparse
+import copy
 import json
 import logging
 from datetime import datetime, timezone
@@ -108,7 +109,7 @@ def prior_paths(args):
 
 def claim_stage(config, stage, output):
     key = digest({'model': config['model']['id'], 'revision': config['model']['revision'],
-                  'contract': design.CONTRACT})[:16]
+                  'contract': design.CONTRACT, 'implementation_sha256': design.code_hash()})[:16]
     path = Path('outputs/cross_model_relational_v2/stage_claims') / key / f'{stage}.json'
     write_new(path, sealed({'stage': stage, 'dataset_path': str(Path(output).resolve()),
                             'model': config['model'], 'contract_sha256': digest(design.CONTRACT)}))
@@ -124,6 +125,113 @@ def register_shared_histories(histories, stage):
     else:
         write_new(path, sealed(value))
     return {'path': str(path.resolve()), 'sha256': sha256_file(path)}
+
+
+def migrate_saved_stage(args, config, candidate):
+    """Rebind unchanged saved competence rows to corrected geometry, without inference."""
+    if args.stage not in ('development', 'frozen_gate') or not args.dataset or not args.scores:
+        raise ValueError('migration requires a development or frozen_gate dataset and saved scores')
+    fresh_bundle(args.output)
+    for suffix in ('.geometry.json', '.provenance.json', '.scores.jsonl',
+                   '.scores.jsonl.provenance.json', '.migration.json'):
+        if Path(args.output + suffix).exists():
+            raise FileExistsError(args.output + suffix)
+    old_dataset, old_scores = Path(args.dataset), Path(args.scores)
+    old_info = read_sealed(str(old_dataset) + '.provenance.json')
+    old_score_info = read_sealed(str(old_scores) + '.provenance.json')
+    old_rows, old_scored = read_jsonl(old_dataset), read_jsonl(old_scores)
+    histories = data._history_definitions(args.stage)
+    rows = [data._member(h, *cell) for h in histories for cell in sorted(data.required_cells())]
+    data.audit_structure(histories, rows)
+    if len(old_rows) != len(rows) or {r['example_id'] for r in old_rows} != {r['example_id'] for r in rows}:
+        raise ValueError('saved stage rows do not match corrected fixed-seed history allocation')
+    expected = {r['example_id']: r for r in rows}
+    for old in old_rows:
+        current = copy.deepcopy(old)
+        current['design_revision'] = data.DESIGN_REVISION
+        if current != expected[old['example_id']]:
+            raise ValueError('saved stage semantics differ from corrected fixed-seed rows')
+    tok = tokenizer(config, args.local_files_only)
+    check_tokenizer(tok, candidate)
+    audit = token_audit(tok, rows)
+    if audit['events'] != candidate['events']:
+        raise ValueError('migration tokenizer events differ from the validated candidate map')
+    if audit['events'] != read_sealed(args.original_candidates)['events']:
+        raise ValueError('migration candidate events differ from original inference candidate map')
+    old_candidate = read_sealed(args.original_candidates)
+    for key in ('tokenizer_sha256', 'chat_template_sha256'):
+        if candidate[key] != old_candidate[key] or audit[key] != old_candidate[key]:
+            raise ValueError(f'migration {key} differs from original inference candidate map')
+    if len(old_scored) != len(rows):
+        raise ValueError('saved score member count differs from migrated dataset')
+    old_by_id = {r['example_id']: r for r in old_scored}
+    if len(old_by_id) != len(old_scored) or set(old_by_id) != set(expected):
+        raise ValueError('saved scores have duplicate or missing members')
+    migrated_scores = []
+    for example_id, row in expected.items():
+        score = old_by_id[example_id]
+        current = copy.deepcopy(score)
+        for key, value in row.items():
+            current[key] = value
+        if current.get('prompt') != data.render(row, tok, True):
+            raise ValueError('saved scored prompt differs from corrected rendered prompt')
+        migrated_scores.append(current)
+    from src.cross_model.score_checks import checked_scores
+    checked_scores(rows, migrated_scores, require_surfaces=True)
+
+    output = Path(args.output)
+    output.parent.mkdir(parents=True, exist_ok=True)
+    with output.open('x', encoding='utf8') as handle:
+        for row in rows:
+            handle.write(json.dumps(row, sort_keys=True) + '\n')
+    geometry_path = str(output) + '.geometry.json'
+    write_new(geometry_path, sealed(audit['token_span_geometry']))
+    prior_paths = [str(Path(p).resolve()) for p in args.prior_dataset]
+    history_signatures = data.disjoint(rows, prior_paths)
+    registry = register_shared_histories(histories, args.stage)
+    info = {'stage': args.stage, 'freeze_path': candidate['freeze_path'],
+            'freeze_sha256': candidate['freeze_sha256'], 'history_signatures': history_signatures,
+            'prior_datasets': [{'path': p, 'sha256': sha256_file(p)} for p in prior_paths],
+            'shared_history_registry': registry, 'geometry_path': str(Path(geometry_path).resolve()),
+            'geometry_sha256': sha256_file(geometry_path),
+            'edit_audit': audit['edit_audit'], 'exhaustive_slot_audit': audit['exhaustive_slot_audit'],
+            'tokenizer_sha256': candidate['tokenizer_sha256'],
+            'chat_template_sha256': candidate['chat_template_sha256'],
+            'migration': {'original_dataset_path': str(old_dataset.resolve()),
+                'original_dataset_sha256': sha256_file(old_dataset),
+                'original_geometry_path': old_info.get('geometry_path'),
+                'original_geometry_sha256': old_info.get('geometry_sha256'),
+                'original_score_path': str(old_scores.resolve()),
+                'original_score_sha256': sha256_file(old_scores),
+                'original_score_provenance_sha256': sha256_file(str(old_scores)+'.provenance.json'),
+                'original_freeze_sha256': old_info.get('freeze_sha256'),
+                'original_inference_revision': old_score_info['provenance']['model_revision'],
+                'corrected_validation_revision': data.DESIGN_REVISION,
+                'corrected_freeze_sha256': candidate['freeze_sha256'],
+                'reason': 'correct abstract semantic span labels when physical prompts are shared across opposite orientations'},
+            'provenance': design.manifest(config, args.config, args.candidates, str(output))}
+    if args.stage == 'frozen_gate':
+        if not args.development_report:
+            raise ValueError('gate migration requires the corrected development report')
+        info.update(development_report_path=str(Path(args.development_report).resolve()),
+                    development_report_sha256=sha256_file(args.development_report))
+    claim_stage(config, args.stage, str(output))
+    write_new(str(output)+'.provenance.json', sealed(info))
+
+    migrated_score_path = Path(args.output + '.scores.jsonl')
+    with migrated_score_path.open('x', encoding='utf8') as handle:
+        for score in migrated_scores:
+            handle.write(json.dumps(score, sort_keys=True) + '\n')
+    write_new(str(migrated_score_path)+'.provenance.json', sealed({
+        'stage': args.stage, 'scores_sha256': sha256_file(migrated_score_path),
+        'provenance': design.manifest(config, args.config, args.candidates, str(output)),
+        'migration': info['migration'], 'original_inference_provenance': old_score_info['provenance']}))
+    write_new(args.output + '.migration.json', sealed({'migration': info['migration'],
+        'migrated_dataset_sha256': sha256_file(output),
+        'migrated_geometry_sha256': sha256_file(geometry_path),
+        'migrated_scores_sha256': sha256_file(migrated_score_path)}))
+    print(json.dumps({'stage': args.stage, 'members': len(rows), 'status': 'migrated_saved_scores_no_inference',
+                      'dataset': str(output), 'scores': str(migrated_score_path)}))
 
 
 def generate_stage(args, config, candidate):
@@ -244,15 +352,18 @@ def score_stage(args, config, candidate):
 def main():
     configure_logging()
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('command', choices=['preview', 'audit', 'freeze', 'validate', 'generate', 'score',
+    parser.add_argument('command', choices=['preview', 'audit', 'freeze', 'validate', 'generate', 'score', 'migrate',
                                             'analyze', 'preflight', 'plan', 'reanalyze'])
     parser.add_argument('--stage', choices=list(data.COUNTS))
     parser.add_argument('--config'); parser.add_argument('--candidates'); parser.add_argument('--freeze')
     parser.add_argument('--audit'); parser.add_argument('--v1-provenance')
     parser.add_argument('--dataset'); parser.add_argument('--scores'); parser.add_argument('--output', required=True)
     parser.add_argument('--development-report'); parser.add_argument('--gate'); parser.add_argument('--preflight')
+    parser.add_argument('--original-candidates')
     parser.add_argument('--prior-dataset', action='append', default=[])
     parser.add_argument('--local-files-only', action='store_true'); parser.add_argument('--resume', action='store_true')
+    parser.add_argument('--design-only', action='store_true',
+                        help='audit the frozen seeded prompt construction without claiming a fresh stage dataset')
     args = parser.parse_args()
     if args.resume and args.command != 'score':
         parser.error('--resume applies only to scoring')
@@ -274,7 +385,9 @@ def main():
         if args.stage == 'confirmatory':
             raise ValueError('confirmation preview generation is blocked until a passing recomputed gate; use generate with config/candidates/gate/preflight')
         fresh_bundle(args.output)
-        priors = prior_paths(args)
+        if args.design_only and args.command != 'audit':
+            parser.error('--design-only applies only to audit')
+        priors = [] if args.design_only else prior_paths(args)
         report = prompt_audit(args.stage, priors)
         if args.command == 'audit':
             write_new(args.output, sealed(report))
@@ -293,7 +406,7 @@ def main():
             raise ValueError('reviewed development prompt audit differs from the corrected design')
         configs = {}
         for slug in design.MODEL_SETTINGS:
-            path = f'configs/cross_model_relational_v2_factorial_final/{slug}.yaml'
+            path = f'configs/cross_model_relational_v2_geometryfix/{slug}.yaml'
             config = load_config(path)
             configs[slug] = {'path': path, 'sha256': sha256_file(path), 'config': config,
                              'original_v1_lineage': design.verify_v1_lineage(config)}
@@ -335,11 +448,15 @@ def main():
     candidate = load_candidate(args, config)
     if args.command == 'generate':
         generate_stage(args, config, candidate)
-    elif args.command in ('score', 'plan'):
+    elif args.command in ('score', 'plan', 'migrate'):
         if not args.dataset:
             parser.error('--dataset is required')
         if args.command == 'score':
             score_stage(args, config, candidate)
+        elif args.command == 'migrate':
+            if not args.original_candidates:
+                parser.error('--original-candidates required for migration')
+            migrate_saved_stage(args, config, candidate)
         else:
             rows, info = dataset_info(args.dataset, config, args.config, args.candidates, design=design)
             tok = tokenizer(config, args.local_files_only)

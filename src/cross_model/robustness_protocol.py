@@ -19,6 +19,7 @@ GATE = {'scope': 'unique prompts within each of six focal conditions; full facto
         'semantic_accuracy_min': .99, 'candidate_rank_policy': 'strict rank one; ties incorrect; mean rank diagnostic only',
         'mean_current_minus_stale_min': 0.0, 'stale_margin_conditions': ['superseded']}
 CONTRACT = {'protocol': VERSION, 'design_revision': DESIGN_REVISION, 'causal_protocol': CAUSAL_VERSION,
+            'token_geometry_schema': 2,
             'values': VALUES, 'seeds': SEEDS, 'counts': COUNTS, 'validation_histories': 4,
             'conditions': list(CONDITIONS), 'gate': GATE, 'template': 'nora_relational_v2',
             'rendering': RENDERING, 'attributes': list(ATTRIBUTES),
@@ -110,7 +111,7 @@ def code_hash():
         Path('src/analysis/metrics.py'), Path('src/models/loader.py'), Path('src/utils.py'),
         Path('src/data/progress.py'), Path('scripts/robustness_v2.py')]
     paths.append(Path('scripts/run_relational_robustness.sh'))
-    paths.append(Path('configs/cross_model_relational_v2_factorial_final/prior_history_exclusions.json'))
+    paths.append(Path('configs/cross_model_relational_v2_geometryfix/prior_history_exclusions.json'))
     return v1.digest({str(p): sha256_file(p) for p in paths})
 
 
@@ -254,6 +255,19 @@ def verify_dataset_info(rows, info):
     if sha256_file(geometry_path) != info['geometry_sha256']:
         raise ValueError('dataset value/entity token geometry changed')
     geometry = v1.read_sealed(geometry_path)
+    verify_geometry_rows(rows, geometry)
+    registry = info['shared_history_registry']
+    registry_path = local_artifact_path(registry['path'])
+    if sha256_file(registry_path) != registry['sha256']:
+        raise ValueError('shared-history registry hash changed')
+    saved = v1.read_sealed(registry_path)
+    if (saved['stage'] != info['stage'] or saved['contract_sha256'] != v1.digest(CONTRACT)
+            or {h['concrete_signature'] for h in saved['histories']} != {concrete_signature(r) for r in rows}):
+        raise ValueError('dataset differs from shared model-independent histories')
+
+
+def verify_geometry_rows(rows, geometry):
+    """Validate deduplicated physical spans against each row's semantic labels."""
     if set(geometry['example_to_prompt_sha256']) != {r['example_id'] for r in rows}:
         raise ValueError('token geometry does not cover every dataset member')
     if set(geometry.get('example_to_span_key', {})) != {r['example_id'] for r in rows}:
@@ -281,11 +295,3 @@ def verify_dataset_info(rows, info):
             raise ValueError('geometry span texts differ from semantic values/entities')
     if set(geometry['by_prompt_sha256']) != set(geometry['example_to_prompt_sha256'].values()):
         raise ValueError('token geometry contains missing or extraneous prompts')
-    registry = info['shared_history_registry']
-    registry_path = local_artifact_path(registry['path'])
-    if sha256_file(registry_path) != registry['sha256']:
-        raise ValueError('shared-history registry hash changed')
-    saved = v1.read_sealed(registry_path)
-    if (saved['stage'] != info['stage'] or saved['contract_sha256'] != v1.digest(CONTRACT)
-            or {h['concrete_signature'] for h in saved['histories']} != {concrete_signature(r) for r in rows}):
-        raise ValueError('dataset differs from shared model-independent histories')

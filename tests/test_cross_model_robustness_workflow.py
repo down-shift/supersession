@@ -19,7 +19,7 @@ def lineage(tmp_path, monkeypatch):
     # Geometry itself is exercised with exact toy offsets in the tokenizer tests;
     # this fixture tests sealed stage bindings and recomputed eligibility.
     monkeypatch.setattr(design, 'verify_dataset_info', lambda rows, info: None)
-    config_path = 'configs/cross_model_relational_v2_factorial_final/qwen3_8b.yaml'
+    config_path = 'configs/cross_model_relational_v2_geometryfix/qwen3_8b.yaml'
     config = load_config(config_path)
     candidate = tmp_path/'candidates.json'
     write_new(candidate, sealed({'fixture': 'synthetic candidate map; no weights or inference'}))
@@ -135,7 +135,77 @@ def test_same_prompt_opposite_orientation_maps_semantic_slots_by_physical_span()
         'initial_x': 'initial_z', 'initial_z': 'initial_x', 'queried_entity': 'queried_entity'}
 
 
+class CharacterOffsetTokenizer:
+    chat_template = 'fixture-template'
+
+    class Backend:
+        @staticmethod
+        def to_str():
+            return 'character-offset-fixture'
+
+    backend_tokenizer = Backend()
+
+    def __call__(self, text, add_special_tokens=False, return_offsets_mapping=False):
+        result = {'input_ids': [ord(ch) for ch in text]}
+        if return_offsets_mapping:
+            result['offset_mapping'] = [(i, i + 1) for i in range(len(text))]
+        return result
+
+    @staticmethod
+    def apply_chat_template(messages, tokenize=False, add_generation_prompt=True, enable_thinking=False):
+        return '<user>' + messages[0]['content'] + '<assistant>'
+
+
+def _opposite_orientation_members():
+    history = data._history_definitions('validation')[0]
+    other = copy.deepcopy(history)
+    def swap_suffix(key):
+        if key.endswith('_x'):
+            return key[:-1] + 'z'
+        if key.endswith('_z'):
+            return key[:-1] + 'x'
+        return key
+    other['history_id'] += ':opposite'
+    other['variables'] = history['variables'][::-1]
+    other['orientation'] = 1 - history['orientation']
+    other['allocation_cell']['orientation'] = other['orientation']
+    other['matching_values'] = {swap_suffix(k): v for k, v in history['matching_values'].items()}
+    other['replacement_values'] = {swap_suffix(k): v for k, v in history['replacement_values'].items()}
+    first = data._member(history, 'superseded', 0, 0, 'x', 'x', 0)
+    second = data._member(other, 'superseded', 1, 1, 'z', 'z', 0)
+    return first, second
+
+
+def test_opposite_orientation_identical_prompts_record_and_validate_geometry(monkeypatch):
+    row, opposite = _opposite_orientation_members()
+    tok = CharacterOffsetTokenizer()
+    assert row['orientation'] != opposite['orientation']
+    assert data.render(row, tok, True) == data.render(opposite, tok, True)
+    monkeypatch.setattr(cli, 'validate_tokens', lambda *a, **k: {})
+    geometry = cli.token_audit(tok, [row, opposite])['token_span_geometry']
+    assert len(geometry['by_prompt_sha256']) == 1
+    assert geometry['example_to_span_key'][row['example_id']]['initial_x'] == 'initial_x'
+    assert geometry['example_to_span_key'][opposite['example_id']]['initial_x'] == 'initial_z'
+    design.verify_geometry_rows([row, opposite], geometry)
+
+
+def test_geometry_validation_rejects_incorrect_semantic_text(monkeypatch):
+    row, _ = _opposite_orientation_members()
+    tok = CharacterOffsetTokenizer()
+    monkeypatch.setattr(cli, 'validate_tokens', lambda *a, **k: {})
+    geometry = cli.token_audit(tok, [row])['token_span_geometry']
+    wrong = copy.deepcopy(row)
+    wrong['semantic_values']['initial_x'] = 'WRONG'
+    with pytest.raises(ValueError, match='geometry span texts differ'):
+        design.verify_geometry_rows([wrong], geometry)
+
+
 def test_same_prompt_span_mapping_rejects_nonidentical_geometry():
     span = {'char_start': 10, 'char_end': 15, 'text': 'coral'}
     with pytest.raises(ValueError, match='inconsistent semantic span geometry'):
         cli.map_span_fields({'initial_x': span}, {'initial_x': {**span, 'char_start': 11}})
+
+
+def test_confirmation_generation_stays_held_while_failed_attempt_is_unrecorded():
+    with pytest.raises(ValueError, match='failed Gemma attempt histories'):
+        data.generate('confirmatory')

@@ -9,7 +9,7 @@ from src.cross_model.protocol import VALUES, digest
 from src.data.supersession_behavior import FIELDS, _answer_prefix, _derived
 
 VERSION = 'cross_model_relational_v2'
-DESIGN_REVISION = 'factorial_relation_counterbalanced_20261003'
+DESIGN_REVISION = 'factorial_relation_counterbalanced_geometryfix_20261003'
 COUNTS = {'development': 24, 'frozen_gate': 24, 'confirmatory': 96}
 SEEDS = {'validation': 20261030, 'development': 20261031,
          'frozen_gate': 20261101, 'confirmatory': 20261102}
@@ -35,7 +35,7 @@ ALLOCATION_TABLES = {'development': FRACTIONAL_ALLOCATION,
                      'frozen_gate': FRACTIONAL_ALLOCATION,
                      'confirmatory': CONFIRMATION_ALLOCATION}
 ROWS_PER_HISTORY = 6 * 2 * 2 * 2 * 2 * 2
-EXCLUSION_LEDGER = Path(__file__).resolve().parents[2] / 'configs/cross_model_relational_v2_factorial_final/prior_history_exclusions.json'
+EXCLUSION_LEDGER = Path(__file__).resolve().parents[2] / 'configs/cross_model_relational_v2_geometryfix/prior_history_exclusions.json'
 RENDERING = {
     'historical_assignment': 'Previously, {entity}’s {attribute} was {value}.',
     'current_assignment': 'Currently, {entity}’s {attribute} is {value}.',
@@ -154,6 +154,9 @@ def _member(h, condition, historical_order, current_order, edited_variable, quer
 
 def generate(stage, prior_paths=()):
     """Return fixed histories and the complete 192-member product per history."""
+    ledger = json.loads(EXCLUSION_LEDGER.read_text())
+    if stage == 'confirmatory' and ledger.get('confirmation_migration_hold'):
+        raise ValueError('confirmation held: failed Gemma attempt histories must be audited and added to this revision exclusion ledger')
     histories = _history_definitions(stage)
     current = {h['concrete_signature'] for h in histories}
     # Stage IDs alone are never the freshness test. Do not retry seeds on overlap.
