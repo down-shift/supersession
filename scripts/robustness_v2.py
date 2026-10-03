@@ -406,7 +406,7 @@ def main():
             raise ValueError('reviewed development prompt audit differs from the corrected design')
         configs = {}
         for slug in design.MODEL_SETTINGS:
-            path = f'configs/cross_model_relational_v2_geometryfix/{slug}.yaml'
+            path = f'configs/cross_model_relational_v2_geometryfix_exclusions/{slug}.yaml'
             config = load_config(path)
             configs[slug] = {'path': path, 'sha256': sha256_file(path), 'config': config,
                              'original_v1_lineage': design.verify_v1_lineage(config)}

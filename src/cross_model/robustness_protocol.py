@@ -111,7 +111,7 @@ def code_hash():
         Path('src/analysis/metrics.py'), Path('src/models/loader.py'), Path('src/utils.py'),
         Path('src/data/progress.py'), Path('scripts/robustness_v2.py')]
     paths.append(Path('scripts/run_relational_robustness.sh'))
-    paths.append(Path('configs/cross_model_relational_v2_geometryfix/prior_history_exclusions.json'))
+    paths.append(Path('configs/cross_model_relational_v2_geometryfix_exclusions/prior_history_exclusions.json'))
     return v1.digest({str(p): sha256_file(p) for p in paths})
 
 

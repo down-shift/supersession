@@ -19,7 +19,7 @@ def lineage(tmp_path, monkeypatch):
     # Geometry itself is exercised with exact toy offsets in the tokenizer tests;
     # this fixture tests sealed stage bindings and recomputed eligibility.
     monkeypatch.setattr(design, 'verify_dataset_info', lambda rows, info: None)
-    config_path = 'configs/cross_model_relational_v2_geometryfix/qwen3_8b.yaml'
+    config_path = 'configs/cross_model_relational_v2_geometryfix_exclusions/qwen3_8b.yaml'
     config = load_config(config_path)
     candidate = tmp_path/'candidates.json'
     write_new(candidate, sealed({'fixture': 'synthetic candidate map; no weights or inference'}))
@@ -206,6 +206,18 @@ def test_same_prompt_span_mapping_rejects_nonidentical_geometry():
         cli.map_span_fields({'initial_x': span}, {'initial_x': {**span, 'char_start': 11}})
 
 
-def test_confirmation_generation_stays_held_while_failed_attempt_is_unrecorded():
-    with pytest.raises(ValueError, match='failed Gemma attempt histories'):
-        data.generate('confirmatory')
+def test_failed_gemma_histories_are_recorded_in_new_exclusion_revision():
+    import json
+
+    ledger = json.loads(data.EXCLUSION_LEDGER.read_text())
+    record = ledger['resolved_confirmation_exclusion']
+    assert not ledger['confirmation_migration_hold']
+    assert ledger['design_revision'] == data.DESIGN_REVISION
+    assert record['model'] == 'gemma3_4b'
+    assert record['stage'] == 'confirmatory'
+    assert record['histories'] == 96
+    assert record['members'] == 18_432
+    assert record['score_file_present'] is False
+    assert record['score_stage_status'] == 'geometry span texts differ from semantic values/entities'
+    assert record['physical_signature_count'] == 96
+    assert len(record['physical_signatures']) == len(set(record['physical_signatures'])) == 96

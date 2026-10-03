@@ -9,7 +9,7 @@ from src.cross_model.protocol import VALUES, digest
 from src.data.supersession_behavior import FIELDS, _answer_prefix, _derived
 
 VERSION = 'cross_model_relational_v2'
-DESIGN_REVISION = 'factorial_relation_counterbalanced_geometryfix_20261003'
+DESIGN_REVISION = 'factorial_relation_counterbalanced_geometryfix_exclusions_20261003'
 COUNTS = {'development': 24, 'frozen_gate': 24, 'confirmatory': 96}
 SEEDS = {'validation': 20261030, 'development': 20261031,
          'frozen_gate': 20261101, 'confirmatory': 20261102}
@@ -35,7 +35,7 @@ ALLOCATION_TABLES = {'development': FRACTIONAL_ALLOCATION,
                      'frozen_gate': FRACTIONAL_ALLOCATION,
                      'confirmatory': CONFIRMATION_ALLOCATION}
 ROWS_PER_HISTORY = 6 * 2 * 2 * 2 * 2 * 2
-EXCLUSION_LEDGER = Path(__file__).resolve().parents[2] / 'configs/cross_model_relational_v2_geometryfix/prior_history_exclusions.json'
+EXCLUSION_LEDGER = Path(__file__).resolve().parents[2] / 'configs/cross_model_relational_v2_geometryfix_exclusions/prior_history_exclusions.json'
 RENDERING = {
     'historical_assignment': 'Previously, {entity}’s {attribute} was {value}.',
     'current_assignment': 'Currently, {entity}’s {attribute} is {value}.',
