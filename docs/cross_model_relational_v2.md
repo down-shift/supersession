@@ -8,41 +8,44 @@ The corrected validator stores a per-example semantic-field-to-physical-span map
 
 The migration command reaudits all rows with the model tokenizer, checks candidate events, tokenizer/chat-template hashes, row semantics, and rendered prompts against the old saved score rows, and writes new dataset, geometry, score, and migration provenance files. It records source hashes, original inference revision, corrected validation revision and reason. Saved scores remain characterized as scores from their original inference run. No model is loaded by this migration command.
 
-Under the exclusion freeze, Qwen and Phi tokenizer-only validation completed locally with 528 surface continuations, 384 edit pairs, 768 candidate substitutions and 768 span mappings per model. Their migrated saved development and gate score evaluations exactly match their original reports. Qwen's recomputed gate passes and preflight passes; Phi's gate fails `entity_mention` semantic accuracy and remains ineligible. Gemma's prior r5 tokenizer validation does not bind to this exclusion freeze. Revalidate Gemma against the exclusion freeze on the machine with its pinned tokenizer. No scoring or confirmation generation has run under the exclusion freeze.
+Under the exclusion freeze, Qwen and Phi tokenizer-only validation completed locally; Gemma's validation artifact was produced on the machine with its pinned tokenizer and copied here. All three artifacts bind to the exclusion freeze. Gemma passes the surface, paired-edit, exhaustive substitution and geometry checks: 5,376 substitutions, 384 edit pairs, 768 example mappings over 528 deduplicated prompts. Its events, tokenizer hash and chat-template hash match the prior Gemma candidate map. Qwen, Phi and Gemma saved development/gate score evaluations were migrated and exactly match their earlier reports. Qwen and Gemma's recomputed gates and preflights pass; Phi's gate fails `entity_mention` accuracy and has no successful preflight. Qwen's 96-history confirmation dataset was generated and validated, but the first score startup stopped before model loading because the gate provenance records Python 3.13.5 while that invocation used Python 3.12.13. A later uv check with Python 3.13.5 and the model extra reported matching runtime and available CUDA; confirmation scoring and analysis are still pending. Gemma confirmation data has not been generated.
 
-Example migration commands for Qwen are recorded here; use the matching `gemma3_4b` config and paths after its tokenizer validation succeeds. Migrate development first, analyze it, then migrate gate against that report, analyze the gate and create preflight. Use fresh, unused paths for each command:
+Example migration commands for Qwen are recorded here; use the matching `gemma3_4b` config and paths for Gemma. Migrate development first, analyze it, then migrate gate against that report, analyze the gate and create preflight. Use fresh, unused paths for each command. The Qwen migration provenance records Python 3.13.5, so these commands use its own uv environment and include the `model` extra:
 
 ```bash
+# Completed on 2026-10-04; outputs already exist. Do not rerun at these paths.
 REV=outputs/cross_model_relational_v2/factorial_relation_counterbalanced_geometryfix_exclusions_20261003
 OLD=outputs/cross_model_relational_v2/factorial_relation_counterbalanced_20261003/qwen3_8b
 NEW=$REV/qwen3_8b
 CONFIG=configs/cross_model_relational_v2_geometryfix_exclusions/qwen3_8b.yaml
+export UV_PROJECT_ENVIRONMENT=.venv
+uv sync --frozen --extra model --python 3.13.5
 
-.venv/bin/python -m scripts.robustness_v2 migrate --stage development --config "$CONFIG" \
+uv run --frozen --extra model --python 3.13.5 python -m scripts.robustness_v2 migrate --stage development --config "$CONFIG" \
   --candidates "$NEW/candidates.json" --original-candidates "$OLD/candidates.json" \
   --dataset "$OLD/development.jsonl" --scores "$OLD/development_scores.jsonl" \
   --output "$NEW/migrated/development.jsonl" --local-files-only
-.venv/bin/python -m scripts.robustness_v2 analyze --stage development --config "$CONFIG" \
+uv run --frozen --extra model --python 3.13.5 python -m scripts.robustness_v2 analyze --stage development --config "$CONFIG" \
   --candidates "$NEW/candidates.json" --dataset "$NEW/migrated/development.jsonl" \
   --scores "$NEW/migrated/development.jsonl.scores.jsonl" \
   --output "$NEW/migrated/development_report.json"
-.venv/bin/python -m scripts.robustness_v2 migrate --stage frozen_gate --config "$CONFIG" \
+uv run --frozen --extra model --python 3.13.5 python -m scripts.robustness_v2 migrate --stage frozen_gate --config "$CONFIG" \
   --candidates "$NEW/candidates.json" --original-candidates "$OLD/candidates.json" \
   --dataset "$OLD/gate.jsonl" --scores "$OLD/gate_scores.jsonl" \
   --prior-dataset "$NEW/migrated/development.jsonl" \
   --development-report "$NEW/migrated/development_report.json" \
   --output "$NEW/migrated/gate.jsonl" --local-files-only
-.venv/bin/python -m scripts.robustness_v2 analyze --stage frozen_gate --config "$CONFIG" \
+uv run --frozen --extra model --python 3.13.5 python -m scripts.robustness_v2 analyze --stage frozen_gate --config "$CONFIG" \
   --candidates "$NEW/candidates.json" --dataset "$NEW/migrated/gate.jsonl" \
   --scores "$NEW/migrated/gate.jsonl.scores.jsonl" \
   --development-report "$NEW/migrated/development_report.json" \
   --output "$NEW/migrated/gate_report.json"
-.venv/bin/python -m scripts.robustness_v2 preflight --config "$CONFIG" \
+uv run --frozen --extra model --python 3.13.5 python -m scripts.robustness_v2 preflight --config "$CONFIG" \
   --candidates "$NEW/candidates.json" --gate "$NEW/migrated/gate_report.json" \
   --output "$NEW/migrated/preflight.json"
 ```
 
-The Qwen and Phi migrations under the exclusion freeze were validated from saved development/gate scores. Their recomputed development and gate evaluations exactly match the original reports. Qwen's migrated gate and preflight pass; Phi's migrated gate fails `entity_mention` competence. Gemma's saved-stage scores still require migration under the exclusion freeze after Gemma validation is run there. Confirmation data has not been generated under this freeze.
+The Qwen, Phi and Gemma migrations under the exclusion freeze were validated from saved development/gate scores. Their recomputed development and gate evaluations exactly match the earlier reports. Qwen and Gemma's migrated gates and preflights pass; Phi's migrated gate fails `entity_mention` competence. Gemma's migration records the original inference revision and source hashes. Qwen has a valid confirmation dataset but no scores because the runtime provenance check stopped before model loading; the transferred bundle does not include its shared confirmation-history registry. Gemma has no confirmation dataset under this freeze.
 
 **Archived status for the original freeze:** `factorial_relation_counterbalanced_20261003` was the initial corrected design revision. Development and gate scoring did occur for Qwen, Gemma and Phi. The Gemma confirmation dataset was generated under that earlier freeze; score validation stopped before model loading, and no confirmation score file exists. The failed bundle is preserved under the r5 `migration_source/gemma3_4b/` directory and its histories are excluded by the newer freeze. No remote host was accessed in this work. This is a repository-frozen protocol, not externally preregistered.
 
@@ -85,37 +88,96 @@ The bounded surface-class continuation mass remains the primary score. Strict se
 
 The fresh exclusion ledger contains donor-independent physical-history signatures and source hashes from available older data and both superseded v2 preparation previews. It ignores generated IDs, renderer and replacement/donor identities. Fixed seeded histories structurally reject the frozen signatures and earlier stages; no seed retries or outcome-based exclusions occur. The v1 audit compared all available Qwen, Gemma, Phi and Mistral development/gate/confirmation datasets with this same physical-history definition: it found **no cross-stage collisions**. It found only expected exact shared histories across models within the same stage (24 development, 24 gate, 96 confirmation); those are shared-model comparison histories, not cross-stage overlap. A repeated signature alone is not evidence of leakage. The unrecovered original 4.52-logit Qwen raw histories cannot be audited.
 
-For the r5 freeze, Qwen and Phi tokenizer-only checks passed; the local Gemma validation attempt stopped because its pinned files were absent from that machine's cache. The later exclusion freeze has fresh Qwen/Phi candidate artifacts. Their saved development and gate scores were migrated and recomputed under the new freeze without model loading; the original score provenance remains recorded. Their development and gate evaluations are unchanged. Qwen passes its gate and preflight; Phi fails the frozen `entity_mention` accuracy threshold. The failed Gemma confirmation bundle is now present, and its 96 physical signatures are recorded in the new exclusion ledger. Gemma still needs a tokenizer-only validation artifact bound to the exclusion freeze.
+For the r5 freeze, Qwen and Phi tokenizer-only checks passed; the local Gemma validation attempt stopped because its pinned files were absent from that machine's cache. Under the exclusion freeze, all three candidate maps bind to the same freeze. All saved development/gate scores have been migrated and recomputed without model loading; their original score provenance remains recorded, and evaluations are unchanged. Qwen and Gemma pass their gates and preflights; Phi fails the frozen `entity_mention` accuracy threshold.
 
-The exclusion freeze binds the revised contract, code hash, model configs, v1 lineage and prompt audit. The configs preserve the actual v1 model/tokenizer pins and scoring settings. Qwen and Phi candidate maps and migrated reports bind to this freeze; Gemma validation and saved-stage migration remain outstanding. The sealed v1 donor-independent stage audit is saved at `outputs/cross_model_relational_v2/factorial_relation_counterbalanced_20261003/v1_donor_independent_stage_audit_sealed.json`.
+The exclusion freeze binds the revised contract, code hash, model configs, v1 lineage and prompt audit. The configs preserve the actual v1 model/tokenizer pins and scoring settings. All three candidate maps, migrated stage reports and the Qwen/Gemma preflights bind to this freeze. The sealed v1 donor-independent stage audit is saved at `outputs/cross_model_relational_v2/factorial_relation_counterbalanced_20261003/v1_donor_independent_stage_audit_sealed.json`.
 
 ## Safe command sequence
 
-The tokenizer-free design audit and freeze are at `outputs/cross_model_relational_v2/factorial_relation_counterbalanced_geometryfix_exclusions_20261003/`. Qwen and Phi candidate maps are sealed to it; migrated saved-score development/gate analyses and Qwen preflight are complete. The inference hold remains until Gemma has a candidate map and validation artifact under this exact freeze and its saved development/gate scores have been migrated and checked. Do not access the remote host from this workspace or rerun create-only commands at existing paths.
+The tokenizer-only design audit, candidate maps, migrations, gate reports and preflights bind to the exclusion freeze. Qwen and Gemma pass the recomputed gates and preflights; Phi fails the frozen `entity_mention` competence gate and must remain stopped. Qwen's confirmation dataset already exists; its first score attempt stopped before model loading. Gemma confirmation has not been generated. No development or gate inference needs to be repeated.
 
-On the host where the pinned Gemma tokenizer is available, run this tokenizer-only validation with the frozen checkout, then copy the resulting fresh artifacts back for review. It does not score the model:
+Use a separate uv environment for each model. The migrated gate score provenance records Qwen at Python 3.13.5 and Gemma at Python 3.12.13. The lockfile pins package versions but allows both Python versions. Always include `--extra model`; omitting it caused uv to recreate the default `.venv` without the model dependencies. `UV_PROJECT_ENVIRONMENT` gives each Python version its own environment, avoiding replacement when switching models. Check the runtime and CUDA against the model's saved gate provenance before scoring. If the check fails, stop and investigate; do not relax the equality check.
 
-```bash
-RELATIONAL_REVISION=factorial_relation_counterbalanced_geometryfix_exclusions_20261003 \
-RELATIONAL_CONFIG_DIR=configs/cross_model_relational_v2_geometryfix_exclusions \
-RELATIONAL_RUN_DIR=outputs/cross_model_relational_v2/factorial_relation_counterbalanced_geometryfix_exclusions_20261003/gemma3_4b \
-RELATIONAL_FREEZE=outputs/cross_model_relational_v2/factorial_relation_counterbalanced_geometryfix_exclusions_20261003/protocol_freeze.json \
-bash scripts/run_relational_robustness.sh gemma3_4b validate
-```
+The shell wrapper `scripts/run_relational_robustness.sh` invokes `.venv/bin/python`, and its `confirmatory` action regenerates the dataset. Use the direct uv commands below: Qwen's dataset already exists, while Gemma needs generation. These commands do not run for Phi.
 
-After import, verify all three candidate maps bind to `outputs/cross_model_relational_v2/factorial_relation_counterbalanced_geometryfix_exclusions_20261003/protocol_freeze.json`, then migrate Gemma's saved development/gate scores using the documented `migrate`, `analyze`, and `preflight` sequence above with its saved-score paths. Preserve its original score hashes and inference revision. Review Gemma's recomputed gate and preflight. Keep Phi stopped because its gate fails. Do not generate confirmation datasets or score confirmation until the audits and eligible-model checks are complete.
+For one sequential run, use `bash scripts/run_relational_confirmations_overnight.sh`. It uses the verified `.venv` for Qwen (Python 3.13.5) and a separate `.venv-gemma312` for Gemma (Python 3.12.13). Before scoring either model, it checks both runtimes, CUDA, gate bindings, confirmation lineage and geometry, and loads both pinned checkpoints without a forward pass; if either preflight fails, neither confirmation run starts. It generates Gemma's confirmation dataset only if absent, scores and analyzes both models, and continues to the second model if the first scoring run fails. It writes a timestamped log under `outputs/cross_model_relational_v2/factorial_relation_counterbalanced_geometryfix_exclusions_20261003/overnight_logs/`, resumes scoring only when a valid progress checkpoint exists, validates existing completed score/analysis artifacts instead of overwriting them, and leaves Phi stopped. Keep the process attached to a persistent terminal session such as `tmux` or `screen` for an overnight run.
 
-After the remaining Gemma audit and migration are verified, the eligible Qwen/Gemma confirmation workflow can be resumed using the existing scripts with explicit revision overrides. The commands below are the future inference sequence; do not execute them while the audit hold remains:
+### Qwen 3 8B
 
 ```bash
+cd ~/supersession
+set -euo pipefail
 REV=factorial_relation_counterbalanced_geometryfix_exclusions_20261003
+BASE="outputs/cross_model_relational_v2/$REV"
 CFG=configs/cross_model_relational_v2_geometryfix_exclusions
-OUT=outputs/cross_model_relational_v2/$REV
-export RELATIONAL_REVISION="$REV" RELATIONAL_CONFIG_DIR="$CFG" RELATIONAL_FREEZE="$OUT/protocol_freeze.json"
-export RELATIONAL_RUN_DIR="$OUT/qwen3_8b"
-bash scripts/run_relational_robustness.sh qwen3_8b confirmatory
-export RELATIONAL_RUN_DIR="$OUT/gemma3_4b"
-bash scripts/run_relational_robustness.sh gemma3_4b confirmatory
+export UV_PROJECT_ENVIRONMENT=.venv
+uv sync --frozen --extra model --python 3.13.5
+
+uv run --frozen --extra model --python 3.13.5 python - <<'PY'
+import json, torch
+from src.utils import provenance
+path = "outputs/cross_model_relational_v2/factorial_relation_counterbalanced_geometryfix_exclusions_20261003/qwen3_8b/migrated/gate.jsonl.scores.jsonl.provenance.json"
+expected = json.load(open(path))["provenance"]
+current = provenance({}, None)
+assert (current["python"], current["packages"]) == (expected["python"], expected["packages"])
+assert torch.cuda.is_available()
+print("Qwen runtime and CUDA match")
+PY
+
+uv run --frozen --extra model --python 3.13.5 python -m scripts.robustness_v2 score \
+  --config "$CFG/qwen3_8b.yaml" --candidates "$BASE/qwen3_8b/candidates.json" \
+  --dataset "$BASE/qwen3_8b/confirmatory.jsonl" \
+  --output "$BASE/qwen3_8b/confirmatory_scores.jsonl"
+uv run --frozen --extra model --python 3.13.5 python -m scripts.robustness_v2 analyze \
+  --stage confirmatory --config "$CFG/qwen3_8b.yaml" \
+  --candidates "$BASE/qwen3_8b/candidates.json" \
+  --dataset "$BASE/qwen3_8b/confirmatory.jsonl" \
+  --scores "$BASE/qwen3_8b/confirmatory_scores.jsonl" \
+  --output "$BASE/qwen3_8b/confirmatory_analysis.json"
 ```
 
-Both models' development/gate saved scores must first be migrated and recomputed under this freeze; no development or gate inference is needed if correspondence is verified and the gate remains passing. Each confirmation action generates the fresh confirmation bundle, scores it, and writes analysis. Preserve all error rows. Never point `RELATIONAL_RUN_DIR` at an earlier revision. No v1 rerun is part of this workflow.
+### Gemma 3 4B
+
+```bash
+cd ~/supersession
+set -euo pipefail
+REV=factorial_relation_counterbalanced_geometryfix_exclusions_20261003
+BASE="outputs/cross_model_relational_v2/$REV"
+CFG=configs/cross_model_relational_v2_geometryfix_exclusions
+export UV_PROJECT_ENVIRONMENT=.venv-gemma312
+uv sync --frozen --extra model --python 3.12.13
+
+uv run --frozen --extra model --python 3.12.13 python - <<'PY'
+import json, torch
+from src.utils import provenance
+path = "outputs/cross_model_relational_v2/factorial_relation_counterbalanced_geometryfix_exclusions_20261003/gemma3_4b/migrated/gate.jsonl.scores.jsonl.provenance.json"
+expected = json.load(open(path))["provenance"]
+current = provenance({}, None)
+assert (current["python"], current["packages"]) == (expected["python"], expected["packages"])
+assert torch.cuda.is_available()
+print("Gemma runtime and CUDA match")
+PY
+
+uv run --frozen --extra model --python 3.12.13 python -m scripts.robustness_v2 generate \
+  --stage confirmatory --config "$CFG/gemma3_4b.yaml" \
+  --candidates "$BASE/gemma3_4b/candidates.json" \
+  --gate "$BASE/gemma3_4b/migrated/gate_report.json" \
+  --preflight "$BASE/gemma3_4b/migrated/preflight.json" \
+  --output "$BASE/gemma3_4b/confirmatory.jsonl" --local-files-only
+uv run --frozen --extra model --python 3.12.13 python -m scripts.robustness_v2 score \
+  --config "$CFG/gemma3_4b.yaml" --candidates "$BASE/gemma3_4b/candidates.json" \
+  --dataset "$BASE/gemma3_4b/confirmatory.jsonl" \
+  --output "$BASE/gemma3_4b/confirmatory_scores.jsonl"
+uv run --frozen --extra model --python 3.12.13 python -m scripts.robustness_v2 analyze \
+  --stage confirmatory --config "$CFG/gemma3_4b.yaml" \
+  --candidates "$BASE/gemma3_4b/candidates.json" \
+  --dataset "$BASE/gemma3_4b/confirmatory.jsonl" \
+  --scores "$BASE/gemma3_4b/confirmatory_scores.jsonl" \
+  --output "$BASE/gemma3_4b/confirmatory_analysis.json"
+```
+
+### Phi 4 mini
+
+Do not generate or score confirmation for Phi. Its recomputed frozen gate fails `entity_mention` accuracy. Keep its existing development and gate artifacts as the record of that result.
+
+For Qwen, preserve the existing confirmation dataset and stopped-score log. For both eligible models, preserve all score rows and errors, verify expected record counts and freeze/provenance bindings, then report all frozen contrasts and order cells. No v1 inference rerun is part of this workflow.
