@@ -118,3 +118,24 @@ def test_token_geometry_tamper_rejected_before_scoring(tmp_path, monkeypatch):
     geometry.write_text('{}')
     with pytest.raises(ValueError, match='token geometry changed'):
         design.verify_dataset_info([], info)
+
+
+def test_same_prompt_opposite_orientation_maps_semantic_slots_by_physical_span():
+    canonical = {
+        'initial_x': {'char_start': 10, 'char_end': 15, 'text': 'coral'},
+        'initial_z': {'char_start': 20, 'char_end': 25, 'text': 'pearl'},
+        'queried_entity': {'char_start': 0, 'char_end': 4, 'text': 'Nora'},
+    }
+    reversed_labels = {
+        'initial_x': {'char_start': 20, 'char_end': 25, 'text': 'pearl'},
+        'initial_z': {'char_start': 10, 'char_end': 15, 'text': 'coral'},
+        'queried_entity': {'char_start': 0, 'char_end': 4, 'text': 'Nora'},
+    }
+    assert cli.map_span_fields(reversed_labels, canonical) == {
+        'initial_x': 'initial_z', 'initial_z': 'initial_x', 'queried_entity': 'queried_entity'}
+
+
+def test_same_prompt_span_mapping_rejects_nonidentical_geometry():
+    span = {'char_start': 10, 'char_end': 15, 'text': 'coral'}
+    with pytest.raises(ValueError, match='inconsistent semantic span geometry'):
+        cli.map_span_fields({'initial_x': span}, {'initial_x': {**span, 'char_start': 11}})

@@ -54,16 +54,35 @@ def token_audit(tok, rows):
     if not getattr(tok, 'chat_template', None):
         raise ValueError('pinned chat template required; no raw-prompt fallback for tokenizer/scoring stages')
     result = validate_tokens(tok, rows, renderer=data.render, positions=data.semantic_positions)
-    geometry, links = {}, {}
+    geometry, links, field_maps = {}, {}, {}
     for row in progress(rows, desc='Recording value/entity token offsets', unit='row'):
         prompt_hash = digest(data.render(row, tok, True))
+        entry = data.span_audit(row, tok)
         if prompt_hash not in geometry:
-            entry = data.span_audit(row, tok)
             entry.pop('example_id')
             geometry[prompt_hash] = entry
+        canonical = geometry[prompt_hash]['spans']
+        # Abstract slot names (initial_x/initial_z, etc.) are not part of the
+        # rendered prompt. Opposite orientations can therefore share a prompt
+        # while assigning those names to opposite physical spans.
+        field_maps[row['example_id']] = map_span_fields(entry['spans'], canonical)
         links[row['example_id']] = prompt_hash
     result['token_span_geometry'] = {'by_prompt_sha256': geometry, 'example_to_prompt_sha256': links,
+                                     'example_to_span_key': field_maps,
                                      'index_convention': 'zero-based token offsets; end exclusive; all value-span tokens included'}
+    return result
+
+
+def map_span_fields(example_spans, canonical_spans):
+    """Map semantic labels onto deduplicated spans for the same rendered prompt."""
+    result = {}
+    for key, span in example_spans.items():
+        matches = [canonical_key for canonical_key, canonical in canonical_spans.items()
+                   if (canonical['char_start'], canonical['char_end'], canonical['text']) ==
+                      (span['char_start'], span['char_end'], span['text'])]
+        if len(matches) != 1:
+            raise ValueError('same prompt hash produced inconsistent semantic span geometry')
+        result[key] = matches[0]
     return result
 
 

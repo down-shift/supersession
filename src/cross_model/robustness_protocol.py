@@ -256,20 +256,28 @@ def verify_dataset_info(rows, info):
     geometry = v1.read_sealed(geometry_path)
     if set(geometry['example_to_prompt_sha256']) != {r['example_id'] for r in rows}:
         raise ValueError('token geometry does not cover every dataset member')
+    if set(geometry.get('example_to_span_key', {})) != {r['example_id'] for r in rows}:
+        raise ValueError('token geometry does not map semantic spans for every dataset member')
     for row in rows:
         prompt_hash = geometry['example_to_prompt_sha256'][row['example_id']]
         entry = geometry['by_prompt_sha256'][prompt_hash]
         spans = entry['spans']
+        span_map = geometry['example_to_span_key'][row['example_id']]
         if entry['prompt_sha256'] != prompt_hash:
             raise ValueError('geometry prompt hash does not match its index')
-        if not set(row['semantic_values']) <= set(spans) or 'queried_entity' not in spans:
+        if (set(span_map) != set(spans)
+                or not set(row['semantic_values']) <= set(span_map)
+                or 'queried_entity' not in span_map):
+            raise ValueError('token geometry semantic span map has missing or extraneous fields')
+        if any(key not in spans for key in span_map.values()):
             raise ValueError('token geometry omits a relevant value/entity span')
         if any(s['token_length'] <= 0 or s['token_end_exclusive']-s['token_start'] != s['token_length']
                or len(s['token_ids']) != s['token_length'] or s['token_start'] < 0
                or s['token_end_exclusive'] > entry['prompt_token_length']
                for s in spans.values()):
             raise ValueError('invalid token geometry offsets/lengths')
-        if any(spans[f]['text'] != value for f, value in row['semantic_values'].items()) or spans['queried_entity']['text'] != row['query_entity']:
+        if (any(spans[span_map[f]]['text'] != value for f, value in row['semantic_values'].items())
+                or spans[span_map['queried_entity']]['text'] != row['query_entity']):
             raise ValueError('geometry span texts differ from semantic values/entities')
     if set(geometry['by_prompt_sha256']) != set(geometry['example_to_prompt_sha256'].values()):
         raise ValueError('token geometry contains missing or extraneous prompts')
