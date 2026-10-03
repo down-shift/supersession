@@ -87,14 +87,17 @@ def semantic_positions(row, tokenizer):
     return prompt, sites
 
 
-def audit_pairs(rows, tokenizer):
+def audit_pairs(rows, tokenizer, *, positions=semantic_positions):
     pairs = defaultdict(dict)
-    for row in rows: pairs[row['pair_id']][row['pair_direction']] = row
+    for row in rows:
+        if row['pair_direction'] in pairs[row['pair_id']]:
+            raise ValueError('duplicate edit pair member')
+        pairs[row['pair_id']][row['pair_direction']] = row
     audits = []
     for pid, members in progress(sorted(pairs.items()), desc='Auditing edit pairs', unit='pair'):
         if set(members) != {0, 1}: raise ValueError('incomplete edit pair')
         base, edit = members[0], members[1]
-        bp, bs = semantic_positions(base, tokenizer); ep, es = semantic_positions(edit, tokenizer)
+        bp, bs = positions(base, tokenizer); ep, es = positions(edit, tokenizer)
         bi, ei = encode(tokenizer, bp), encode(tokenizer, ep)
         field = base['edited_field']; a, b = bs[field], es[field]
         # Even variable-length edits must leave all outside-span tokens identical.
@@ -112,14 +115,14 @@ def audit_pairs(rows, tokenizer):
             'all_mechanism_aligned': all(a['mechanism_aligned'] for a in audits)}
 
 
-def audit_all_substitutions(tokenizer, rows):
+def audit_all_substitutions(tokenizer, rows, *, renderer=render_behavior_example):
     """Every candidate in every represented semantic slot, using tokenizer evidence only."""
     representations = defaultdict(lambda: defaultdict(set))
     lengths = []
     prompts_seen = set()
     for row in progress(rows, desc='Auditing candidate substitutions', unit='row'):
         if row['pair_direction'] != 0: continue
-        prompt = render_behavior_example(row, tokenizer, True)
+        prompt = renderer(row, tokenizer, True)
         if prompt in prompts_seen: continue
         prompts_seen.add(prompt)
         original_ids = encode(tokenizer, prompt)
@@ -144,8 +147,8 @@ def audit_all_substitutions(tokenizer, rows):
                                     for k,values in representations.items()}}
 
 
-def validate(tokenizer, rows):
-    prompts = sorted({render_behavior_example(r, tokenizer, True) for r in rows})
+def validate(tokenizer, rows, *, renderer=render_behavior_example, positions=semantic_positions):
+    prompts = sorted({renderer(r, tokenizer, True) for r in rows})
     maps = {}
     for prompt in progress(prompts, desc='Validating surface continuations', unit='prompt'):
         maps[digest(prompt)] = continuations(tokenizer, prompt)
@@ -165,8 +168,8 @@ def validate(tokenizer, rows):
             'chat_template_sha256': digest(getattr(tokenizer, 'chat_template', None)),
             'tokenizer_sha256': digest(tokenizer.backend_tokenizer.to_str()),
             'prompt_examples': [prompts[0]], 'unique_prefixes_checked': len(prompts),
-            'edit_audit': audit_pairs(rows, tokenizer),
-            'exhaustive_slot_audit': audit_all_substitutions(tokenizer, rows)}
+            'edit_audit': audit_pairs(rows, tokenizer, positions=positions),
+            'exhaustive_slot_audit': audit_all_substitutions(tokenizer, rows, renderer=renderer)}
 
 
 def check_tokenizer(tokenizer, candidate):

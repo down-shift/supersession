@@ -2,6 +2,8 @@
 
 Infrastructure for testing how causal decoder-only Transformers make overwritten bindings less accessible or less influential. The old assignment token cannot receive information from later overwrite tokens under a causal mask. This pipeline measures query-position accessibility and downstream effects; it does not assume deletion.
 
+The separately versioned [corrected relational/order robustness protocol](docs/cross_model_relational_v2.md) has tokenizer-free previews, saved-score reanalysis, tokenizer/scoring/provenance/gate infrastructure, and explicit commands. **V2 remains not ready for inference; no v2 scores exist.** Its initial previews and first reanalysis reports contained substantive bugs and are superseded. Completed [cross_model_v1 experiments](docs/cross_model_v1.md) retain their original status and outputs.
+
 ## Environment
 
 The repository uses uv for interpreter selection, dependency resolution, locking, and command execution. `.python-version` selects Python 3.13. Install the CPU/data/test environment with:

@@ -11,6 +11,15 @@ from src.cross_model.progress import progress
 logger = logging.getLogger(__name__)
 
 
+def _design_operations(design):
+    if design is not None:
+        return design
+    from types import SimpleNamespace
+    return SimpleNamespace(CONTRACT=CONTRACT, validate_dataset=validate_dataset,
+                           disjoint=disjoint, check_manifest=check_manifest,
+                           evaluate=evaluate, manifest=manifest)
+
+
 def local_artifact_path(path):
     """Resolve a saved absolute path after a run directory was moved between hosts."""
     saved = Path(path)
@@ -26,17 +35,20 @@ def local_artifact_path(path):
     raise FileNotFoundError(f"artifact path is unavailable locally: {saved}")
 
 
-def dataset_info(path, config, config_path, candidate_path, stage=None):
+def dataset_info(path, config, config_path, candidate_path, stage=None, *, design=None):
+    ops = _design_operations(design)
     logger.info("Validating dataset lineage and hashes: %s", path)
     path = local_artifact_path(path)
     info = read_sealed(str(path)+'.provenance.json')
     rows = read_jsonl(path)
     if stage and info['stage'] != stage: raise ValueError('wrong dataset stage')
-    validate_dataset(rows, info['stage'])
+    ops.validate_dataset(rows, info['stage'])
     for prior in progress(info.get('prior_datasets', []), desc='Checking prior dataset hashes', unit='dataset', leave=False):
         try:
             prior_path = local_artifact_path(prior['path'])
         except FileNotFoundError:
+            if design is not None:
+                raise ValueError('relational history exclusion requires every recorded prior dataset')
             logger.warning("Prior history file is unavailable after relocation; recorded hash retained: %s", prior['path'])
             continue
         if sha256_file(prior_path) != prior['sha256']:
@@ -45,55 +57,60 @@ def dataset_info(path, config, config_path, candidate_path, stage=None):
     for prior in info.get('prior_datasets', []):
         try: prior_paths.append(str(local_artifact_path(prior['path'])))
         except FileNotFoundError: pass
-    if sorted(disjoint(rows, prior_paths)) != info['history_signatures']:
+    if sorted(ops.disjoint(rows, prior_paths)) != info['history_signatures']:
         raise ValueError('dataset history lineage mismatch')
     # Candidate maps and rendered histories are independent of model compute
     # dtype. This permits a numerical-stability retry while score manifests
     # remain exact about the dtype that produced likelihoods.
-    check_manifest(info['provenance'], config, config_path, candidate_path, path,
+    ops.check_manifest(info['provenance'], config, config_path, candidate_path, path,
                    allow_dtype_change=True)
+    if design is not None:
+        design.verify_dataset_info(rows, info)
     return rows, info
 
 
-def score_info(path, dataset, config, config_path, candidate_path, stage):
+def score_info(path, dataset, config, config_path, candidate_path, stage, *, design=None):
+    ops = _design_operations(design)
     logger.info("Validating score artifact against dataset: %s", path)
     dataset = local_artifact_path(dataset)
-    rows, info = dataset_info(dataset, config, config_path, candidate_path, stage)
+    rows, info = dataset_info(dataset, config, config_path, candidate_path, stage, design=design)
     path = local_artifact_path(path)
     sidecar = read_sealed(str(path)+'.provenance.json')
-    check_manifest(sidecar['provenance'], config, config_path, candidate_path, dataset)
+    ops.check_manifest(sidecar['provenance'], config, config_path, candidate_path, dataset)
     if sidecar['scores_sha256'] != sha256_file(path) or sidecar['stage'] != stage:
         raise ValueError('score hash or stage mismatch')
     scores = read_jsonl(path)
     return rows, scores, info, sidecar
 
 
-def gate_report(config, config_path, candidate_path, dataset, scores, development_report):
+def gate_report(config, config_path, candidate_path, dataset, scores, development_report, *, design=None):
+    ops = _design_operations(design)
     logger.info("Recomputing frozen competence gate from saved score rows")
     dev = read_sealed(development_report)
     if dev['stage'] != 'development': raise ValueError('gate requires development report')
     dev_dataset = local_artifact_path(dev['dataset_path'])
     dev_scores = local_artifact_path(dev['scores_path'])
-    dr, ds, _, _ = score_info(dev_scores, dev_dataset, config, config_path, candidate_path, 'development')
-    if dev['scores_sha256'] != sha256_file(dev_scores) or dev['dataset_sha256'] != sha256_file(dev_dataset) or evaluate(dr, ds, gate=False) != dev['evaluation']: raise ValueError('development report differs from underlying scores')
-    rows, scored, info, side = score_info(scores, dataset, config, config_path, candidate_path, 'frozen_gate')
+    dr, ds, _, _ = score_info(dev_scores, dev_dataset, config, config_path, candidate_path, 'development', design=design)
+    if dev['scores_sha256'] != sha256_file(dev_scores) or dev['dataset_sha256'] != sha256_file(dev_dataset) or ops.evaluate(dr, ds, gate=False) != dev['evaluation']: raise ValueError('development report differs from underlying scores')
+    rows, scored, info, side = score_info(scores, dataset, config, config_path, candidate_path, 'frozen_gate', design=design)
     if info.get('development_report_sha256') != sha256_file(development_report):
         raise ValueError('gate dataset has wrong development lineage')
-    disjoint(rows, [str(local_artifact_path(dev['dataset_path']))])
-    return {'stage': 'frozen_gate', 'evaluation': evaluate(rows, scored),
+    ops.disjoint(rows, [str(local_artifact_path(dev['dataset_path']))])
+    return {'stage': 'frozen_gate', 'evaluation': ops.evaluate(rows, scored),
             'dataset_path': str(Path(dataset).resolve()), 'scores_path': str(Path(scores).resolve()),
             'dataset_sha256': sha256_file(dataset), 'scores_sha256': sha256_file(scores),
             'dataset_provenance_sha256': sha256_file(str(dataset)+'.provenance.json'),
             'score_provenance_sha256': sha256_file(str(scores)+'.provenance.json'),
             'development_report_path': str(Path(development_report).resolve()),
             'development_report_sha256': sha256_file(development_report),
-            'contract': CONTRACT, 'provenance': manifest(config, config_path, candidate_path, dataset),
-            'stop_reason': None if evaluate(rows, scored)['pass'] else 'frozen semantic competence gate failed'}
+            'contract': ops.CONTRACT, 'provenance': ops.manifest(config, config_path, candidate_path, dataset),
+            'stop_reason': None if ops.evaluate(rows, scored)['pass'] else 'frozen semantic competence gate failed'}
 
 
-def verify_gate(path, config, config_path, candidate_path):
+def verify_gate(path, config, config_path, candidate_path, *, design=None):
+    ops = _design_operations(design)
     gate = read_sealed(path)
-    if gate.get('contract') != CONTRACT or gate.get('stage') != 'frozen_gate':
+    if gate.get('contract') != ops.CONTRACT or gate.get('stage') != 'frozen_gate':
         raise ValueError('gate contract mismatch')
     development_path = local_artifact_path(gate['development_report_path'])
     if gate['development_report_sha256'] != sha256_file(development_path):
@@ -101,8 +118,8 @@ def verify_gate(path, config, config_path, candidate_path):
     dataset_path = local_artifact_path(gate['dataset_path'])
     scores_path = local_artifact_path(gate['scores_path'])
     recomputed = gate_report(config, config_path, candidate_path, dataset_path,
-                             scores_path, development_path)
-    check_manifest(gate['provenance'], config, config_path, candidate_path, dataset_path)
+                             scores_path, development_path, **({'design': design} if design is not None else {}))
+    ops.check_manifest(gate['provenance'], config, config_path, candidate_path, dataset_path)
     recomputed['provenance'] = gate['provenance']
     comparable_gate = {**gate, 'dataset_path':str(dataset_path.resolve()),
                        'scores_path':str(scores_path.resolve()),
@@ -112,17 +129,20 @@ def verify_gate(path, config, config_path, candidate_path):
     return gate
 
 
-def verify_confirmation(dataset, config, config_path, candidate_path):
-    rows, info = dataset_info(dataset, config, config_path, candidate_path, 'confirmatory')
-    gate = verify_gate(info['gate_path'], config, config_path, candidate_path)
-    if sha256_file(info['gate_path']) != info['gate_sha256']:
+def verify_confirmation(dataset, config, config_path, candidate_path, *, design=None):
+    ops = _design_operations(design)
+    rows, info = dataset_info(dataset, config, config_path, candidate_path, 'confirmatory', design=design)
+    gate_path = local_artifact_path(info['gate_path'])
+    gate = verify_gate(gate_path, config, config_path, candidate_path, design=design)
+    if sha256_file(gate_path) != info['gate_sha256']:
         raise ValueError('confirmatory gate binding mismatch')
     dev = read_sealed(local_artifact_path(gate['development_report_path']))
-    disjoint(rows, [str(local_artifact_path(gate['dataset_path'])),
+    ops.disjoint(rows, [str(local_artifact_path(gate['dataset_path'])),
                     str(local_artifact_path(dev['dataset_path']))])
-    report = read_sealed(info['preflight_path'])
-    if report['gate_sha256'] != info['gate_sha256'] or sha256_file(info['preflight_path']) != info['preflight_sha256']:
+    preflight_path = local_artifact_path(info['preflight_path'])
+    report = read_sealed(preflight_path)
+    if report['gate_sha256'] != info['gate_sha256'] or sha256_file(preflight_path) != info['preflight_sha256']:
         raise ValueError('preflight report changed or belongs to another gate')
-    check_manifest(report['provenance'], config, config_path, candidate_path,
+    ops.check_manifest(report['provenance'], config, config_path, candidate_path,
                    local_artifact_path(gate['dataset_path']))
     return rows, info

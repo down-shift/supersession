@@ -1,25 +1,234 @@
-from src.cross_model.robustness_v2 import generate, validate, render, CONDITIONS, COUNTS
+import copy
+import json
+from collections import defaultdict
+
+import pytest
+
+from src.cross_model import robustness_v2 as data
+from src.cross_model import robustness_protocol as design
+from src.cross_model.robustness_analysis import contrasts, summary, normalized
+from src.cross_model.score_checks import strict_rank
+from src.cross_model.tokens import validate as validate_tokens
+from src.data.io import write_jsonl
+from src.utils import load_config
 
 
-def test_full_condition_and_independent_order_crossing():
-    histories, rows = generate('development')
-    assert len(histories) == COUNTS['development']
-    validate(histories, rows, 'development')
+@pytest.fixture(scope='module')
+def development():
+    return data.generate('development')
+
+
+def synthetic_scores(rows, kind='confirmatory'):
+    result = []
+    for r in rows:
+        masses = {v: -.1 if v == r['answer'] else -10. for v in data.VALUES}
+        result.append({**copy.deepcopy(r), 'score_kind': kind, 'prompt': data.render(r, None, False),
+                       'semantic_log_mass': masses, 'semantic_rank': strict_rank(masses, r['answer']),
+                       'semantic_accuracy': 1})
+    return result
+
+
+def test_full_factorial_includes_edited_entity_and_every_member(development):
+    histories, rows = development
+    assert len(rows) == 24 * 192
+    assert len({r['example_id'] for r in rows}) == len(rows)
     for h in histories:
-        cells = {(r['condition'], r['historical_entity_order'], r['current_entity_order'], r['query'])
+        cells = {tuple(r[k] for k in ('condition', 'historical_entity_order', 'current_entity_order',
+                                     'edited_variable', 'query', 'pair_direction'))
                  for r in rows if r['history_id'] == h['history_id']}
-        assert cells == {(c,ho,co,q) for c in CONDITIONS for ho in (0,1) for co in (0,1) for q in ('x','z')}
+        assert cells == data.required_cells()
+    assert data.validate(histories, rows, 'development')
 
 
-def test_determinism_fresh_stage_ids_and_pair_matching():
-    h1,r1=generate('frozen_gate'); h2,r2=generate('frozen_gate')
-    assert h1 == h2 and r1 == r2
-    assert not ({h['history_id'] for h in h1} & {h['history_id'] for h in generate('development')[0]})
-    for row in r1:
-        if row['condition'] in ('entity_mention','other_attribute'):
-            prompt=render(row)
-            if row['condition']=='entity_mention':
-                assert 'unrelated note about' in prompt
-            else:
-                assert 'badge' in prompt or 'tag' in prompt
-    assert validate(h1,r1,'frozen_gate')
+@pytest.mark.parametrize('corruption', ['remove_z', 'remove_member', 'duplicate_id', 'duplicate_pair',
+                                      'answer', 'unintended_edit', 'current_value', 'order', 'seed'])
+def test_structural_failures_rejected(development, corruption):
+    histories, original = development
+    rows = copy.deepcopy(original)
+    if corruption == 'remove_z':
+        rows = [r for r in rows if r['edited_variable'] != 'z']
+    elif corruption == 'remove_member':
+        rows.pop()
+    elif corruption == 'duplicate_id':
+        rows[-1]['example_id'] = rows[0]['example_id']
+    elif corruption == 'duplicate_pair':
+        rows[-1] = copy.deepcopy(rows[0])
+    elif corruption == 'answer':
+        rows[0]['answer'] = rows[0]['replacement_value']
+    elif corruption == 'unintended_edit':
+        rows[1]['semantic_values']['initial_z'] = rows[1]['replacement_value']
+    elif corruption == 'current_value':
+        rows[0]['semantic_values']['proposed_x'] = rows[0]['source_value']
+    elif corruption == 'order':
+        rows[0]['historical_entity_order'] = 1-rows[0]['historical_entity_order']
+    else:
+        rows[0]['seed'] = 1
+    with pytest.raises(ValueError):
+        data.validate(histories, rows, 'development')
+
+
+def test_six_distinct_values_and_live_answer_semantics(development):
+    histories, rows = development
+    for h in histories:
+        assigned, replacements = set(h['matching_values'].values()), set(h['replacement_values'].values())
+        assert len(assigned) == 4 and len(replacements) == 2 and not assigned & replacements
+    pairs = defaultdict(dict)
+    for r in rows:
+        pairs[r['pair_id']][r['pair_direction']] = r
+    for pair in pairs.values():
+        b, e = pair[0], pair[1]
+        field = b['edited_field']
+        assert b['semantic_values'][field] == b['source_value']
+        assert e['semantic_values'][field] == b['replacement_value']
+        assert all(b['semantic_values'][k] == e['semantic_values'][k] for k in b['semantic_values'] if k != field)
+        if b['condition'] == 'live' and b['query'] == b['edited_variable']:
+            assert e['answer'] == b['replacement_value'] and e['answer'] != b['answer']
+        else:
+            assert b['answer'] == e['answer']
+        for r in (b, e):
+            assert r['answer'] == r['semantic_values'][r['current_fields'][r['query']]]
+        if b['condition'] != 'live':
+            assert b['answer'] not in {b['source_value'], b['replacement_value']}
+
+
+def test_actual_order_entity_mapping_and_control_semantics(development):
+    _, rows = development
+    selected = [r for r in rows if r['history_index'] < 2 and r['query'] == r['edited_variable'] == 'x' and r['pair_direction'] == 0]
+    for r in selected:
+        body, spans = data.render_body(r)
+        assert body[spans['queried_entity'][0]:spans['queried_entity'][1]] == r['query_entity'] == r['variables'][0]
+        first_h = 'x' if r['historical_entity_order'] == 0 else 'z'
+        assert spans[f'initial_{first_h}'][0] < spans[f'initial_{"z" if first_h == "x" else "x"}'][0]
+        if r['condition'] != 'live':
+            first_c = 'x' if r['current_entity_order'] == 0 else 'z'
+            assert spans[f'proposed_{first_c}'][0] < spans[f'proposed_{"z" if first_c == "x" else "x"}'][0]
+        if r['condition'] == 'entity_mention':
+            assert f'{r["variables"][0]} mentioned {r["semantic_values"]["initial_x"]} in an unrelated note.' in body
+        elif r['condition'] == 'other_attribute':
+            assert f'The tag assigned to {r["variables"][0]}' in body
+            assert r['other_attribute'] != r['attribute']
+        elif r['condition'] == 'early_unassigned':
+            assert spans['initial_x'][0] < spans['proposed_x'][0]
+        elif r['condition'] == 'late_unassigned':
+            assert spans['initial_x'][0] > spans['proposed_x'][0]
+        elif r['condition'] == 'live':
+            assert 'Later,' not in body and 'remains' not in body
+        assert body.endswith('Respond with only the value, with no explanation.')
+
+
+def test_determinism_and_semantic_disjointness_against_prior_files(tmp_path, development):
+    histories, rows = development
+    assert data.generate('development') == development
+    seen = {data.concrete_signature(r) for r in rows}
+    for stage in ('frozen_gate', 'confirmatory'):
+        h, r = data.generate(stage)
+        assert len(h) == data.COUNTS[stage]
+        signatures = {data.concrete_signature(x) for x in r}
+        assert not seen & signatures
+        seen |= signatures
+    prior = copy.deepcopy(rows)
+    for r in prior:
+        r['history_id'] = 'different IDs do not create new semantic histories'
+        r['replacement_values'] = {'initial_x': 'coral', 'initial_z': 'amber'}
+    path = tmp_path/'earlier.jsonl'
+    write_jsonl(prior, path)
+    with pytest.raises(ValueError, match='semantic history overlap'):
+        data.generate('development', [path])
+    # Express the same physical bindings with the opposite analytic orientation.
+    one = histories[0]
+    opposite = copy.deepcopy(one)
+    opposite['variables'] = one['variables'][::-1]
+    opposite['matching_values'] = {f'{prefix}_{v}': one['matching_values'][f'{prefix}_{"z" if v == "x" else "x"}']
+                                   for prefix in ('initial', 'proposed') for v in ('x', 'z')}
+    assert data.concrete_signature(one) == data.concrete_signature(opposite)
+
+
+class CharTokenizer:
+    chat_template = 'exact toy wrapper'
+    class Backend:
+        def to_str(self): return 'char-offsets-v1'
+    backend_tokenizer = Backend()
+    def __call__(self, text, **kwargs):
+        result = {'input_ids': [ord(c) for c in text]}
+        if kwargs.get('return_offsets_mapping'):
+            result['offset_mapping'] = [(i, i+1) for i in range(len(text))]
+        return result
+    def apply_chat_template(self, messages, **kwargs):
+        assert kwargs['enable_thinking'] is False and kwargs['add_generation_prompt'] is True
+        return '<user>\n'+messages[0]['content']+'\n</user>\n<assistant>\n'
+
+
+def test_token_offset_and_shared_surface_edit_audit(development):
+    _, rows = development
+    rows = [r for r in rows if r['history_index'] == 0]
+    tok = CharTokenizer()
+    result = validate_tokens(tok, rows, renderer=data.render, positions=data.semantic_positions)
+    assert result['edit_audit']['pairs_checked'] == 96
+    for r in rows:
+        entry = data.span_audit(r, tok)
+        for field, value in r['semantic_values'].items():
+            span = entry['spans'][field]
+            assert span['text'] == value
+            assert span['token_length'] == len(value)
+            assert span['token_end_exclusive']-span['token_start'] == len(value)
+        assert entry['spans']['queried_entity']['text'] == r['query_entity']
+
+
+def test_nuisance_order_aggregation_and_predefined_contrasts(development):
+    _, all_rows = development
+    rows = [r for r in all_rows if r['history_index'] == 0]
+    scores = synthetic_scores(rows)
+    # Controls have source/replacement independent of the answer. Impose known
+    # effects; an additive order nuisance cancels in query-specific R.
+    amounts = {'superseded': 4., 'early_unassigned': 1., 'entity_mention': 2.,
+               'other_attribute': 3., 'late_unassigned': -1.}
+    for s in scores:
+        if s['condition'] == 'live': continue
+        h, c = s['historical_entity_order'], s['current_entity_order']
+        effect = 2*h-c + (amounts[s['condition']] if s['query'] == s['edited_variable'] else 0)
+        if s['pair_direction']:
+            s['semantic_log_mass'][s['replacement_value']] = -10. + effect
+        s['semantic_rank'] = strict_rank(s['semantic_log_mass'], s['answer'])
+        s['semantic_accuracy'] = int(s['semantic_rank'] == 1)
+    out = contrasts(rows, scores)[0]
+    assert out['R_superseded'] == pytest.approx(4.)
+    assert out['R_superseded_minus_R_early_unassigned'] == pytest.approx(3.)
+    assert out['R_superseded_minus_R_entity_mention'] == pytest.approx(2.)
+    assert out['R_superseded_minus_R_other_attribute'] == pytest.approx(1.)
+    assert out['R_superseded_minus_R_late_unassigned'] == pytest.approx(5.)
+    assert out['R_superseded_aligned_minus_reversed'] == pytest.approx(0.)
+    with pytest.raises(ValueError):
+        contrasts(rows, scores[:-1])
+
+
+def test_gate_unique_condition_accuracy_and_failed_development_not_a_veto(development):
+    _, rows = development
+    scores = synthetic_scores(rows, 'competence_only')
+    assert design.evaluate(rows, scores)['pass']
+    for s in scores:
+        if s['condition'] == 'entity_mention':
+            s['semantic_log_mass'] = {v: -1. for v in data.VALUES}
+            s['semantic_rank'] = 8
+            s['semantic_accuracy'] = 0
+    failed = design.evaluate(rows, scores)
+    assert not failed['pass'] and failed['failed_conditions'] == [{'condition': 'entity_mention', 'reasons': ['semantic_accuracy']}]
+    descriptive = design.evaluate(rows, scores, gate=False)
+    assert descriptive['pass'] is None and descriptive['failed_conditions'] == []
+    assert 'sequence_mass' not in descriptive
+
+
+def test_config_continuity_including_actual_gemma_provenance():
+    for slug in design.MODEL_SETTINGS:
+        config = load_config(f'configs/cross_model_relational_v2/{slug}.yaml')
+        design.validate_config(config)
+        lineage = design.verify_v1_lineage(config)
+        assert lineage['scientific_settings']['model_revision'] == config['model']['revision']
+
+
+def test_history_bootstrap_matches_existing_seeded_v1_algorithm(monkeypatch):
+    import src.analysis.metrics as metrics
+    monkeypatch.setattr(metrics, 'tqdm', lambda iterable, **kwargs: iterable)
+    values = [1., 4., -2., 7.]
+    reference = metrics.bootstrap_mean_ci(values, seed=73021)
+    assert summary(values)['ci95_cluster_bootstrap'] == pytest.approx([reference['ci_low'], reference['ci_high']])
+    assert not normalized([5., 5.], [.5, .5])['available']

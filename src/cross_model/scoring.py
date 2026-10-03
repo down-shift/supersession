@@ -83,8 +83,9 @@ def score_prompt(model, tokenizer, prompt, events, hook_factory=None, *, values=
     return masses, surface_likelihoods, initial, greedy
 
 
-def score_row(model, tokenizer, row, candidate, competence_only=True, progress_callback=None):
-    prompt = render_behavior_example(row, tokenizer, True)
+def score_row(model, tokenizer, row, candidate, competence_only=True, progress_callback=None,
+              *, renderer=render_behavior_example):
+    prompt = renderer(row, tokenizer, True)
     events = continuations(tokenizer, prompt)
     if events != candidate['events']: raise ValueError('candidate map mismatch at actual scoring prefix')
     masses, surfaces, logits, greedy = score_prompt(model, tokenizer, prompt, events,
