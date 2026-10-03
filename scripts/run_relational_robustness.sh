@@ -9,8 +9,8 @@ fi
 MODEL="$1"
 ACTION="$2"
 case "$MODEL" in qwen3_8b|gemma3_4b|phi4_mini) ;; *) echo "Unknown focal model: $MODEL" >&2; exit 2 ;; esac
-CONFIG="configs/cross_model_relational_v2/$MODEL.yaml"
-SHARED="outputs/cross_model_relational_v2/corrected_20261003"
+CONFIG="configs/cross_model_relational_v2_factorial_final/$MODEL.yaml"
+SHARED="outputs/cross_model_relational_v2/factorial_relation_counterbalanced_20261003"
 RUN="${RELATIONAL_RUN_DIR:-$SHARED/$MODEL}"
 FREEZE="${RELATIONAL_FREEZE:-$SHARED/protocol_freeze.json}"
 PYTHON=(.venv/bin/python -u)

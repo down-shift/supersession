@@ -45,6 +45,7 @@ def prompt_audit(stage, prior_paths):
             'concrete_history_signatures': data.disjoint(rows, prior_paths),
             'prior_datasets': [{'path': str(Path(p).resolve()), 'sha256': sha256_file(p)} for p in prior_paths],
             'sample_pairs': sample_pairs(rows),
+            'rendered_pair_audit': data.audit_rendered_pairs(rows),
             'status': 'tokenizer-free design audit; not ready for inference',
             'provenance': provenance({}, None)}
 
@@ -273,7 +274,7 @@ def main():
             raise ValueError('reviewed development prompt audit differs from the corrected design')
         configs = {}
         for slug in design.MODEL_SETTINGS:
-            path = f'configs/cross_model_relational_v2/{slug}.yaml'
+            path = f'configs/cross_model_relational_v2_factorial_final/{slug}.yaml'
             config = load_config(path)
             configs[slug] = {'path': path, 'sha256': sha256_file(path), 'config': config,
                              'original_v1_lineage': design.verify_v1_lineage(config)}

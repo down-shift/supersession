@@ -7,7 +7,7 @@ from pathlib import Path
 
 from src.cross_model import protocol as v1
 from src.cross_model.robustness_v2 import (
-    ATTRIBUTES, CONDITIONS, COUNTS, DESIGN_REVISION, RENDERING, ROWS_PER_HISTORY,
+ALLOCATION_TABLES, ALT_RELATIONS, ATTRIBUTES, CONDITIONS, COUNTS, DESIGN_REVISION, ENTITY_PAIRS, FRACTIONAL_RELATION_ONE, RENDERING, ROWS_PER_HISTORY,
     SEEDS, VERSION, VALUES, EXCLUSION_LEDGER, concrete_signature, disjoint, generate, validate_rows)
 from src.cross_model.score_checks import checked_scores
 from src.cross_model.workflow import local_artifact_path
@@ -22,6 +22,10 @@ CONTRACT = {'protocol': VERSION, 'design_revision': DESIGN_REVISION, 'causal_pro
             'values': VALUES, 'seeds': SEEDS, 'counts': COUNTS, 'validation_histories': 4,
             'conditions': list(CONDITIONS), 'gate': GATE, 'template': 'nora_relational_v2',
             'rendering': RENDERING, 'attributes': list(ATTRIBUTES),
+            'entity_pairs': [list(pair) for pair in ENTITY_PAIRS],
+            'alternate_relations': list(ALT_RELATIONS),
+            'fractional_relation_one_cells': [list(cell) for cell in FRACTIONAL_RELATION_ONE],
+            'allocation_tables': {stage: [list(cell) for cell in cells] for stage, cells in ALLOCATION_TABLES.items()},
             'value_allocation': 'four distinct historical/current assignment values plus two distinct replacement identities outside all four assignments',
             'freshness_policy': 'fixed prior-history exclusion ledger; structural rejection within fixed seeded streams in validation/development/gate/confirmation priority; no seed retries or outcome-based exclusions',
             'order_factors': ['historical_entity_or_unassigned_mention_order', 'current_entity_order'],
@@ -33,6 +37,7 @@ CONTRACT = {'protocol': VERSION, 'design_revision': DESIGN_REVISION, 'causal_pro
             'span_policy': v1.CONTRACT['span_policy'],
             'surface_geometry_audit': v1.CONTRACT['surface_geometry_audit'],
             'primary_contrasts': ['R_superseded - R_early_unassigned', 'R_superseded - R_entity_mention', 'R_superseded - R_other_attribute'],
+            'other_attribute_label': 'different_relation_control; team/project relations are counterbalanced, not claimed unrelated',
             'secondary': ['R_superseded - R_late_unassigned', 'R_live - R_superseded',
                           'live-minus-each-control', 'aligned-versus-reversed historical/current order'],
             'aggregation': 'mean E over four order cells within each history/condition/edit/query before symmetric relevance; aligned/reversed subsets each average their two cells; contrasts and bootstrap on histories',
@@ -105,7 +110,7 @@ def code_hash():
         Path('src/analysis/metrics.py'), Path('src/models/loader.py'), Path('src/utils.py'),
         Path('src/data/progress.py'), Path('scripts/robustness_v2.py')]
     paths.append(Path('scripts/run_relational_robustness.sh'))
-    paths.append(Path('configs/cross_model_relational_v2/prior_history_exclusions.json'))
+    paths.append(Path('configs/cross_model_relational_v2_factorial_final/prior_history_exclusions.json'))
     return v1.digest({str(p): sha256_file(p) for p in paths})
 
 

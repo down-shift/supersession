@@ -1,160 +1,79 @@
-# cross_model_relational_v2: corrected relational/order design
+# Relational/order v2 protocol
 
-**Not ready for inference. No v2 model scoring has been executed.** The initial preview had substantive value-allocation, live-control and validation bugs. Its previews and the first saved-score reanalysis reports must not enter the paper. The corrected design revision is `relational_order_correction_20261003`; preparation artifacts and corrected reanalyses use fresh paths. A code/config freeze, actual tokenizer audits, fresh competence stages and passing recomputed gates are required before confirmation. This is a logged repository protocol, not an externally registered preregistration.
+**Status: inference hold.** Design revision `factorial_relation_counterbalanced_20261003` is frozen in a fresh path. No v2 model scoring has occurred. Qwen and Phi completed tokenizer-only validation for this revision; Gemma's tokenizer/config is not cached locally and its validation stopped. Do not score any model until Gemma validation and all freeze/lineage checks pass. This is a repository-frozen protocol, not externally preregistered.
 
-Completed `cross_model_v1` Qwen/Gemma/Phi confirmation results retain their original scientific status. Mistral's failed gate, Gemma/Phi downstream failures, completed mechanisms, the old Qwen 4.52-logit experiment and failed historical branches are preserved. Correcting descriptive reanalysis does not rerun or revise those experiments. The v1 relevance estimator itself is reused here.
+The earlier `relational_order_correction_20261003` freeze and the intermediate `factorial_coherent_controls_20261003` preparation freeze, candidate maps and previews remain unchanged. Qwen and Phi development datasets in the earlier directory cite the first freeze and are not valid development evidence for this design. The intermediate candidate maps cite a relation-confounded fractional allocation and are not valid for this final freeze. All partial outputs remain preserved. A read-only process check found no active Qwen/Phi v2 jobs on 2026-10-03.
 
-## Fixed design
+## Frozen design
 
-The shared vocabulary is `amber coral jade pearl slate teal violet ivory`. Model IDs, immutable tokenizer/model revisions, dtype, int8 weights, eager attention, chat template, `enable_thinking=False`, generation prefix and `Answer:` suffix follow each actual v1 confirmation run. `verify_v1_lineage()` compares settings to the saved score provenance and verifies its score hash. In particular, Gemma's actual recorded revision is `093f9f388b31de276ce2de164bdc2081324b9767`, with bfloat16 compute. Pinning alone is not used as evidence of continuity.
+The implementation and allocation are in `src/cross_model/robustness_v2.py`; the contract and model lineage checks are in `src/cross_model/robustness_protocol.py`. Fresh artifacts are under `outputs/cross_model_relational_v2/factorial_relation_counterbalanced_20261003/`; configs and the physical-history exclusion ledger are under `configs/cross_model_relational_v2_factorial_final/`.
 
-Seeds are central in `src/cross_model/robustness_v2.py`: tokenizer validation **20261030**, development **20261031**, gate **20261101**, confirmation **20261102**. Counts are 4 tokenizer-only audit histories, then **24/24/96** fresh behavioral histories. All three models share identical stage histories.
+The shared candidate values are `amber coral jade pearl slate teal violet ivory`. Each history samples six distinct identities: four historical/current assigned values and two intervention donors outside that set. The six fixed entity pairs are Nora/Liam, Ava/Omar, Mila/Eli, Iris/Noah, Zoe/Theo and Maya/Leo. Semantic orientation maps x/z to each pair in both directions. Historical entity/mention order and current entity order independently retain both levels in every history; all member cells cross condition, order, edited entity, query and baseline/edit direction.
 
-Each history draws **six distinct values** in a fixed order: `initial_x`, `initial_z`, `proposed_x`, `proposed_z`, replacement for initial x, replacement for initial z. Neither replacement is any of the four assigned identities. Replacement values never supply current assignments in fixed-answer conditions. Both replacements are matched across conditions, order cells and queries.
+### Allocation
 
-`configs/cross_model_relational_v2/prior_history_exclusions.json` freezes physical entity/attribute/historical/current signatures from available earlier datasets and the deterministic faulty previews. It records source hashes, retains failed branches, and ignores donor identities, IDs, templates and analytic orientation labels when testing overlap. Within the fixed seeded streams, generation rejects these signatures and signatures reserved for earlier stages in validation/development/gate/confirmation priority. This is structural rejection before logits, with no seed retries or outcome-based selection. Additional supplied or automatically discovered prior datasets cause a clear stop on overlap; they cannot silently change the frozen draws. Stage-specific IDs are never a disjointness test. The original 4.52-logit Qwen raw histories remain unavailable here, as documented in the v1 audit; missing historical artifacts are not certified as covered.
+The allocation table is explicit in the contract and asserted against generated histories. Confirmation has 96 histories: each of the 6 entity pairs × 4 target attributes (`badge`, `color`, `code`, `label`) × 2 semantic orientations has exactly two histories. Margins are 16 histories per pair, 24 per target attribute and 48 per orientation.
 
-Each behavioral history has this complete product:
+Development and gate each use the same declared 24-row fractional table. Every entity pair occurs four times, each target attribute six times, each orientation twelve times, and each pair × attribute occurs once. Orientation is balanced within each pair. At 24 histories, pair × orientation is only partially crossed and pair × attribute × orientation cannot be fully crossed; each pair × attribute has one history. The frozen fractional table selects two `team` and two `project` assignments within each pair, and three of each relation within each target attribute. Relation and orientation have balanced margins but not a full relation × orientation crossing within every pair × attribute cell. The table is explicit; the relation assignment is balanced rather than derived from a single row-index parity.
 
-```text
-6 conditions × 2 historical/mention orders × 2 current orders
-             × 2 edited entities × 2 queried entities × 2 pair members
-= 192 members / 96 edit pairs
-```
+Alternate relations in the `other_attribute` condition are `team` and `project`, balanced 12/12 in the 24-history stages and 48/48 in confirmation. The eight color terms are plausible badge/color values and plausible code/label identifiers; they also work as team/project names. These are named **different-relation controls**, not claimed to be semantically unrelated; `team` and `project` differ from the target attribute and from `label`/`code`.
 
-Development and gate each contain 4,608 members; confirmation contains 18,432. The validator checks exact counts, unique IDs, every cell including the edited-entity axis, the six-value separation, derived answers, orientation, pair identities and all nonedited semantic metadata. It reconstructs every expected member from its immutable history definition.
+### Coherent prompts and contrasts
 
-| Condition | Initial block | Current block | Paired answer behavior |
-|---|---|---|---|
-| `superseded` | queried attribute assigned historical values | queried attribute updated to separate proposed values | unchanged |
-| `early_unassigned` | historical identities listed as unassigned values | queried attribute assigned proposed values | unchanged |
-| `late_unassigned` | unassigned value block placed **after** current block | queried attribute assigned proposed values | unchanged |
-| `entity_mention` | each entity mentions its historical identity in an unrelated note, with no attribute assignment | queried attribute assigned proposed values | unchanged |
-| `other_attribute` | each entity's **tag** assigned its historical identity | queried attribute assigned proposed values | unchanged |
-| `live` | sole queried-attribute assignment remains live | no later restoration or reaffirmation block | changes to replacement only for the associated edited-entity query |
+Every relevant history uses a neutral current-state assignment: `Currently, {entity}’s {attribute} is {value}.` Historical queried-attribute assignments use `Previously, ...`. The control constructions remain distinct:
 
-The first corrected development superseded intervention has historical x=amber, current x=violet, replacement x=teal. Baseline/edit are `amber → violet` and `teal → violet`; neither intervention identity is current. The live counterparts are a sole amber assignment versus a sole teal assignment, with the associated correct answer changing from amber to teal.
+| Condition | Context before current-state assignments | Role |
+|---|---|---|
+| `superseded` | Previous queried-attribute values for both entities | Obsolete assigned values |
+| `early_unassigned` | Unassigned queried-attribute values, then current states | Early unassigned control |
+| `late_unassigned` | Current states, then unassigned queried-attribute values | Late unassigned control |
+| `entity_mention` | Values mentioned in unrelated notes, then current states | Entity association without attribute assignment |
+| `other_attribute` | Previous team/project values, then current queried-attribute states | Different-relation control |
+| `live` | Sole current-state assignment, edited in place | Positive control; correct answer changes on matched edit |
 
-For the five two-block conditions, historical entity/mention order and current entity order independently render all four combinations. `variables` is the actual analytic x/z→entity mapping used by the renderer, and both semantic orientations are retained. **Live has a single assignment block:** its historical order is physically rendered; its current-order levels duplicate the same prompt solely to preserve matched cell bookkeeping. They are deduplicated for competence and averaged for relevance. An aligned/reversed live comparison is structurally uninformative and must not be presented as evidence of independent live-order robustness. Adding a restoration block would change the positive control and is prohibited.
+The v2 prompts are a new realization, not a wording replication of v1. A tokenizer-free audit checks every rendered baseline/edit pair: only the intended source/donor value span changes, aside from its unavoidable token-length consequences. Six values are distinct in every history. The audit preserves the live positive control, active orientation mapping, and complete factorial/member validation.
 
-The renderer reuses v1's exact assigned/updated/unassigned sentences, query, answer-only instruction, and chat suffix where applicable. Entity-note and other-attribute sentences are new renderings under this separate version. The study is not described as an exact wording replication of v1. No wording is selected on causal results; development is competence/implementation-only.
+The three planned primary history-level contrasts are `R_superseded − R_early_unassigned`, `R_superseded − R_entity_mention`, and `R_superseded − R_other_attribute` (the last pools the two frozen alternate relations). Also report `R_superseded − R_late_unassigned`, `R_live − R_superseded`, live minus each control, all six condition means, orientation strata and each order cell. For five two-block conditions, compute E within each of the four historical/current order cells per history, edit and query; compute symmetric x/z R from those cell means. Report aligned order by averaging (historical,current) cells (0,0)/(1,1) before R, and reversed order by averaging (0,1)/(1,0) before R. Live has one assignment block, so its current-order labels are duplicate nuisance bookkeeping, deduplicated for competence and averaged for relevance; do not claim an independent live current-order contrast. Bootstrap histories (2,000 draws, seed 73021). Confirmation is all-trial; complete-history correctness-conditioned analysis is secondary only.
 
-Behavioral `pair_direction=0/1` means **baseline/edited members** of initial-x→independent-replacement-x and initial-z→independent-replacement-z interventions. It does not mean two activation-transfer directions. Reciprocal activation patching is a separate later intervention and is not implemented here; obsolete identity swaps are not part of this design.
+The bounded surface-class continuation mass remains the primary score. Strict semantic rank-one accuracy must be at least 99% on unique prompts separately in each of the six conditions; ties fail. Superseded also requires a positive aggregate current-over-stale mass margin. A failed recomputed gate blocks confirmation. Do not relax these gates.
 
-## Scoring, gate and analyses
+## Lineage and audit status
 
-Shared scoring uses the existing bounded surface-class continuation mass, preserving the fixed lowercase/title-case × zero/one ASCII space proposals, tokenizer-only exclusions, disjoint token-event deduplication, full sequence teacher forcing, and full-vocabulary probability normalization. There is **no EOS, termination, length normalization, candidate renormalization or new causal estimand**.
+The fresh exclusion ledger contains donor-independent physical-history signatures and source hashes from available older data and both superseded v2 preparation previews. It ignores generated IDs, renderer and replacement/donor identities. Fixed seeded histories structurally reject the frozen signatures and earlier stages; no seed retries or outcome-based exclusions occur. The v1 audit compared all available Qwen, Gemma, Phi and Mistral development/gate/confirmation datasets with this same physical-history definition: it found **no cross-stage collisions**. It found only expected exact shared histories across models within the same stage (24 development, 24 gate, 96 confirmation); those are shared-model comparison histories, not cross-stage overlap. A repeated signature alone is not evidence of leakage. The unrecovered original 4.52-logit Qwen raw histories cannot be audited.
 
-Tokenizer-only validation uses the shared `tokens.validate()` with explicit renderer/position callbacks. It audits every paired edit and all candidate substitutions, and saves model/tokenizer/template geometry. Dataset geometry joins every example ID to a prompt hash and records exact character bounds, zero-based token offsets, token lengths and IDs for historical/control values, current values, all represented entity occurrences and the queried entity. All tokens outside each edited value span must be identical; unequal edit lengths remain disclosed. No mechanism is executed.
+For this design revision, prompt audit and development/gate previews were regenerated in fresh paths. Qwen and Phi's pinned tokenizer-only checks passed their surface continuation, paired-edit, candidate-substitution and value/entity span audits. Their event counts and token-length profiles differ across values; these differences are disclosed and follow the frozen surface-class policy. Gemma's audit stopped because the pinned tokenizer/config was absent from the local cache with local-only loading. No new development dataset scoring, gate scoring or confirmation dataset generation occurred. Qwen/Phi histories and plans from the previous freeze are preserved but excluded from this revision. The previous Gemma tokenizer stop is also preserved; it does not satisfy this revision's prerequisite.
 
-The gate retains **strict semantic candidate accuracy ≥99% on unique prompts separately in each of the six focal conditions**. Ties are incorrect. Superseded prompts additionally require positive aggregate current-over-stale mass margin. Mean rank and the **384** orientation/order/query/edit/member cells are diagnostic and completeness checks, not additional small-cell thresholds. Development has `pass=null`; poor development competence cannot veto the one fresh gate or authorize prompt/vocabulary redevelopment. A failed gate is sealed as failed, and confirmation generation stops before tokenizer/model work. Gate, development and preflight reports are recomputed from underlying scores and hashes; an asserted `pass=true` cannot bypass the gate.
+The new freeze binds the revised contract, code hash, model configs, v1 lineage and prompt audit. The configs preserve the actual v1 model/tokenizer pins and scoring settings. Development and gate histories are registered under the new contract/revision; no model-specific stage claims exist until official datasets are generated, and confirmation remains unregistered until a passing gate. The sealed v1 donor-independent stage audit is saved at `outputs/cross_model_relational_v2/factorial_relation_counterbalanced_20261003/v1_donor_independent_stage_audit_sealed.json`.
 
-The v1 algebra remains:
+## Safe command sequence
 
-```text
-E = [S(replacement)-S(source)]edited - [S(replacement)-S(source)]baseline
-R = 0.5 * [(E_edit_x_query_x - E_edit_x_query_z)
-         + (E_edit_z_query_z - E_edit_z_query_x)]
-```
+The final tokenizer-free audit, previews and `protocol_freeze.json` have already been created in the fresh revision directory. Qwen and Phi candidate maps are sealed to this freeze and their paired-edit and candidate-substitution audits passed. Gemma validation stopped because its pinned tokenizer/config is not cached locally; that is the remaining required audit. Do not rerun create-only commands at existing paths.
 
-For each history and condition, first average E over the four independent historical/current order cells for each edit/query; then compute symmetric x/z R and average the two entity-specific differences. For aligned order, average cells `(0,0)` and `(1,1)`; for reversed order, average `(0,1)` and `(1,0)` before the same R calculation. Control mention-order averaging follows this same rule. Higher contrasts are paired within history; bootstrap histories, never prompts/variants/layers. Draws=2,000, seed=73021, 95% intervals. The vectorized bootstrap is tested against the existing seeded v1 algorithm.
-
-The three predefined primary contrasts are:
-
-- `R_superseded - R_early_unassigned`
-- `R_superseded - R_entity_mention`
-- `R_superseded - R_other_attribute`
-
-Also report superseded minus late-unassigned, live minus superseded, live minus each control, each order cell and aligned/reversed comparisons, each entity variable, both orientations, per-history distributions and each model separately. Confirmation includes **all trials**, regardless of correctness. Causal reporting is unavailable for development/gate stages.
-
-The shared workflow now accepts an optional protocol module; original v1 calls retain their original defaults. Relational configs, contract, candidate maps, stage claims and shared-history registry are isolated. Artifact seals bind config/model pins, seeds, dataset/score hashes, git/code hashes, source v1 provenance, tokenizer audits, token geometry, freeze, runtime details, Python/packages, dtype, quantization and resolved device placement. Confirmation requires a passing recomputed gate/preflight and the same Python/package runtime as gate scoring. Scoring resumes use the existing JSONL checkpoint mechanism with exact fingerprints; interrupted/failed artifacts are retained. Every new output uses exclusive creation.
-
-## Corrected reanalysis of existing confirmation scores
-
-The corrected report is `reporting_correction_20261003`, written under `outputs/cross_model_v1_reanalysis_corrected_20261003/`. Earlier `cross_model_v1_reanalysis_relational*` reports are superseded and must not enter the paper. Source datasets, scores, sidecars and original confirmation analyses are untouched. Reanalysis validates the original sealed dataset/score provenance and their hashes; no weights are loaded.
-
-- Recompute strict rank and correctness from finite saved masses, compare stored diagnostics, and reject mismatches, duplicate IDs, duplicate members, missing cells and missing/inconsistent saved surface likelihoods.
-- Compute each member's current-answer margin against **its own strongest incorrect candidate**. Retain member-target versus fixed-baseline-competitor and fixed-baseline-target versus fixed-competitor contrasts under separate labels.
-- Report accuracy/rank, current/stale margins, absolute current/source/replacement prefix masses, paired current-answer score and margin changes **separately by condition**. Live member-target score changes can compare different correct-answer identities; fixed-baseline-answer score changes remain separately available.
-- Compute query-specific counterbalanced-unassigned R separately for `xz`/`zx`, preserving all four edit/query cells in each order. An average of raw E is never labeled R or used to establish sign reversal. Fixed-order ordinary irrelevant R is reported separately.
-- Retain full per-history relevance, relevant/other-query edit terms, source and replacement score changes, per-surface likelihoods, additive replacement/negative-source relevance decompositions, and orientation/variable strata. The frozen normalized metric remains ratio of model means, eligible only if the irrelevant-corrected live bootstrap lower bound and **every** paired draw denominator exceed 1 nat.
-- Keep the all-trial estimate primary. The secondary table selects only **complete histories with every superseded baseline/edited/query/edit member correct**, then retains all matched live/ordinary/counterbalanced members, including both irrelevant orders. It recomputes R and the primary contrast; it does not average correctness-filtered raw E.
-
-JSON preserves detailed terms and probability mass, while `.json.md` provides a compact paper-review table. New relational conditions cannot be recovered from v1 because they were not collected; the report labels them unavailable. Missing fields cause a clear failure, never new inference.
-
-## Local preparation results (2026-10-03)
-
-- Full non-GPU suite: **282 passed in 79.06s**; shell syntax and `git diff --check` passed.
-- Fresh development/gate previews contain 24 histories and 4,608 members each. The development audit contains 192 rendered baseline/edit pairs spanning every condition/order/query/edit cell in both orientations. Prompts were reviewed before creating `outputs/cross_model_relational_v2/corrected_20261003/protocol_freeze.json`.
-- Cached Qwen/Phi tokenizer-only validation passed all continuation, paired-edit, substitution and entity/value-offset audits. Actual tokenizer/template hashes and candidate events match their original v1 run artifacts. Both official development datasets passed token audits and lineage checks; their 4,608 semantic members are identical. Forward-count plans were generated without logits.
-- Gemma's local-files-only tokenizer audit stopped because its pinned tokenizer/config is absent from this host's cache; its stopped artifact is retained. Gemma continuity against actual v1 saved provenance was verified, but its new tokenizer geometry remains unaudited. **The inference hold remains in force.** No development/gate/confirmation scoring or confirmation dataset generation occurred.
-- All three corrected saved-score reports were recomputed in fresh paths. Every shared numeric history-level v1 estimate matches the original confirmation analysis within `1e-10` across all 96 histories per model. The all-trial primary estimates are unchanged; the corrected descriptive tables supersede the faulty reporting.
-
-### Files added or modified
-
-| Area | Files |
-|---|---|
-| Protocol and data | `src/cross_model/robustness_v2.py`, new `src/cross_model/robustness_protocol.py`, three YAMLs and new `prior_history_exclusions.json` under `configs/cross_model_relational_v2/` |
-| Analysis and integrity | new `src/cross_model/robustness_analysis.py`, `src/cross_model/reanalysis.py`, `src/cross_model/score_checks.py` |
-| Shared infrastructure | `src/cross_model/tokens.py`, `src/cross_model/scoring.py`, `src/cross_model/workflow.py`; optional callbacks/protocol argument preserve original defaults |
-| Commands | `scripts/robustness_v2.py`, new `scripts/run_relational_robustness.sh` |
-| Tests | `tests/test_cross_model_robustness_v2.py`, new `tests/test_cross_model_reanalysis.py`, `tests/test_cross_model_robustness_workflow.py` |
-| Documentation | `README.md`, `docs/cross_model_relational_v2.md` |
-
-Preparation and report artifacts remain under the repository's existing ignored `outputs/` tree; completed artifacts were not overwritten.
-
-## Exact commands
-
-Run at repository root. These preparation/reanalysis commands load no model weights:
+When the pinned Gemma files are available on the authorized host, run its no-logit tokenizer audit:
 
 ```bash
-# All available non-GPU tests and shell syntax checks.
-.venv/bin/python -m pytest -q
-bash -n scripts/run_relational_robustness.sh
-
-# Use fresh paths; existing artifacts are never overwritten.
-.venv/bin/python -m scripts.robustness_v2 audit --stage development \
-  --output outputs/cross_model_relational_v2/corrected_20261003/prompt_audit.json
-.venv/bin/python -m scripts.robustness_v2 preview --stage development \
-  --output outputs/cross_model_relational_v2/corrected_20261003/development_preview.json
-.venv/bin/python -m scripts.robustness_v2 preview --stage frozen_gate \
-  --output outputs/cross_model_relational_v2/corrected_20261003/gate_preview.json
-
-# Review actual baseline/edit pairs before freezing. The freeze includes all
-# three configs, original-v1 lineage, the ledger and code/audit hashes.
-.venv/bin/python -m scripts.robustness_v2 freeze \
-  --audit outputs/cross_model_relational_v2/corrected_20261003/prompt_audit.json \
-  --output outputs/cross_model_relational_v2/corrected_20261003/protocol_freeze.json
-
-# Stage 0: pinned tokenizer/config only. Use LOCAL_FILES_ONLY=1 for cached audits.
-RELATIONAL_LOCAL_FILES_ONLY=1 bash scripts/run_relational_robustness.sh qwen3_8b validate
-RELATIONAL_LOCAL_FILES_ONLY=1 bash scripts/run_relational_robustness.sh phi4_mini validate
-# Gemma requires its actual pinned tokenizer to be available on the host.
 bash scripts/run_relational_robustness.sh gemma3_4b validate
-
-# Actual development dataset token/geometry audit and forward-count plan;
-# these generate no logits. Gate/confirmation are blocked until prior reports pass.
-bash scripts/run_relational_robustness.sh qwen3_8b generate-development
-bash scripts/run_relational_robustness.sh qwen3_8b plan
-
-# Correct all three saved-score reports without new inference.
-for model in qwen3_8b gemma3_4b phi4_mini; do
-  .venv/bin/python -m scripts.robustness_v2 reanalyze \
-    --dataset outputs/${model}_review2/confirmatory.jsonl \
-    --scores outputs/${model}_review2/confirmatory_scores.jsonl \
-    --output outputs/cross_model_v1_reanalysis_corrected_20261003/${model}.json
-done
 ```
 
-**The following commands perform inference and have not been executed. Do not begin v2 scoring while the readiness warning is in force.** On the configured CUDA host, after reviewing the corrected design/token audits and resolving readiness, the fixed behavioral sequence for each of `qwen3_8b`, `gemma3_4b`, `phi4_mini` is:
+Before scoring, verify that all three candidate maps and validation artifacts bind to `outputs/cross_model_relational_v2/factorial_relation_counterbalanced_20261003/protocol_freeze.json`; review their lineage and token geometry. The hold remains until this passes for Gemma.
+
+Then, on the configured inference host, run each eligible model in order. Inspect each fresh gate report and preflight before that model's confirmation action. A failed gate blocks confirmation and must remain sealed as failed:
 
 ```bash
 bash scripts/run_relational_robustness.sh qwen3_8b development
 bash scripts/run_relational_robustness.sh qwen3_8b gate
-# Inspect the frozen gate/preflight; a failed gate blocks this command.
+# Continue only if outputs/cross_model_relational_v2/factorial_relation_counterbalanced_20261003/qwen3_8b/gate_report.json records pass=true.
 bash scripts/run_relational_robustness.sh qwen3_8b confirmatory
-# Separate recomputation from saved v2 confirmation scores; no inference.
-bash scripts/run_relational_robustness.sh qwen3_8b analyze
+
+bash scripts/run_relational_robustness.sh gemma3_4b development
+bash scripts/run_relational_robustness.sh gemma3_4b gate
+# Continue only if outputs/cross_model_relational_v2/factorial_relation_counterbalanced_20261003/gemma3_4b/gate_report.json records pass=true.
+bash scripts/run_relational_robustness.sh gemma3_4b confirmatory
+
+bash scripts/run_relational_robustness.sh phi4_mini development
+bash scripts/run_relational_robustness.sh phi4_mini gate
+# Continue only if outputs/cross_model_relational_v2/factorial_relation_counterbalanced_20261003/phi4_mini/gate_report.json records pass=true.
+bash scripts/run_relational_robustness.sh phi4_mini confirmatory
 ```
 
-`RELATIONAL_RUN_DIR` selects a fresh model output directory; it does not bypass one-per-model/stage claims. `RELATIONAL_FREEZE` selects the immutable shared freeze path. To resume interrupted scoring, use the CLI `score --resume` with its original config/candidate/dataset/output paths. No gate thresholds, vocabulary, counts, seeds or wording have CLI overrides. There is no Mistral replacement, downstream multi-model panel, new mechanism experiment, or long-context expansion. Optional downstream order/codebook robustness remains deferred and isolated from these commands.
+Each shell action invokes the protocol CLI through the same frozen workflow and performs its stage analysis; do not substitute commands from another protocol. The workflow resumes only scored JSONL checkpoints with their original fingerprints. Never point `RELATIONAL_RUN_DIR` at an earlier revision. Do not run development, gate or confirmation while the hold remains. No v1 rerun is part of this workflow.

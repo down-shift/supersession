@@ -19,7 +19,7 @@ def lineage(tmp_path, monkeypatch):
     # Geometry itself is exercised with exact toy offsets in the tokenizer tests;
     # this fixture tests sealed stage bindings and recomputed eligibility.
     monkeypatch.setattr(design, 'verify_dataset_info', lambda rows, info: None)
-    config_path = 'configs/cross_model_relational_v2/qwen3_8b.yaml'
+    config_path = 'configs/cross_model_relational_v2_factorial_final/qwen3_8b.yaml'
     config = load_config(config_path)
     candidate = tmp_path/'candidates.json'
     write_new(candidate, sealed({'fixture': 'synthetic candidate map; no weights or inference'}))

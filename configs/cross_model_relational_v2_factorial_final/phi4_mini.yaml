@@ -1,0 +1,715 @@
+seed: 20261031
+model:
+  id: microsoft/Phi-4-mini-instruct
+  revision: cfbefacb99257ffa30c83adab238a50856ac3083
+  tokenizer_id: microsoft/Phi-4-mini-instruct
+  tokenizer_revision: cfbefacb99257ffa30c83adab238a50856ac3083
+  trust_remote_code: true
+  device: cuda
+  dtype: float16
+  quantization: int8
+  device_map: 0
+  require_full_gpu: true
+  chat_template: true
+  attn_implementation: eager
+cross_model:
+  protocol: cross_model_relational_v2
+  design_revision: factorial_relation_counterbalanced_20261003
+  causal_protocol: cross_model_sequence_mass_v1
+  values:
+  - amber
+  - coral
+  - jade
+  - pearl
+  - slate
+  - teal
+  - violet
+  - ivory
+  seeds:
+    validation: 20261030
+    development: 20261031
+    frozen_gate: 20261101
+    confirmatory: 20261102
+  counts:
+    development: 24
+    frozen_gate: 24
+    confirmatory: 96
+  validation_histories: 4
+  conditions:
+  - superseded
+  - early_unassigned
+  - late_unassigned
+  - entity_mention
+  - other_attribute
+  - live
+  gate:
+    scope: unique prompts within each of six focal conditions; full factorial cells
+      diagnostic
+    semantic_accuracy_min: 0.99
+    candidate_rank_policy: strict rank one; ties incorrect; mean rank diagnostic only
+    mean_current_minus_stale_min: 0.0
+    stale_margin_conditions:
+    - superseded
+  template: nora_relational_v2
+  rendering:
+    historical_assignment: Previously, {entity}’s {attribute} was {value}.
+    current_assignment: Currently, {entity}’s {attribute} is {value}.
+    unassigned: The unassigned {attribute} value was {value}.
+    entity_mention: '{entity} mentioned {value} in an unrelated note.'
+    query: What is {entity}’s current {attribute}?
+    instruction: Respond with only the value, with no explanation.
+  attributes:
+  - badge
+  - color
+  - code
+  - label
+  entity_pairs:
+  - - Nora
+    - Liam
+  - - Ava
+    - Omar
+  - - Mila
+    - Eli
+  - - Iris
+    - Noah
+  - - Zoe
+    - Theo
+  - - Maya
+    - Leo
+  alternate_relations:
+  - team
+  - project
+  fractional_relation_one_cells:
+  - - 0
+    - 1
+  - - 0
+    - 2
+  - - 0
+    - 3
+  - - 1
+    - 2
+  - - 1
+    - 3
+  - - 2
+    - 3
+  allocation_tables:
+    development:
+    - - 0
+      - 0
+      - 0
+      - 0
+    - - 0
+      - 1
+      - 1
+      - 0
+    - - 0
+      - 2
+      - 0
+      - 1
+    - - 0
+      - 3
+      - 1
+      - 1
+    - - 1
+      - 0
+      - 1
+      - 0
+    - - 1
+      - 1
+      - 0
+      - 1
+    - - 1
+      - 2
+      - 1
+      - 0
+    - - 1
+      - 3
+      - 0
+      - 1
+    - - 2
+      - 0
+      - 0
+      - 0
+    - - 2
+      - 1
+      - 1
+      - 1
+    - - 2
+      - 2
+      - 0
+      - 1
+    - - 2
+      - 3
+      - 1
+      - 0
+    - - 3
+      - 0
+      - 1
+      - 1
+    - - 3
+      - 1
+      - 0
+      - 0
+    - - 3
+      - 2
+      - 1
+      - 0
+    - - 3
+      - 3
+      - 0
+      - 1
+    - - 4
+      - 0
+      - 0
+      - 1
+    - - 4
+      - 1
+      - 1
+      - 0
+    - - 4
+      - 2
+      - 0
+      - 1
+    - - 4
+      - 3
+      - 1
+      - 0
+    - - 5
+      - 0
+      - 1
+      - 1
+    - - 5
+      - 1
+      - 0
+      - 1
+    - - 5
+      - 2
+      - 1
+      - 0
+    - - 5
+      - 3
+      - 0
+      - 0
+    frozen_gate:
+    - - 0
+      - 0
+      - 0
+      - 0
+    - - 0
+      - 1
+      - 1
+      - 0
+    - - 0
+      - 2
+      - 0
+      - 1
+    - - 0
+      - 3
+      - 1
+      - 1
+    - - 1
+      - 0
+      - 1
+      - 0
+    - - 1
+      - 1
+      - 0
+      - 1
+    - - 1
+      - 2
+      - 1
+      - 0
+    - - 1
+      - 3
+      - 0
+      - 1
+    - - 2
+      - 0
+      - 0
+      - 0
+    - - 2
+      - 1
+      - 1
+      - 1
+    - - 2
+      - 2
+      - 0
+      - 1
+    - - 2
+      - 3
+      - 1
+      - 0
+    - - 3
+      - 0
+      - 1
+      - 1
+    - - 3
+      - 1
+      - 0
+      - 0
+    - - 3
+      - 2
+      - 1
+      - 0
+    - - 3
+      - 3
+      - 0
+      - 1
+    - - 4
+      - 0
+      - 0
+      - 1
+    - - 4
+      - 1
+      - 1
+      - 0
+    - - 4
+      - 2
+      - 0
+      - 1
+    - - 4
+      - 3
+      - 1
+      - 0
+    - - 5
+      - 0
+      - 1
+      - 1
+    - - 5
+      - 1
+      - 0
+      - 1
+    - - 5
+      - 2
+      - 1
+      - 0
+    - - 5
+      - 3
+      - 0
+      - 0
+    confirmatory:
+    - - 0
+      - 0
+      - 0
+      - 0
+    - - 0
+      - 0
+      - 0
+      - 1
+    - - 0
+      - 0
+      - 1
+      - 0
+    - - 0
+      - 0
+      - 1
+      - 1
+    - - 0
+      - 1
+      - 0
+      - 0
+    - - 0
+      - 1
+      - 0
+      - 1
+    - - 0
+      - 1
+      - 1
+      - 0
+    - - 0
+      - 1
+      - 1
+      - 1
+    - - 0
+      - 2
+      - 0
+      - 0
+    - - 0
+      - 2
+      - 0
+      - 1
+    - - 0
+      - 2
+      - 1
+      - 0
+    - - 0
+      - 2
+      - 1
+      - 1
+    - - 0
+      - 3
+      - 0
+      - 0
+    - - 0
+      - 3
+      - 0
+      - 1
+    - - 0
+      - 3
+      - 1
+      - 0
+    - - 0
+      - 3
+      - 1
+      - 1
+    - - 1
+      - 0
+      - 0
+      - 0
+    - - 1
+      - 0
+      - 0
+      - 1
+    - - 1
+      - 0
+      - 1
+      - 0
+    - - 1
+      - 0
+      - 1
+      - 1
+    - - 1
+      - 1
+      - 0
+      - 0
+    - - 1
+      - 1
+      - 0
+      - 1
+    - - 1
+      - 1
+      - 1
+      - 0
+    - - 1
+      - 1
+      - 1
+      - 1
+    - - 1
+      - 2
+      - 0
+      - 0
+    - - 1
+      - 2
+      - 0
+      - 1
+    - - 1
+      - 2
+      - 1
+      - 0
+    - - 1
+      - 2
+      - 1
+      - 1
+    - - 1
+      - 3
+      - 0
+      - 0
+    - - 1
+      - 3
+      - 0
+      - 1
+    - - 1
+      - 3
+      - 1
+      - 0
+    - - 1
+      - 3
+      - 1
+      - 1
+    - - 2
+      - 0
+      - 0
+      - 0
+    - - 2
+      - 0
+      - 0
+      - 1
+    - - 2
+      - 0
+      - 1
+      - 0
+    - - 2
+      - 0
+      - 1
+      - 1
+    - - 2
+      - 1
+      - 0
+      - 0
+    - - 2
+      - 1
+      - 0
+      - 1
+    - - 2
+      - 1
+      - 1
+      - 0
+    - - 2
+      - 1
+      - 1
+      - 1
+    - - 2
+      - 2
+      - 0
+      - 0
+    - - 2
+      - 2
+      - 0
+      - 1
+    - - 2
+      - 2
+      - 1
+      - 0
+    - - 2
+      - 2
+      - 1
+      - 1
+    - - 2
+      - 3
+      - 0
+      - 0
+    - - 2
+      - 3
+      - 0
+      - 1
+    - - 2
+      - 3
+      - 1
+      - 0
+    - - 2
+      - 3
+      - 1
+      - 1
+    - - 3
+      - 0
+      - 0
+      - 0
+    - - 3
+      - 0
+      - 0
+      - 1
+    - - 3
+      - 0
+      - 1
+      - 0
+    - - 3
+      - 0
+      - 1
+      - 1
+    - - 3
+      - 1
+      - 0
+      - 0
+    - - 3
+      - 1
+      - 0
+      - 1
+    - - 3
+      - 1
+      - 1
+      - 0
+    - - 3
+      - 1
+      - 1
+      - 1
+    - - 3
+      - 2
+      - 0
+      - 0
+    - - 3
+      - 2
+      - 0
+      - 1
+    - - 3
+      - 2
+      - 1
+      - 0
+    - - 3
+      - 2
+      - 1
+      - 1
+    - - 3
+      - 3
+      - 0
+      - 0
+    - - 3
+      - 3
+      - 0
+      - 1
+    - - 3
+      - 3
+      - 1
+      - 0
+    - - 3
+      - 3
+      - 1
+      - 1
+    - - 4
+      - 0
+      - 0
+      - 0
+    - - 4
+      - 0
+      - 0
+      - 1
+    - - 4
+      - 0
+      - 1
+      - 0
+    - - 4
+      - 0
+      - 1
+      - 1
+    - - 4
+      - 1
+      - 0
+      - 0
+    - - 4
+      - 1
+      - 0
+      - 1
+    - - 4
+      - 1
+      - 1
+      - 0
+    - - 4
+      - 1
+      - 1
+      - 1
+    - - 4
+      - 2
+      - 0
+      - 0
+    - - 4
+      - 2
+      - 0
+      - 1
+    - - 4
+      - 2
+      - 1
+      - 0
+    - - 4
+      - 2
+      - 1
+      - 1
+    - - 4
+      - 3
+      - 0
+      - 0
+    - - 4
+      - 3
+      - 0
+      - 1
+    - - 4
+      - 3
+      - 1
+      - 0
+    - - 4
+      - 3
+      - 1
+      - 1
+    - - 5
+      - 0
+      - 0
+      - 0
+    - - 5
+      - 0
+      - 0
+      - 1
+    - - 5
+      - 0
+      - 1
+      - 0
+    - - 5
+      - 0
+      - 1
+      - 1
+    - - 5
+      - 1
+      - 0
+      - 0
+    - - 5
+      - 1
+      - 0
+      - 1
+    - - 5
+      - 1
+      - 1
+      - 0
+    - - 5
+      - 1
+      - 1
+      - 1
+    - - 5
+      - 2
+      - 0
+      - 0
+    - - 5
+      - 2
+      - 0
+      - 1
+    - - 5
+      - 2
+      - 1
+      - 0
+    - - 5
+      - 2
+      - 1
+      - 1
+    - - 5
+      - 3
+      - 0
+      - 0
+    - - 5
+      - 3
+      - 0
+      - 1
+    - - 5
+      - 3
+      - 1
+      - 0
+    - - 5
+      - 3
+      - 1
+      - 1
+  value_allocation: four distinct historical/current assignment values plus two distinct
+    replacement identities outside all four assignments
+  freshness_policy: fixed prior-history exclusion ledger; structural rejection within
+    fixed seeded streams in validation/development/gate/confirmation priority; no
+    seed retries or outcome-based exclusions
+  order_factors:
+  - historical_entity_or_unassigned_mention_order
+  - current_entity_order
+  live_order_policy: one historical/live assignment block; current-order labels are
+    duplicate nuisance variants, not a physical second block
+  pair_direction: 0 baseline; 1 edited; independent x and z interventions; no activation
+    transfers or reciprocal swaps
+  rows_per_history: 192
+  surfaces: lower/title x zero/one leading ASCII space; exclude unspaced prefix-changing
+    forms; deduplicate token events
+  candidate_score: bounded surface-class continuation mass; logsumexp of sequence
+    log probabilities; no termination
+  development_policy: competence/implementation only; no causal report or prompt/vocabulary
+    redevelopment
+  span_policy: patch all tokens; require exact pair alignment outside edited span
+  surface_geometry_audit: mandatory per-value event count, every event length and
+    represented strings; unequal classes visible, not rejected
+  primary_contrasts:
+  - R_superseded - R_early_unassigned
+  - R_superseded - R_entity_mention
+  - R_superseded - R_other_attribute
+  other_attribute_label: different_relation_control; team/project relations are counterbalanced,
+    not claimed unrelated
+  secondary:
+  - R_superseded - R_late_unassigned
+  - R_live - R_superseded
+  - live-minus-each-control
+  - aligned-versus-reversed historical/current order
+  aggregation: mean E over four order cells within each history/condition/edit/query
+    before symmetric relevance; aligned/reversed subsets each average their two cells;
+    contrasts and bootstrap on histories
+  confirmation_policy: all trials; primary estimates never conditioned on correctness
+  bootstrap:
+    unit: history
+    draws: 2000
+    seed: 73021

@@ -9,7 +9,7 @@ from src.cross_model.protocol import VALUES, digest
 from src.data.supersession_behavior import FIELDS, _answer_prefix, _derived
 
 VERSION = 'cross_model_relational_v2'
-DESIGN_REVISION = 'relational_order_correction_20261003'
+DESIGN_REVISION = 'factorial_relation_counterbalanced_20261003'
 COUNTS = {'development': 24, 'frozen_gate': 24, 'confirmatory': 96}
 SEEDS = {'validation': 20261030, 'development': 20261031,
          'frozen_gate': 20261101, 'confirmatory': 20261102}
@@ -17,11 +17,28 @@ CONDITIONS = ('superseded', 'early_unassigned', 'late_unassigned',
               'entity_mention', 'other_attribute', 'live')
 NAMES = ('Nora', 'Liam', 'Ava', 'Omar', 'Mila', 'Eli', 'Iris', 'Noah', 'Zoe', 'Theo', 'Maya', 'Leo')
 ATTRIBUTES = ('badge', 'color', 'code', 'label')
+ENTITY_PAIRS = tuple(zip(NAMES[::2], NAMES[1::2]))
+ALT_RELATIONS = ('team', 'project')
+# Confirmation crosses pair, target attribute and orientation twice, with one
+# replicate per alternate relation. The 24-history table balances pair and
+# attribute margins and both alternate relations within each pair/attribute.
+FRACTIONAL_RELATION_ONE = ((0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3))
+CONFIRMATION_ALLOCATION = tuple(
+    (pair, attribute, orientation, replicate)
+    for pair in range(6) for attribute in range(4)
+    for orientation in (0, 1) for replicate in (0, 1))
+FRACTIONAL_ALLOCATION = tuple(
+    (pair, attribute, (pair + attribute) % 2,
+     0 if attribute in FRACTIONAL_RELATION_ONE[pair] else 1)
+    for pair in range(6) for attribute in range(4))
+ALLOCATION_TABLES = {'development': FRACTIONAL_ALLOCATION,
+                     'frozen_gate': FRACTIONAL_ALLOCATION,
+                     'confirmatory': CONFIRMATION_ALLOCATION}
 ROWS_PER_HISTORY = 6 * 2 * 2 * 2 * 2 * 2
-EXCLUSION_LEDGER = Path(__file__).resolve().parents[2] / 'configs/cross_model_relational_v2/prior_history_exclusions.json'
+EXCLUSION_LEDGER = Path(__file__).resolve().parents[2] / 'configs/cross_model_relational_v2_factorial_final/prior_history_exclusions.json'
 RENDERING = {
-    'historical_assignment': 'The {attribute} assigned to {entity} was {value}.',
-    'current_assignment': 'Later, {entity}’s {attribute} was changed to {value}.',
+    'historical_assignment': 'Previously, {entity}’s {attribute} was {value}.',
+    'current_assignment': 'Currently, {entity}’s {attribute} is {value}.',
     'unassigned': 'The unassigned {attribute} value was {value}.',
     'entity_mention': '{entity} mentioned {value} in an unrelated note.',
     'query': 'What is {entity}’s current {attribute}?',
@@ -67,12 +84,19 @@ def _history_definitions(stage):
     for earlier in stages[:stages.index(stage)]:
         seen.update(h['concrete_signature'] for h in _history_definitions(earlier))
     histories = []
-    for index in range(count):
-        entities = [NAMES[2*index % len(NAMES)], NAMES[(2*index+1) % len(NAMES)]]
-        orientation = index % 2
+    allocation = ALLOCATION_TABLES.get(stage)
+    if stage == 'validation':
+        allocation = FRACTIONAL_ALLOCATION[:count]
+    if allocation is None or len(allocation) != count:
+        raise ValueError(f'no exact allocation table for {stage}')
+    for index, (pair_index, attribute_index, orientation, relation_index) in enumerate(allocation):
+        entities = list(ENTITY_PAIRS[pair_index])
         h = {'history_index': index, 'seed': SEEDS[stage], 'stage': stage,
              'entities': entities, 'variables': entities[::1 if orientation == 0 else -1],
-             'attribute': ATTRIBUTES[index % len(ATTRIBUTES)], 'orientation': orientation}
+             'attribute': ATTRIBUTES[attribute_index], 'orientation': orientation,
+             'allocation_cell': {'entity_pair': pair_index, 'attribute': attribute_index,
+                                 'orientation': orientation},
+             'other_attribute': ALT_RELATIONS[relation_index]}
         while True:
             # Neither replacement identity is any historical or current identity.
             chosen = rng.sample(VALUES, 6)
@@ -112,7 +136,7 @@ def _member(h, condition, historical_order, current_order, edited_variable, quer
            'attribute_relation': {'superseded': 'queried_attribute', 'live': 'queried_attribute',
                                   'early_unassigned': 'unassigned', 'late_unassigned': 'unassigned',
                                   'entity_mention': 'no_assignment', 'other_attribute': 'different_attribute'}[condition],
-           'other_attribute': 'tag', 'control_type': condition,
+           'other_attribute': h['other_attribute'], 'control_type': condition,
            'query': query, 'query_id': f'current_{query}',
            'query_entity': h['variables'][('x', 'z').index(query)],
            'edited_variable': edited_variable, 'edited_field': field,
@@ -186,6 +210,30 @@ def audit_structure(histories, rows):
         cells[hid].add(cell)
     if any(c != required_cells() for c in cells.values()):
         raise ValueError('incomplete condition/order/edited-entity/query/member product')
+    stage = histories[0]['stage']
+    allocation = FRACTIONAL_ALLOCATION[:len(histories)] if stage == 'validation' else ALLOCATION_TABLES[stage]
+    observed = [(h['allocation_cell']['entity_pair'], h['allocation_cell']['attribute'], h['orientation'],
+                 ALT_RELATIONS.index(h['other_attribute'])) for h in histories]
+    if observed != list(allocation):
+        raise ValueError('history allocation differs from the declared allocation table')
+    from collections import Counter
+    pair_counts = Counter(h['allocation_cell']['entity_pair'] for h in histories)
+    attribute_counts = Counter(h['attribute'] for h in histories)
+    orientation_counts = Counter(h['orientation'] for h in histories)
+    if stage == 'confirmatory':
+        factorial = Counter((h['allocation_cell']['entity_pair'], h['attribute'], h['orientation']) for h in histories)
+        relation_cell = Counter((h['allocation_cell']['entity_pair'], h['attribute'], h['orientation'], h['other_attribute']) for h in histories)
+        if set(factorial.values()) != {2} or set(relation_cell.values()) != {1} or set(pair_counts.values()) != {16} or set(attribute_counts.values()) != {24} or set(orientation_counts.values()) != {48}:
+            raise ValueError('confirmation allocation must have two histories per factorial cell, one per alternate relation')
+    elif stage != 'validation' and (set(pair_counts.values()) != {4} or set(attribute_counts.values()) != {6} or set(orientation_counts.values()) != {12}):
+        raise ValueError('fractional allocation margins are unbalanced')
+    if stage != 'validation' and set(Counter(h['other_attribute'] for h in histories).values()) != ({48} if len(histories) == 96 else {12}):
+        raise ValueError('alternate relation allocation is unbalanced')
+    if stage in ('development', 'frozen_gate'):
+        relation_attr = Counter((h['other_attribute'], h['attribute']) for h in histories)
+        relation_pair = Counter((h['other_attribute'], h['allocation_cell']['entity_pair']) for h in histories)
+        if set(relation_attr.values()) != {3} or set(relation_pair.values()) != {2}:
+            raise ValueError('fractional alternate-relation allocation is unbalanced over attributes and pairs')
     return True
 
 
@@ -197,6 +245,30 @@ def validate(histories, rows, stage):
 
 def validate_rows(rows, stage):
     return validate(_history_definitions(stage), rows, stage)
+
+
+def audit_rendered_pairs(rows):
+    """Verify every baseline/edit rendering differs only at its intended value."""
+    grouped = {}
+    for row in rows:
+        grouped.setdefault(row['pair_id'], {})[row['pair_direction']] = row
+    if any(set(pair) != {0, 1} for pair in grouped.values()):
+        raise ValueError('render audit found a missing paired member')
+    counts = {condition: 0 for condition in CONDITIONS}
+    for pair in grouped.values():
+        baseline, edited = pair[0], pair[1]
+        b_body, b_spans = render_body(baseline)
+        e_body, e_spans = render_body(edited)
+        field = baseline['edited_field']
+        b0, b1 = b_spans[field]
+        e0, e1 = e_spans[field]
+        if (b_body[:b0] != e_body[:e0] or b_body[b1:] != e_body[e1:]
+                or b_body[b0:b1] != baseline['source_value']
+                or e_body[e0:e1] != baseline['replacement_value']):
+            raise ValueError(f"{baseline['pair_id']}: rendered edit changes text outside its target value")
+        counts[baseline['condition']] += 1
+    return {'baseline_edit_pairs': len(grouped), 'pairs_by_condition': counts,
+            'status': 'passed; target value span is the only semantic change'}
 
 
 def read_history_rows(path):
@@ -241,9 +313,10 @@ def render_body(row):
 
     def historical():
         for v in ho:
-            kind = 'unassigned' if condition.endswith('unassigned') else (
+            kind = 'current_assignment' if condition == 'live' else (
+                'unassigned' if condition.endswith('unassigned') else
                 'entity_mention' if condition == 'entity_mention' else 'historical_assignment')
-            add(kind, v, f'initial_{v}', 'tag' if condition == 'other_attribute' else attr)
+            add(kind, v, f'initial_{v}', row['other_attribute'] if condition == 'other_attribute' else attr)
 
     def current():
         for v in co:

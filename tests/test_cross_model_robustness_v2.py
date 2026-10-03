@@ -40,6 +40,57 @@ def test_full_factorial_includes_edited_entity_and_every_member(development):
     assert data.validate(histories, rows, 'development')
 
 
+def test_declared_history_allocation_is_balanced_and_factorially_crossed():
+    from collections import Counter
+    confirmation, _ = data.generate('confirmatory')
+    counts = Counter((h['allocation_cell']['entity_pair'], h['attribute'], h['orientation']) for h in confirmation)
+    assert set(counts.values()) == {2}
+    assert set(Counter(h['allocation_cell']['entity_pair'] for h in confirmation).values()) == {16}
+    for stage in ('development', 'frozen_gate'):
+        histories, _ = data.generate(stage)
+        assert set(Counter(h['allocation_cell']['entity_pair'] for h in histories).values()) == {4}
+        assert set(Counter(h['attribute'] for h in histories).values()) == {6}
+        assert set(Counter(h['orientation'] for h in histories).values()) == {12}
+        pair_attr = Counter((h['allocation_cell']['entity_pair'], h['attribute']) for h in histories)
+        assert set(pair_attr.values()) == {1}
+        relation_attr = Counter((h['other_attribute'], h['attribute']) for h in histories)
+        assert set(relation_attr.values()) == {3}
+    relation_full_cells = Counter((h['other_attribute'], h['attribute']) for h in confirmation)
+    assert set(relation_full_cells.values()) == {12}
+    assert all(h['other_attribute'] in data.ALT_RELATIONS and h['other_attribute'] != h['attribute']
+               for h in confirmation)
+
+
+def test_allocation_counterexample_is_rejected(development):
+    histories, rows = development
+    broken = copy.deepcopy(histories)
+    broken_rows = copy.deepcopy(rows)
+    broken[0]['allocation_cell']['attribute'] = 3
+    for row in broken_rows:
+        if row['history_id'] == broken[0]['history_id']:
+            row['allocation_cell']['attribute'] = 3
+    with pytest.raises(ValueError, match='allocation table'):
+        data.audit_structure(broken, broken_rows)
+
+
+def test_rendered_pair_changes_only_the_target_value_span(development):
+    _, rows = development
+    by_pair = defaultdict(dict)
+    for row in rows:
+        by_pair[row['pair_id']][row['pair_direction']] = row
+    for pair in by_pair.values():
+        baseline, edited = pair[0], pair[1]
+        body0, spans0 = data.render_body(baseline)
+        body1, spans1 = data.render_body(edited)
+        field = baseline['edited_field']
+        start0, end0 = spans0[field]
+        start1, end1 = spans1[field]
+        assert body0[:start0] == body1[:start1]
+        assert body0[end0:] == body1[end1:]
+        assert body0[start0:end0] == baseline['source_value']
+        assert body1[start1:end1] == baseline['replacement_value']
+
+
 @pytest.mark.parametrize('corruption', ['remove_z', 'remove_member', 'duplicate_id', 'duplicate_pair',
                                       'answer', 'unintended_edit', 'current_value', 'order', 'seed'])
 def test_structural_failures_rejected(development, corruption):
@@ -105,14 +156,14 @@ def test_actual_order_entity_mapping_and_control_semantics(development):
         if r['condition'] == 'entity_mention':
             assert f'{r["variables"][0]} mentioned {r["semantic_values"]["initial_x"]} in an unrelated note.' in body
         elif r['condition'] == 'other_attribute':
-            assert f'The tag assigned to {r["variables"][0]}' in body
+            assert f'Previously, {r["variables"][0]}’s {r["other_attribute"]} was' in body
             assert r['other_attribute'] != r['attribute']
         elif r['condition'] == 'early_unassigned':
             assert spans['initial_x'][0] < spans['proposed_x'][0]
         elif r['condition'] == 'late_unassigned':
             assert spans['initial_x'][0] > spans['proposed_x'][0]
         elif r['condition'] == 'live':
-            assert 'Later,' not in body and 'remains' not in body
+            assert 'Currently,' in body and 'remains' not in body
         assert body.endswith('Respond with only the value, with no explanation.')
 
 
@@ -219,7 +270,7 @@ def test_gate_unique_condition_accuracy_and_failed_development_not_a_veto(develo
 
 def test_config_continuity_including_actual_gemma_provenance():
     for slug in design.MODEL_SETTINGS:
-        config = load_config(f'configs/cross_model_relational_v2/{slug}.yaml')
+        config = load_config(f'configs/cross_model_relational_v2_factorial_final/{slug}.yaml')
         design.validate_config(config)
         lineage = design.verify_v1_lineage(config)
         assert lineage['scientific_settings']['model_revision'] == config['model']['revision']
