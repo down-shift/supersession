@@ -164,4 +164,4 @@ Full artifacts: [dataset](../outputs/followups/marker_confirmatory.jsonl), [gene
 
 ## Remaining work
 
-The marker × construction confirmation is complete for both models. The separate harder-task n=4/n=6 development and any eligible harder-task test remain pending in this checkout. No harder-task selection or test freeze is inferred from the marker results. Relational v2 results and the paper are unchanged.
+The marker × construction confirmation is complete for both models. Separately, harder-task development at n=2, n=4, and n=6 is complete for Qwen and Gemma; Qwen exceeds 90% accuracy at all three levels, triggering the prespecified stop rule. No harder-task selection freeze or test was generated, and the nearest-level fallback must not be used. The development results and stopping decision are documented in [Time-limited relational follow-ups](followup_experiments.md). These follow-up results do not change the marker-confirmation estimates or relational v2 results.
