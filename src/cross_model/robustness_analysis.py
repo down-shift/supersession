@@ -68,6 +68,8 @@ def paired_effects(rows, scores):
         before, after = base['semantic_log_mass'], edit['semantic_log_mass']
         effect = {k: base[k] for k in ('history_id', 'condition', 'edited_variable', 'query')}
         effect.update(pair_id=pid,
+                      source_before=before[source], source_after=after[source],
+                      donor_before=before[replacement], donor_after=after[replacement],
                       source_change=after[source] - before[source],
                       replacement_change=after[replacement] - before[replacement],
                       identity_transfer=(after[replacement] - after[source]) - (before[replacement] - before[source]))
@@ -141,3 +143,29 @@ def report(rows, scores):
             'aggregation': 'mean E over all four independent order cells within history, then symmetric x/z query relevance; contrasts and bootstrap on histories',
             'all_trial_estimate': True,
             'live_order_caveat': 'live has one assignment block; current order labels duplicate it and are not an independent physical order factor'}
+
+
+def order_contrasts(history_rows):
+    """Contrasts and direct paired order interactions, bootstrapped by history."""
+    result = []
+    for control in CONTROLS:
+        name = f'R_superseded_minus_R_{control}'
+        for order in ('aligned', 'reversed'):
+            key = f'{name}_{order}'
+            result.append({'contrast': name, 'order': order,
+                           **summary([r[key] for r in history_rows])})
+        for h in (0, 1):
+            for c in (0, 1):
+                key = f'{name}_h{h}_c{c}'
+                result.append({'contrast': name, 'order': f'historical_{h}_current_{c}',
+                               **summary([r[f'R_superseded_h{h}_c{c}'] - r[f'R_{control}_h{h}_c{c}'] for r in history_rows])})
+        interaction = [r[f'{name}_aligned'] - r[f'{name}_reversed'] for r in history_rows]
+        result.append({'contrast': name, 'order': 'aligned_minus_reversed_secondary_exploratory',
+                       **summary(interaction)})
+    return result
+
+
+def condition_order_values(history_rows):
+    """Lossless condition/order R values already computed at history level."""
+    keys = [f'R_{c}_{order}' for c in CONDITIONS for order in ('aligned', 'reversed')]
+    return [{ 'history_id': r['history_id'], **{k: r[k] for k in keys}} for r in history_rows]

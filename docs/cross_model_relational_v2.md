@@ -114,6 +114,18 @@ Order-stratified results narrow that interpretation. For `R_superseded − R_ear
 
 Chronology: (1) the earlier Gemma confirmation attempt stopped on geometry validation before model loading and produced no scores; (2) the corrected runtimefix freeze and audits were completed; (3) both model preflights passed and the overnight runner released confirmation; (4) Qwen and Gemma scoring and analysis are complete in the available artifacts. The captured overnight log contains the preflights and Qwen startup but lacks terminal completion lines, so preserve it as an incomplete log; the complete score counts, sidecars, hashes, and analysis reports establish the saved outputs' completion. No freeze or experiment artifact was modified to record later events.
 
+## Extended saved-score reanalysis (2026-10-04)
+
+The narrow original confirmation reports were preserved. `scripts/analyze_relational_confirmation_v2.py` independently rechecks their frozen history rows against saved datasets and scores, verifies seals and hash/binding metadata, runtimefix freeze, gate/preflight bindings, row/ID/pair completeness and the stopped-Gemma source exclusion. It writes the extension to `outputs/cross_model_relational_v2/factorial_relation_counterbalanced_runtimefix_20261004/extended_analysis_v6/`. Reproduce with:
+
+```bash
+PYTHONPATH=. python3 scripts/analyze_relational_confirmation_v2.py
+```
+
+The script refuses to overwrite an existing output directory. Each model folder contains complete per-history estimates, all six condition R values by aligned/reversed order, competence cells, paired correctness, and paired source/donor score changes. `report.json` records history-bootstrap estimates and intervals; `audit.json` records freeze and exclusion checks. The overall frozen contrasts reproduce the table above: Qwen early 2.011, entity mention −3.504, other attribute 0.314; Gemma early 1.575, entity mention −2.589, other attribute 0.004 nats. There is no material discrepancy from the supplied table.
+
+The contrast export includes every historical/current order cell (`h0_c0`, `h0_c1`, `h1_c0`, `h1_c1`), plus aligned and reversed aggregates. Direct aligned-minus-reversed differences use paired history values and are secondary/exploratory. The all-trial analysis remains primary. Saved surface event scores support source/donor score-change summaries, but are bounded prefix continuation scores without termination, not unrestricted answer probabilities or practical harm measures. Null-crossing intervals are inconclusive; no equivalence margin was prespecified. The stopped source dataset hash and all 96 ledger signatures are checked, with zero overlap in either confirmation bundle.
+
 ## Workflow commands (historical; confirmation complete)
 
 The commands below document the completed setup and migration path for reproducibility. Do not rerun them against the existing sealed output paths. The runtimefix Qwen and Gemma confirmation runs are complete; preserve their saved scores and reports.
@@ -146,3 +158,253 @@ Confirmation scoring is complete for Qwen and Gemma in the artifacts above. Do n
 | Phi 4 mini | — | Do not run confirmation; frozen gate fails `entity_mention` accuracy. |
 
 Preserve all score rows and errors. The expected record counts and freeze/provenance bindings have been verified; the frozen contrasts and order results are reported above. No v1 inference rerun is part of this workflow.
+
+### Complete results for the paper writer
+
+All estimates below were recomputed from the sealed v2 confirmation scores. Values are means with 95% history-bootstrap intervals (2,000 draws; seed 73021), in nats. The bootstrap resamples histories. These tables are summaries; all 96 per-history rows for both models are also retained in `extended_analysis_v6/{qwen3_8b,gemma3_4b}/per_history.csv`.
+
+#### Condition-level R
+
+Each cell gives overall R, aligned-order R, and reversed-order R, respectively. Live has only one physical assignment block; its duplicated order labels are bookkeeping and its identical values do not estimate an order effect.
+
+| Model | Condition | Overall R | Aligned R | Reversed R |
+| --- | --- | --- | --- | --- |
+| Qwen 3 8B | live | 32.598 [31.258, 33.967] | 32.598 [31.258, 33.967] | 32.598 [31.258, 33.967] |
+| Qwen 3 8B | superseded | 1.974 [1.840, 2.109] | 2.144 [1.995, 2.301] | 1.804 [1.660, 1.947] |
+| Qwen 3 8B | early_unassigned | -0.037 [-0.203, 0.121] | 3.252 [3.046, 3.455] | -3.327 [-3.518, -3.150] |
+| Qwen 3 8B | late_unassigned | 0.001 [-0.208, 0.211] | 3.187 [2.948, 3.442] | -3.184 [-3.433, -2.945] |
+| Qwen 3 8B | entity_mention | 5.478 [5.128, 5.825] | 4.493 [4.235, 4.770] | 6.463 [5.971, 6.940] |
+| Qwen 3 8B | other_attribute | 1.660 [1.488, 1.835] | 1.679 [1.527, 1.835] | 1.641 [1.422, 1.863] |
+| Gemma 3 4B | live | 39.355 [38.303, 40.415] | 39.355 [38.303, 40.415] | 39.355 [38.303, 40.415] |
+| Gemma 3 4B | superseded | 1.688 [1.568, 1.817] | 1.703 [1.574, 1.841] | 1.672 [1.529, 1.831] |
+| Gemma 3 4B | early_unassigned | 0.113 [-0.023, 0.245] | 2.598 [2.395, 2.798] | -2.372 [-2.567, -2.178] |
+| Gemma 3 4B | late_unassigned | 0.125 [-0.055, 0.305] | 3.445 [3.202, 3.696] | -3.194 [-3.447, -2.945] |
+| Gemma 3 4B | entity_mention | 4.277 [4.029, 4.545] | 5.181 [4.884, 5.496] | 3.372 [3.131, 3.633] |
+| Gemma 3 4B | other_attribute | 1.683 [1.541, 1.832] | 1.763 [1.598, 1.932] | 1.603 [1.453, 1.771] |
+
+
+#### Frozen superseded-minus-control contrasts and order dependence
+
+For each control, aligned-minus-reversed is the direct paired contrast computed within history; it is secondary/exploratory. Order-cell rows compare the matching cell-specific R values. Negative/positive interval rules apply to the frozen primary contrasts overall; order-stratified results are descriptive.
+
+| Control | Scope/order | Qwen 3 8B | Gemma 3 4B |
+| --- | --- | --- | --- |
+| early_unassigned | overall | 2.011 [1.855, 2.170] | 1.575 [1.440, 1.719] |
+| early_unassigned | aligned | -1.108 [-1.281, -0.925] | -0.895 [-1.084, -0.719] |
+| early_unassigned | reversed | 5.130 [4.920, 5.348] | 4.044 [3.810, 4.292] |
+| early_unassigned | aligned_minus_reversed_secondary_exploratory | -6.238 [-6.481, -5.983] | -4.939 [-5.275, -4.620] |
+| early_unassigned | historical_0_current_0 | -1.019 [-1.265, -0.747] | -0.840 [-1.087, -0.589] |
+| early_unassigned | historical_0_current_1 | 5.106 [4.842, 5.370] | 3.998 [3.705, 4.293] |
+| early_unassigned | historical_1_current_0 | 5.155 [4.883, 5.432] | 4.090 [3.814, 4.382] |
+| early_unassigned | historical_1_current_1 | -1.197 [-1.445, -0.936] | -0.949 [-1.174, -0.719] |
+| entity_mention | overall | -3.504 [-3.806, -3.198] | -2.589 [-2.829, -2.361] |
+| entity_mention | aligned | -2.350 [-2.572, -2.125] | -3.478 [-3.769, -3.197] |
+| entity_mention | reversed | -4.659 [-5.119, -4.207] | -1.700 [-1.946, -1.465] |
+| entity_mention | aligned_minus_reversed_secondary_exploratory | 2.309 [1.933, 2.707] | -1.778 [-2.049, -1.519] |
+| entity_mention | historical_0_current_0 | -2.458 [-2.760, -2.166] | -3.451 [-3.811, -3.100] |
+| entity_mention | historical_0_current_1 | -4.715 [-5.236, -4.203] | -1.572 [-1.874, -1.272] |
+| entity_mention | historical_1_current_0 | -4.602 [-5.116, -4.076] | -1.828 [-2.158, -1.495] |
+| entity_mention | historical_1_current_1 | -2.241 [-2.520, -1.951] | -3.505 [-3.893, -3.157] |
+| other_attribute | overall | 0.314 [0.147, 0.482] | 0.004 [-0.104, 0.118] |
+| other_attribute | aligned | 0.465 [0.295, 0.649] | -0.060 [-0.215, 0.099] |
+| other_attribute | reversed | 0.162 [-0.049, 0.367] | 0.069 [-0.080, 0.213] |
+| other_attribute | aligned_minus_reversed_secondary_exploratory | 0.302 [0.103, 0.509] | -0.128 [-0.323, 0.081] |
+| other_attribute | historical_0_current_0 | 0.436 [0.227, 0.644] | -0.113 [-0.326, 0.093] |
+| other_attribute | historical_0_current_1 | 0.097 [-0.174, 0.367] | -0.069 [-0.260, 0.123] |
+| other_attribute | historical_1_current_0 | 0.228 [-0.037, 0.501] | 0.207 [-0.007, 0.425] |
+| other_attribute | historical_1_current_1 | 0.494 [0.274, 0.714] | -0.007 [-0.212, 0.208] |
+| late_unassigned | overall | 1.973 [1.762, 2.183] | 1.562 [1.390, 1.742] |
+| late_unassigned | aligned | -1.043 [-1.281, -0.810] | -1.741 [-1.968, -1.505] |
+| late_unassigned | reversed | 4.988 [4.724, 5.266] | 4.866 [4.592, 5.155] |
+| late_unassigned | aligned_minus_reversed_secondary_exploratory | -6.031 [-6.307, -5.754] | -6.607 [-6.951, -6.243] |
+| late_unassigned | historical_0_current_0 | -0.879 [-1.212, -0.565] | -1.452 [-1.711, -1.174] |
+| late_unassigned | historical_0_current_1 | 5.001 [4.670, 5.360] | 4.599 [4.237, 4.960] |
+| late_unassigned | historical_1_current_0 | 4.975 [4.586, 5.370] | 5.133 [4.811, 5.466] |
+| late_unassigned | historical_1_current_1 | -1.207 [-1.585, -0.845] | -2.030 [-2.357, -1.683] |
+
+
+The order-stratified contrast table above shows the early-unassigned superseded-minus-control contrast changes sign with order in both models. The direct paired interaction intervals exclude zero for Qwen and Gemma on early unassigned; entity mention also has a nonzero paired order difference in both; other-attribute interaction is supported for Qwen but its Gemma interval includes zero. Do not interpret these secondary interactions as prespecified confirmatory tests. The full three-control criterion is conjunctive: all three primary superseded-minus-control lower 95% bounds must exceed zero within a model. It fails for each model because entity-mention contrasts are negative; other attribute also fails for Gemma. This is evidence against the relation-selective prediction, not proof of no superseded-relation effect. No equivalence margin was prespecified.
+
+#### Candidate competence and correctness-conditioned secondary analysis
+
+Candidate accuracy is the proportion of rows with strict rank one (ties count incorrect), summarized over all 3,072 members per condition. The cell range is the minimum to maximum accuracy across the 32 query × edited-slot × historical-order × current-order × baseline/edit cells for each condition. Current-minus-stale margin is only defined by the saved rows for superseded; other controls have no stale queried-attribute answer under the frozen definition.
+
+| Model | Condition | All-member accuracy | Range across 32 cells | Current−stale margin (superseded only) |
+| --- | --- | --- | --- | --- |
+| Qwen 3 8B | live | 99.7396% | 97.9167%–100.0000% | — |
+| Qwen 3 8B | superseded | 100.0000% | 100.0000%–100.0000% | 21.734 |
+| Qwen 3 8B | early_unassigned | 100.0000% | 100.0000%–100.0000% | — |
+| Qwen 3 8B | late_unassigned | 99.9023% | 98.9583%–100.0000% | — |
+| Qwen 3 8B | entity_mention | 100.0000% | 100.0000%–100.0000% | — |
+| Qwen 3 8B | other_attribute | 100.0000% | 100.0000%–100.0000% | — |
+| Gemma 3 4B | live | 100.0000% | 100.0000%–100.0000% | — |
+| Gemma 3 4B | superseded | 100.0000% | 100.0000%–100.0000% | 23.854 |
+| Gemma 3 4B | early_unassigned | 99.9674% | 98.9583%–100.0000% | — |
+| Gemma 3 4B | late_unassigned | 100.0000% | 100.0000%–100.0000% | — |
+| Gemma 3 4B | entity_mention | 100.0000% | 100.0000%–100.0000% | — |
+| Gemma 3 4B | other_attribute | 100.0000% | 100.0000%–100.0000% | — |
+
+
+Complete-history correctness conditioning is secondary, defined as histories with every confirmation row strictly rank one. It selects 91/96 Qwen histories and 95/96 Gemma histories. The three conditioned primary contrasts are:
+
+| Model | Control | Conditioned superseded−control |
+| --- | --- | --- |
+| Qwen 3 8B | early_unassigned | 2.015 [1.861, 2.176] |
+| Qwen 3 8B | entity_mention | -3.445 [-3.750, -3.141] |
+| Qwen 3 8B | other_attribute | 0.371 [0.201, 0.532] |
+| Gemma 3 4B | early_unassigned | 1.576 [1.433, 1.714] |
+| Gemma 3 4B | entity_mention | -2.591 [-2.827, -2.354] |
+| Gemma 3 4B | other_attribute | 0.004 [-0.106, 0.119] |
+
+
+These conditioned results are descriptive and do not replace all-history estimates. Paired correctness counts and all cell-level accuracy/margin summaries are in `competence_cells.csv` and `paired_correctness.csv`; the condition-level completeness counts are in each `report.json`.
+
+#### Paired source/donor score changes
+
+These are descriptive means over saved baseline/edit score pairs, in bounded semantic log-mass units; they are not unrestricted probabilities. `source change` is the source candidate’s edited-minus-baseline mass; `donor change` is the replacement/donor candidate’s edited-minus-baseline mass. Their difference is identity transfer.
+
+| Model | Condition | Source change | Donor change | Identity transfer |
+| --- | --- | --- | --- | --- |
+| Qwen 3 8B | live | -15.623 | 15.954 | 31.576 |
+| Qwen 3 8B | superseded | -1.610 | 1.497 | 3.108 |
+| Qwen 3 8B | early_unassigned | -4.208 | 4.012 | 8.221 |
+| Qwen 3 8B | late_unassigned | -5.901 | 5.682 | 11.583 |
+| Qwen 3 8B | entity_mention | -3.832 | 3.584 | 7.417 |
+| Qwen 3 8B | other_attribute | -1.348 | 1.331 | 2.679 |
+| Gemma 3 4B | live | -14.265 | 14.142 | 28.407 |
+| Gemma 3 4B | superseded | -1.241 | 1.230 | 2.471 |
+| Gemma 3 4B | early_unassigned | -3.315 | 2.975 | 6.290 |
+| Gemma 3 4B | late_unassigned | -4.511 | 3.999 | 8.510 |
+| Gemma 3 4B | entity_mention | -3.209 | 2.957 | 6.166 |
+| Gemma 3 4B | other_attribute | -1.444 | 1.113 | 2.557 |
+
+
+The paired table separates decreased source mass from increased donor mass. Both contribute to the algebraic identity-transfer contrast. These row-pair means have no interval attached; the frozen history-bootstrap inference remains the R and contrast tables above.
+
+The saved event masses also provide absolute bounded semantic log masses for the current answer, source, and donor candidates before and after each edit. The following are descriptive pair-level means (not probabilities; no history-bootstrap intervals are attached):
+
+| Model | Condition | Current before | Current after | Source before | Source after | Donor before | Donor after |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Qwen 3 8B | live | -0.004 | -0.012 | -8.027 | -23.650 | -24.086 | -8.132 |
+| Qwen 3 8B | superseded | 0.000 | 0.000 | -22.271 | -23.881 | -23.618 | -22.120 |
+| Qwen 3 8B | early_unassigned | 0.000 | 0.000 | -16.488 | -20.697 | -20.497 | -16.485 |
+| Qwen 3 8B | late_unassigned | -0.004 | -0.004 | -17.218 | -23.119 | -22.899 | -17.216 |
+| Qwen 3 8B | entity_mention | -0.001 | -0.001 | -19.836 | -23.668 | -23.452 | -19.868 |
+| Qwen 3 8B | other_attribute | 0.000 | 0.000 | -21.048 | -22.396 | -22.234 | -20.903 |
+| Gemma 3 4B | live | 0.000 | 0.000 | -9.784 | -24.049 | -24.191 | -10.049 |
+| Gemma 3 4B | superseded | 0.000 | 0.000 | -24.311 | -25.552 | -25.498 | -24.268 |
+| Gemma 3 4B | early_unassigned | 0.000 | -0.004 | -20.919 | -24.235 | -23.971 | -20.996 |
+| Gemma 3 4B | late_unassigned | 0.000 | 0.000 | -20.887 | -25.398 | -25.138 | -21.139 |
+| Gemma 3 4B | entity_mention | 0.000 | 0.000 | -20.540 | -23.749 | -23.606 | -20.650 |
+| Gemma 3 4B | other_attribute | 0.000 | -0.001 | -23.486 | -24.929 | -24.734 | -23.621 |
+
+#### Reading the order-cell decomposition
+
+The individual order-cell contrasts and aligned/reversed summaries are all listed above for the four frozen controls. The contrast rows are direct differences of the relevant R values within each history and then summarized over histories. For live, the duplicate order split is not a physical factor. The early-unassigned sign reversal is substantial in both models: aligned contrasts are negative, reversed contrasts positive, and the paired aligned-minus-reversed differences are negative. Do not infer interaction by comparing whether two separate confidence intervals include zero.
+
+
+#### Orientation and remaining frozen contrasts
+
+Orientation is the frozen x/z semantic mapping factor. The table gives each primary contrast separately within orientation. These are stratified summaries; no model or orientation pooling is performed.
+
+| Model | Orientation | Control | Superseded−control |
+| --- | --- | --- | --- |
+| Qwen 3 8B | 0 | early_unassigned | 2.155 [1.947, 2.376] |
+| Qwen 3 8B | 0 | entity_mention | -3.464 [-3.876, -3.055] |
+| Qwen 3 8B | 0 | other_attribute | 0.399 [0.134, 0.628] |
+| Qwen 3 8B | 1 | early_unassigned | 1.868 [1.660, 2.096] |
+| Qwen 3 8B | 1 | entity_mention | -3.544 [-4.023, -3.117] |
+| Qwen 3 8B | 1 | other_attribute | 0.228 [0.011, 0.450] |
+| Gemma 3 4B | 0 | early_unassigned | 1.529 [1.333, 1.726] |
+| Gemma 3 4B | 0 | entity_mention | -2.538 [-2.915, -2.181] |
+| Gemma 3 4B | 0 | other_attribute | 0.080 [-0.078, 0.249] |
+| Gemma 3 4B | 1 | early_unassigned | 1.620 [1.435, 1.808] |
+| Gemma 3 4B | 1 | entity_mention | -2.640 [-2.960, -2.355] |
+| Gemma 3 4B | 1 | other_attribute | -0.071 [-0.226, 0.090] |
+
+
+The frozen secondary contrasts below complete the live comparisons. Estimates use the same history bootstrap; these are descriptive secondary contrasts, not substitutions for the three-control decision.
+
+| Model | Secondary contrast | Estimate [95% history-bootstrap interval] |
+| --- | --- | --- |
+| Qwen 3 8B | R live minus R superseded | 30.624 [29.270, 31.985] |
+| Qwen 3 8B | R live minus R early unassigned | 32.636 [31.291, 34.030] |
+| Qwen 3 8B | R live minus R entity mention | 27.120 [25.572, 28.646] |
+| Qwen 3 8B | R live minus R other attribute | 30.938 [29.498, 32.400] |
+| Qwen 3 8B | R live minus R late unassigned | 32.597 [31.228, 34.001] |
+| Qwen 3 8B | R superseded minus R late unassigned | 1.973 [1.762, 2.183] |
+| Gemma 3 4B | R live minus R superseded | 37.667 [36.595, 38.713] |
+| Gemma 3 4B | R live minus R early unassigned | 39.242 [38.201, 40.315] |
+| Gemma 3 4B | R live minus R entity mention | 35.078 [33.867, 36.256] |
+| Gemma 3 4B | R live minus R other attribute | 37.671 [36.601, 38.741] |
+| Gemma 3 4B | R live minus R late unassigned | 39.229 [38.181, 40.267] |
+| Gemma 3 4B | R superseded minus R late unassigned | 1.562 [1.390, 1.742] |
+
+
+The frozen prompt design uses one v2 lexical frame/template throughout, so a between-frame contrast is unsupported by the saved design. The complete cell-level competence export crosses query, edited slot, historical order, current order, and baseline/edit member; the condition table above summarizes each condition and reports the full cell-accuracy range. The supplemental tables below report per-attribute R and the query/edited-entity role decomposition; both are descriptive secondary analyses, not additional confirmatory claims.
+
+#### Supplemental heterogeneity summaries
+
+These stratified summaries use the same 2,000-draw, seed-73021 history bootstrap. Attribute and entity-role splits are descriptive secondary decompositions; the overall frozen contrasts above remain primary.
+
+##### Target attribute
+
+Each attribute has 24 confirmation histories. The table gives superseded R and the three primary superseded-minus-control contrasts.
+
+| Model | Attribute | Estimate | Histories | Mean [95% history-bootstrap interval] |
+| --- | --- | --- | --- | --- |
+| Qwen 3 8B | badge | R superseded | 24 | 2.494 [2.209, 2.797] |
+| Qwen 3 8B | badge | R superseded minus R early unassigned | 24 | 2.518 [2.234, 2.820] |
+| Qwen 3 8B | badge | R superseded minus R entity mention | 24 | -4.310 [-4.819, -3.787] |
+| Qwen 3 8B | badge | R superseded minus R other attribute | 24 | 0.748 [0.512, 0.969] |
+| Qwen 3 8B | color | R superseded | 24 | 2.036 [1.778, 2.292] |
+| Qwen 3 8B | color | R superseded minus R early unassigned | 24 | 2.160 [1.899, 2.442] |
+| Qwen 3 8B | color | R superseded minus R entity mention | 24 | -1.794 [-2.129, -1.469] |
+| Qwen 3 8B | color | R superseded minus R other attribute | 24 | 0.876 [0.683, 1.068] |
+| Qwen 3 8B | code | R superseded | 24 | 1.768 [1.561, 1.976] |
+| Qwen 3 8B | code | R superseded minus R early unassigned | 24 | 1.666 [1.424, 1.913] |
+| Qwen 3 8B | code | R superseded minus R entity mention | 24 | -4.570 [-5.098, -4.058] |
+| Qwen 3 8B | code | R superseded minus R other attribute | 24 | -0.570 [-0.866, -0.280] |
+| Qwen 3 8B | label | R superseded | 24 | 1.597 [1.404, 1.797] |
+| Qwen 3 8B | label | R superseded minus R early unassigned | 24 | 1.701 [1.413, 1.984] |
+| Qwen 3 8B | label | R superseded minus R entity mention | 24 | -3.342 [-3.668, -3.017] |
+| Qwen 3 8B | label | R superseded minus R other attribute | 24 | 0.200 [-0.042, 0.459] |
+| Gemma 3 4B | badge | R superseded | 24 | 1.872 [1.679, 2.065] |
+| Gemma 3 4B | badge | R superseded minus R early unassigned | 24 | 1.591 [1.379, 1.815] |
+| Gemma 3 4B | badge | R superseded minus R entity mention | 24 | -1.794 [-2.047, -1.556] |
+| Gemma 3 4B | badge | R superseded minus R other attribute | 24 | 0.011 [-0.206, 0.232] |
+| Gemma 3 4B | color | R superseded | 24 | 1.648 [1.419, 1.867] |
+| Gemma 3 4B | color | R superseded minus R early unassigned | 24 | 1.723 [1.506, 1.954] |
+| Gemma 3 4B | color | R superseded minus R entity mention | 24 | -2.532 [-2.852, -2.203] |
+| Gemma 3 4B | color | R superseded minus R other attribute | 24 | -0.028 [-0.236, 0.208] |
+| Gemma 3 4B | code | R superseded | 24 | 1.754 [1.522, 2.003] |
+| Gemma 3 4B | code | R superseded minus R early unassigned | 24 | 1.543 [1.188, 1.882] |
+| Gemma 3 4B | code | R superseded minus R entity mention | 24 | -3.937 [-4.418, -3.452] |
+| Gemma 3 4B | code | R superseded minus R other attribute | 24 | -0.045 [-0.292, 0.217] |
+| Gemma 3 4B | label | R superseded | 24 | 1.477 [1.228, 1.766] |
+| Gemma 3 4B | label | R superseded minus R early unassigned | 24 | 1.441 [1.176, 1.713] |
+| Gemma 3 4B | label | R superseded minus R entity mention | 24 | -2.094 [-2.358, -1.809] |
+| Gemma 3 4B | label | R superseded minus R other attribute | 24 | 0.078 [-0.110, 0.264] |
+
+
+##### Query/edited-entity role
+
+For each history and condition, `queried entity` averages E when the edited variable equals the query variable (`x→x`, `z→z`); `other entity` averages E for the cross-entity cells (`x→z`, `z→x`). Their paired same-minus-other difference equals the symmetric relevance R algebra. This is an explanatory role split of the frozen estimand, not an independent confirmatory claim.
+
+| Model | Condition | Queried entity E | Other entity E | Paired same−other |
+| --- | --- | --- | --- | --- |
+| Qwen 3 8B | live | 47.875 [46.757, 48.995] | 15.277 [14.651, 15.847] | 32.598 [31.258, 33.967] |
+| Qwen 3 8B | superseded | 4.095 [3.916, 4.274] | 2.121 [2.000, 2.242] | 1.974 [1.840, 2.109] |
+| Qwen 3 8B | early_unassigned | 8.202 [7.920, 8.499] | 8.239 [7.955, 8.530] | -0.037 [-0.203, 0.121] |
+| Qwen 3 8B | late_unassigned | 11.584 [11.178, 12.012] | 11.582 [11.209, 11.958] | 0.001 [-0.208, 0.211] |
+| Qwen 3 8B | entity_mention | 10.156 [9.675, 10.626] | 4.678 [4.458, 4.889] | 5.478 [5.128, 5.825] |
+| Qwen 3 8B | other_attribute | 3.509 [3.296, 3.726] | 1.849 [1.746, 1.955] | 1.660 [1.488, 1.835] |
+| Gemma 3 4B | live | 48.084 [47.099, 49.076] | 8.730 [8.431, 9.023] | 39.355 [38.303, 40.415] |
+| Gemma 3 4B | superseded | 3.315 [3.143, 3.479] | 1.628 [1.512, 1.738] | 1.688 [1.568, 1.817] |
+| Gemma 3 4B | early_unassigned | 6.347 [6.139, 6.548] | 6.234 [6.015, 6.445] | 0.113 [-0.023, 0.245] |
+| Gemma 3 4B | late_unassigned | 8.573 [8.269, 8.893] | 8.448 [8.128, 8.786] | 0.125 [-0.055, 0.305] |
+| Gemma 3 4B | entity_mention | 8.304 [7.903, 8.710] | 4.028 [3.801, 4.249] | 4.277 [4.029, 4.545] |
+| Gemma 3 4B | other_attribute | 3.398 [3.214, 3.591] | 1.715 [1.591, 1.839] | 1.683 [1.541, 1.832] |
+
+
+The protocol uses the same `nora_relational_v2` rendering throughout; there is one lexical frame, so frame contrasts are not identified. Attribute subgroup intervals are less precise than the overall estimate and should not be used to select a favorable subgroup. No Qwen/Gemma pooling was performed.

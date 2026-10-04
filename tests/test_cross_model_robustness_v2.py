@@ -283,3 +283,23 @@ def test_history_bootstrap_matches_existing_seeded_v1_algorithm(monkeypatch):
     reference = metrics.bootstrap_mean_ci(values, seed=73021)
     assert summary(values)['ci95_cluster_bootstrap'] == pytest.approx([reference['ci_low'], reference['ci_high']])
     assert not normalized([5., 5.], [.5, .5])['available']
+
+
+def test_order_contrast_is_direct_paired_history_interaction_and_reproducible():
+    from src.cross_model.robustness_analysis import order_contrasts
+    rows = []
+    for hid, aligned, reversed_ in [('a', 3., 1.), ('b', 5., 4.)]:
+        row = {'history_id': hid}
+        for control in ('early_unassigned', 'entity_mention', 'other_attribute', 'late_unassigned'):
+            row[f'R_superseded_minus_R_{control}_aligned'] = aligned
+            row[f'R_superseded_minus_R_{control}_reversed'] = reversed_
+            for h in (0, 1):
+                for c in (0, 1):
+                    row[f'R_superseded_h{h}_c{c}'] = aligned
+                    row[f'R_{control}_h{h}_c{c}'] = aligned - (aligned + reversed_) / 2
+        rows.append(row)
+    first = order_contrasts(rows)
+    again = order_contrasts(rows)
+    interaction = next(x for x in first if x['order'].startswith('aligned_minus_reversed'))
+    assert interaction['mean'] == pytest.approx(1.5)
+    assert interaction == next(x for x in again if x['order'].startswith('aligned_minus_reversed'))
