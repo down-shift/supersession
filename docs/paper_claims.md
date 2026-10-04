@@ -4,7 +4,7 @@ This document fixes the intended claim hierarchy for *Supersession Without Erasu
 
 ## Primary claim
 
-In the tested `cross_model_v1` construction, Qwen3-8B shows query-specific causal sensitivity to an obsolete value occurrence, exceeding the particular counterbalanced unassigned-value control. The evidence does not isolate an obsolete entity–attribute relation from entity association and position-by-query interactions. Entity–attribute specificity remains unresolved pending the v2 relational and order controls.
+In the tested `cross_model_v1` construction, Qwen3-8B shows query-specific causal sensitivity to an obsolete value occurrence, exceeding the particular counterbalanced unassigned-value control. That evidence does not isolate an obsolete entity–attribute relation from entity association and position-by-query interactions. The completed relational/order v2 follow-up does not support relation-selective supersession under its prespecified three-control rule: in both Qwen3-8B and Gemma 3 4B, the entity-mention control has greater relevance than the superseded condition. The supported claim remains sensitivity to obsolete value occurrences in the tested constructions, with relational specificity unestablished.
 
 The newer Qwen `cross_model_v1` run estimates `R_superseded - R_irrelevant_counterbalanced = 3.50` nats (95% history-bootstrap CI `[3.20, 3.80]`), positive in 94/96 histories. Gemma's corresponding estimate is 1.76 nats (CI `[1.51, 2.03]`; 88/96 positive), and Phi's is 5.53 nats (CI `[5.27, 5.79]`; 96/96 positive). These model-specific results support the narrow value-occurrence claim above. The older 4.52-logit result is discussed only as provenance-limited historical context below; single-token logits and bounded continuation mass are different estimands and must not be combined or treated as numerically interchangeable.
 
@@ -13,6 +13,18 @@ The original Qwen 4.52-logit result is a provenance-limited historical note: its
 Gemma 3 4B also passed its frozen `cross_model_v1` competence gate and confirmatory run: `R_superseded - R_irrelevant_counterbalanced = 1.76` nats (95% history-bootstrap CI `[1.51, 2.03]`), positive in 88/96 histories. This is a second-family behavioral/causal replication under the bounded surface-class continuation-mass estimand. Its estimate is smaller than Qwen's 3.50 nats, but raw effect sizes are not architecture-invariant. Gemma's `R_live = 34.58` nats, `R_superseded = 1.66` nats, and `R_irrelevant_counterbalanced = -0.10` nats; `R_live - R_superseded = 32.92` nats. Report the models separately.
 
 Phi-4-mini has now also passed its frozen gate and confirmatory run: `R_superseded - R_irrelevant_counterbalanced = 5.53` nats (95% history-bootstrap CI `[5.27, 5.79]`), positive in 96/96 histories. `R_live = 17.14`, `R_superseded = 5.39`, and `R_irrelevant_counterbalanced = -0.14` nats; `R_live - R_superseded = 11.75` nats (CI `[11.43, 12.06]`), positive in 96/96 histories. The primary contrast is positive in both literal-orientation strata, with noticeable heterogeneity by semantic variable. This is a third-family behavioral/causal replication under the bounded surface-class continuation-mass estimand; it does not establish shared mechanism.
+
+## Relational/order v2 follow-up
+
+The frozen Qwen3-8B and Gemma 3 4B confirmation analyses each include 96 histories and use 2,000 history-bootstrap draws (seed 73021). Per the dated analysis amendment, the full three-control claim requires the lower 95% interval bound to exceed zero for all three superseded-minus-control contrasts. Neither model meets that rule:
+
+| Contrast (`R_superseded − R_control`) | Qwen3-8B, nats (95% CI) | Gemma 3 4B, nats (95% CI) |
+|---|---:|---:|
+| Early unassigned | 2.011 `[1.855, 2.170]` | 1.575 `[1.440, 1.719]` |
+| Entity mention | -3.504 `[-3.806, -3.198]` | -2.589 `[-2.829, -2.361]` |
+| Other attribute | 0.314 `[0.147, 0.482]` | 0.004 `[-0.104, 0.118]` |
+
+Both models exceed the early-unassigned control overall, but the entity-mention control exceeds the superseded condition. Qwen also exceeds the other-attribute control overall; Gemma's contrast is inconclusive. Under reversed order, superseded-minus-early-unassigned remains positive in both models (Qwen 5.130, CI `[4.920, 5.348]`; Gemma 4.044, CI `[3.810, 4.292]`), while reversed-order contrasts against entity mention remain negative and contrasts against other attribute include zero. Under aligned order, superseded-minus-early-unassigned is negative for both models (Qwen -1.108, CI `[-1.281, -0.925]`; Gemma -0.895, CI `[-1.084, -0.719]`). The result is sensitive to order and does not establish relation-selective supersession. Report models separately; do not pool raw nats.
 
 ## Supporting claims
 
