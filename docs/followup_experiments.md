@@ -11,8 +11,10 @@ Use the repository `uv.lock` and Python 3.13.5 for every follow-up command. Keep
 ```bash
 UV_PROJECT_ENVIRONMENT=.venv-qwen-followups uv sync --frozen --python 3.13.5 --extra model --extra dev
 UV_PROJECT_ENVIRONMENT=.venv-gemma-followups uv sync --frozen --python 3.13.5 --extra model --extra dev
+UV_PROJECT_ENVIRONMENT=.venv-phi4-mini-followups uv sync --frozen --python 3.13.5 --extra model --extra dev
 UV_PROJECT_ENVIRONMENT=.venv-qwen-followups uv run --frozen --python 3.13.5 --extra model --extra dev python -m scripts.run_followups --help
 UV_PROJECT_ENVIRONMENT=.venv-gemma-followups uv run --frozen --python 3.13.5 --extra model --extra dev python -m scripts.run_followups --help
+UV_PROJECT_ENVIRONMENT=.venv-phi4-mini-followups uv run --frozen --python 3.13.5 --extra model --extra dev python -m scripts.run_followups --help
 ```
 
 Apply the matching `UV_PROJECT_ENVIRONMENT` to every subsequent `uv run` command. Do not switch Python versions, install packages outside the lock, or reuse a score output across model environments. The score provenance records the resolved runtime. The host used to verify this note has no CUDA; its local test command used `UV_CACHE_DIR=/private/tmp/uv-cache-supersession uv run --no-sync --offline --frozen --python 3.13.5 --extra dev pytest -q tests/test_followups.py` because the sandbox blocks uv cache access. The `--no-sync` option was only needed for that already-synced test environment; experiment hosts should perform the frozen sync above.
@@ -117,7 +119,7 @@ Difficulty levels are prespecified as 2, 4, and 6 distractor entities, with 12 f
 
 Each history includes superseded, entity-mention, early-unassigned, and late-unassigned conditions, both query entities, both history/current order factors, each edited entity, and paired baseline/edit prompts. The edited history changes only the historical value; the answer and current assignment remain fixed. Report complete-answer accuracy, stale-answer frequency, all paired correct/stale/other transitions, candidate-score current-minus-historical margins, and v2 R secondarily. Estimate edit effects on stale-answer frequency and the difference of that effect between superseded and each matched control. More errors under harder prompts alone do not establish a historical-information cause.
 
-Use deterministic greedy decoding and the parser above. No ≥99% competence gate applies. No test-only error selection or difficulty tuning is allowed. Record model/revision, runtime, seed, dataset/code hashes, exclusions, and every failed development rule. Qwen and Gemma are the intended model pair; if only Qwen can run, mark Gemma pending.
+Use deterministic greedy decoding and the parser above. No ≥99% competence gate applies. No test-only error selection or difficulty tuning is allowed. Record model/revision, runtime, seed, dataset/code hashes, exclusions, and every failed development rule. Qwen remains the difficulty-selection model; Gemma is the planned paired model. Phi-4 Mini is an additional exploratory model and cannot select a level or authorize a harder-task test.
 
 ## Running the follow-ups
 
@@ -129,22 +131,32 @@ The marker × construction confirmation is the highest experimental priority. To
 bash scripts/run_marker_confirmation.sh
 ```
 
-This creates 24 fresh histories with an explicit marker pilot exclusion, then scores Qwen and Gemma sequentially. It resumes matching partial score checkpoints and does not run the harder-task test.
+If the marker confirmation dataset is absent, this creates 24 fresh histories with an explicit marker-pilot exclusion; it then scores Qwen, Gemma, and Phi-4 Mini sequentially. It reuses complete matching score artifacts, resumes matching partial checkpoints, and does not run the harder-task test. Use `bash scripts/followups_gpu.sh confirm phi4_mini` to score only Phi-4 Mini against the existing marker confirmation dataset.
 
-To run the harder-task development and test workflow, use:
+The original Qwen development launch was:
 
 ```bash
 bash scripts/followups_gpu.sh develop qwen
 ```
 
-If Qwen has a qualifying level, run Gemma development when runtime permits, then run Qwen confirmation:
+Qwen development is complete at all three levels and meets the amended stop rule. Do not rerun Qwen to select a level or create a harder-task test. For supplementary Phi-4 Mini development accuracy at the same 2/4/6 distractor levels, after the shared development datasets and reports are present, run:
+
+```bash
+bash scripts/followups_gpu.sh develop phi4_mini
+```
+
+This produces `phi4_mini_development_n{2,4,6}_scores.jsonl`, matching provenance/run sidecars, and analyses. It does not run the Qwen difficulty selector or generate a test dataset. The Phi-4 Mini config is pinned in `configs/cross_model_relational_v2/phi4_mini.yaml`; inference uses the existing Phi-4 compatibility loader and its separate frozen uv environment.
+
+Gemma development is also complete. The old paired development and harder-task confirmation commands were:
 
 ```bash
 bash scripts/followups_gpu.sh develop gemma
 bash scripts/followups_gpu.sh confirm qwen
 ```
 
-Run Gemma confirmation when runtime permits:
+`confirm qwen` and `confirm gemma` independently run the marker study and only run a harder-task test when a qualifying Qwen freeze exists. No such freeze exists under the completed stop rule. For Phi-4 Mini marker scoring, use the command above; Phi-4 Mini cannot enter the harder-task selection or test path.
+
+The Gemma marker command is:
 
 ```bash
 bash scripts/followups_gpu.sh confirm gemma

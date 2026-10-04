@@ -5,7 +5,7 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
 usage() {
-  echo "Usage: bash scripts/followups_gpu.sh {develop|confirm} {qwen|gemma}" >&2
+  echo "Usage: bash scripts/followups_gpu.sh {develop|confirm} {qwen|gemma|phi4_mini}" >&2
   exit 2
 }
 
@@ -13,16 +13,20 @@ usage() {
 ACTION=$1
 MODEL=$2
 [[ "$ACTION" == develop || "$ACTION" == confirm ]] || usage
-[[ "$MODEL" == qwen || "$MODEL" == gemma ]] || usage
+[[ "$MODEL" == qwen || "$MODEL" == gemma || "$MODEL" == phi4_mini ]] || usage
 
 if [[ "$MODEL" == qwen ]]; then
   export UV_PROJECT_ENVIRONMENT=.venv-qwen-followups
   CONFIG=configs/cross_model_relational_v2/qwen3_8b.yaml
   MODEL_OUT=qwen
-else
+elif [[ "$MODEL" == gemma ]]; then
   export UV_PROJECT_ENVIRONMENT=.venv-gemma-followups
   CONFIG=configs/cross_model_relational_v2/gemma3_4b.yaml
   MODEL_OUT=gemma
+else
+  export UV_PROJECT_ENVIRONMENT=.venv-phi4-mini-followups
+  CONFIG=configs/cross_model_relational_v2/phi4_mini.yaml
+  MODEL_OUT=phi4_mini
 fi
 
 uv sync --frozen --python 3.13.5 --extra model --extra dev
@@ -77,8 +81,8 @@ if [[ "$ACTION" == develop ]]; then
       echo "Incomplete development dataset/report pair for n=${N}; preserve it and use a fresh output name." >&2
       exit 1
     fi
-    if [[ "$MODEL" == gemma && ! -f "$DATASET" ]]; then
-      echo "Run Qwen development first; its matched development datasets are missing." >&2
+    if [[ "$MODEL" != qwen && ! -f "$DATASET" ]]; then
+      echo "Run Qwen development first; its shared matched development datasets are missing." >&2
       exit 1
     fi
     if [[ "$MODEL" == qwen ]]; then
@@ -134,6 +138,13 @@ MARKER_SCORES="outputs/followups/${MODEL_OUT}_marker_confirmatory_scores.jsonl"
 MARKER_ANALYSIS="outputs/followups/${MODEL_OUT}_marker_confirmatory_analysis.json"
 run_score marker candidate outputs/followups/marker_confirmatory.jsonl "$MARKER_SCORES"
 run_analysis marker confirmatory outputs/followups/marker_confirmatory.jsonl "$MARKER_SCORES" "$MARKER_ANALYSIS"
+
+# Phi-4 Mini is enabled for marker scoring, but the Qwen/Gemma harder-task
+# selection and test protocol do not extend to this additional model.
+if [[ "$MODEL" == phi4_mini ]]; then
+  echo "Phi-4 Mini marker confirmation finished; harder-task test is outside this protocol."
+  exit 0
+fi
 
 HAS_FREEZE=false
 if [[ -f outputs/followups/harder_protocol_freeze.json ]]; then

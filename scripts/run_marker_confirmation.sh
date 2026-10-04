@@ -63,5 +63,6 @@ fi
 
 run_model qwen .venv-qwen-followups configs/cross_model_relational_v2/qwen3_8b.yaml
 run_model gemma .venv-gemma-followups configs/cross_model_relational_v2/gemma3_4b.yaml
+run_model phi4_mini .venv-phi4-mini-followups configs/cross_model_relational_v2/phi4_mini.yaml
 
-echo "Marker × construction confirmation finished for Qwen and Gemma."
+echo "Marker × construction confirmation finished for Qwen, Gemma, and Phi-4 Mini."
