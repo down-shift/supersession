@@ -1,0 +1,10 @@
+## Appendix A. Initial v1 and derived-code observations
+
+### A.1 V1 conditions and estimates
+
+V1 used the `nora_v1` sentence templates and compared live assignments, superseded assignments, and counterbalanced unassigned mentions. Ordinary unassigned trials were diagnostic; the primary contrast used the two-order counterbalanced condition. Each history contributed 40 scored rows, giving 3,840 rows and 1,920 matched edit pairs per eligible model's 96-history confirmation set. The analysis retained all histories and bootstrapped at the history level. V1 did not match entity mention between focal and control conditions or independently cross historical and current order. Its primary estimates are reported in Section 5.
+
+### A.2 Derived-code extension
+
+The derived-code task mapped values to shuffled opaque codes and asked which code corresponded to an entity's current badge. The codebook stayed fixed across baseline and edit; editing an earlier badge value changed its mapped code, not the codebook or current badge assignment. We scored all 16 full code sequences by their unnormalized log probability. Qwen alone passed the separate 47/48 gate (48/48); Gemma scored 45/48 and Phi 33/48 and did not proceed. Qwen's stale-derived query relevance was 5.544 nats (95% CI [5.159, 5.941]) and live-derived relevance was 12.836 [12.418, 13.257], both positive in all 96 histories. In stale trials, the current code ranked first in 360/384 baseline and 364/384 edited prompts; 9 pairs changed from incorrect to correct and 5 from correct to incorrect. Changes in current-code log probability (0.108 [−0.050, 0.264]) and candidate margin (0.103 [−0.118, 0.325]) were inconclusive. This exploratory extension shows a score effect in a derived-code task, but it lacks v2's entity-mention and order controls. Current-code ranking was slightly higher after editing, while paired changes in current-code log probability and candidate margin were inconclusive; the result does not establish a practical accuracy effect.
+

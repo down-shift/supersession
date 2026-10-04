@@ -1,0 +1,4 @@
+## 8. Conclusion
+
+In Qwen3-8B and Gemma 3 4B, the entity-mention construction yields greater $R$ than the superseded construction. Unassigned-value effects reverse sign when historical and current mention order is reversed, while superseded effects stay positive in both groups. The prespecified three-control prediction fails because superseded relevance is lower than entity-mention relevance in both models. The estimates vary with prompt construction and mention order. The score-based design does not establish whether the effect changes unrestricted answers.
+

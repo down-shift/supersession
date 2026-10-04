@@ -27,11 +27,73 @@ The completed `rerun1` pilot artifacts are the authoritative pilots. Their score
 
 The marker pilot is exploratory only: 2 histories, 192 unique prompts, with model scores and analyses present for both models. Do not treat its interaction estimate as confirmatory. Older unscored preparation datasets and reports (`pilot_harder*.jsonl` and `pilot_marker*.jsonl` other than the `*_rerun1` files) are archival design artifacts and are excluded from all analyses. Preserve all pilot files; subsequent generation must explicitly exclude the authoritative rerun1 pilot datasets.
 
-`tests/test_followups.py` passed under uv (9 passed). This workspace has PyTorch 2.14.0 but no CUDA device; its frozen Qwen and Gemma configurations require full-GPU execution. Therefore development, harder-task test, and 24-history marker confirmation have not run here. Do not substitute different precision, device, or model settings. On the pilot GPU, development is estimated at about 47 minutes for Qwen and 2 hours 11 minutes for Gemma; marker confirmation at about 31 minutes for Qwen and 87 minutes for Gemma. No protocol freeze exists because development has not run, and no test dataset should be generated until Qwen development supports selection. Review-only design validation confirmed 12 matched target histories at all three levels, 1,536 members and 1,152 unique prompts per level, and zero rerun1-pilot overlap. The 24-history marker confirmation design has 3,072 members and 2,272 unique prompts after deduplication, with zero marker-pilot overlap; no confirmation artifact or inference outcome was produced by that check.
+`tests/test_followups.py` passed under uv (9 passed). The local analysis host has PyTorch 2.14.0 but no CUDA device; model execution was performed on the remote NVIDIA GeForce RTX 5080. The verified artifacts in this checkout currently include complete rerun1 pilots and complete n=2 development for both models. No n=4/n=6 dataset-score artifact pair is currently present in this checkout. The last remote progress reported before interruption was Qwen n=4 at 41/1,536 score rows and Gemma n=4 at 109/1,536, both `started`; n=6 had 0 rows for both. The partial remote checkpoints were not available here for independent re-verification; their current state and preservation are unverified, and no completed analysis was supplied. No selection or protocol freeze exists. Both models remain near ceiling at n=2; this level does not establish the intended difficulty. Qwen n=4 and n=6 must be completed before the all-level stopping or selection decision. The 24-history marker confirmation has no generated or scored artifacts in this checkout. Review-only design validation confirmed 12 matched target histories at each harder-task level, 1,536 members and 1,152 unique prompts per level, and zero rerun1-pilot overlap. The marker confirmation design has 3,072 members and 2,272 unique prompts after deduplication, with zero marker-pilot overlap.
+
+### Verified result ledger (2026-10-04)
+
+All artifact paths below are relative to `outputs/followups/`. Older unscored preparation artifacts remain excluded; only `*_rerun1` pilots and the explicitly fresh `development_n2` data are included here.
+
+Accuracy denominators below count scored dataset members, including duplicated prompts across paired cells. The history bootstrap treats histories as the sampling unit. The harder pilot, marker pilot, and n=2 development scored 384, 192, and 1,152 unique prompts per model, respectively.
+
+Both n=2 development models used dataset seed 20261004 and scoring seed 20261006, with the same pinned model/tokenizer revisions as their pilots. Their generation and analysis provenance explicitly record exclusion of `pilot_harder_rerun1.jsonl` (four full-history and four target-history signatures); the completed development histories have no overlap with those pilot signatures.
+
+| Stage/model | Histories | Accuracy | Stale answers | Other answers | Superseded accuracy | Inference time |
+|---|---:|---:|---:|---:|---:|---:|
+| Rerun1 harder pilot, Qwen | 4 | 510/512 (99.6094%) | 2 | 0 | 100% | 314.13 s |
+| Rerun1 harder pilot, Gemma | 4 | 512/512 (100%) | 0 | 0 | 100% | 870.81 s |
+| Rerun1 marker pilot, Qwen | 2 | 256/256 (100%) | 0 | 0 | 100% | 154.30 s |
+| Rerun1 marker pilot, Gemma | 2 | 255/256 (99.6094%) | 0 | 1 | 127/128 (99.2188%) | 430.10 s |
+| Development n=2, Qwen | 12 | 99.6745% (1,531/1,536) | 4 | 1 | 100% | 2,116.35 s |
+| Development n=2, Gemma | 12 | 99.8698% (1,534/1,536) | 0 | 2 | 100% | 3,541.05 s |
+
+In the harder pilot, both Qwen stale answers occurred in reversed-order entity-mention controls; there were no superseded errors. In n=2 development, all 4 Qwen stale answers and its 1 other answer occurred in reversed-order entity-mention controls. The 96 reversed entity-mention baseline→edit pairs comprised 91 correct→correct, 2 stale→correct, 2 correct→stale, and 1 correct→other transitions. All 96 aligned entity-mention pairs were correct→correct. Gemma's two other answers occurred in reversed early-unassigned controls (2 other→correct transitions); it had no stale answers. These error counts do not demonstrate an effect of historical information.
+
+For n=2, Qwen's history-bootstrap stale edit-change contrasts (2,000 draws, seed 73021) were superseded minus early-unassigned 0.000 [0.000, 0.000], superseded minus entity-mention 0.000 [−0.0208, 0.0260], and superseded minus late-unassigned 0.000 [0.000, 0.000]. Gemma's contrasts were all zero because there were no stale answers. Qwen's secondary v2 `R_all` means (95% history bootstrap intervals) were superseded 1.900 [1.634, 2.166], entity-mention 10.014 [8.489, 11.614], early-unassigned 0.196 [−0.201, 0.607], and late-unassigned −0.095 [−0.854, 0.703]. Gemma's were 1.285 [0.942, 1.657], 2.557 [2.232, 2.936], −0.027 [−0.401, 0.366], and 0.108 [−0.470, 0.687], respectively. These score metrics are secondary and do not establish a behavioral effect.
+
+The candidate current-minus-historical margin edit-change means and 95% history-bootstrap intervals were, for Qwen: superseded +0.725 [−0.168, 1.592], entity-mention −0.343 [−1.816, 1.069], early-unassigned +0.093 [−0.838, 0.893], and late-unassigned +0.361 [−0.325, 0.964]. For Gemma they were −0.644 [−1.417, 0.046], −0.484 [−1.197, 0.242], −0.325 [−0.787, 0.092], and −0.412 [−0.923, 0.181], respectively. Every interval includes zero.
+
+The marker pilot has only 2 histories per model and is exploratory. Qwen answered all 256 scored members correctly (192 unique prompts). Gemma's single other answer occurred in the superseded, marker-absent, aligned stratum; there were no stale answers for either model. The marker effect is marker-present minus marker-absent; interaction is the difference between the superseded and entity-mention marker effects. Values below are means with 95% history-bootstrap intervals (2,000 draws, seed 73021):
+
+| Model | Order stratum | Superseded marker effect | Entity-mention marker effect | Interaction |
+|---|---|---:|---:|---:|
+| Qwen | All | −0.580 [−0.618, −0.541] | −2.169 [−2.972, −1.367] | 1.589 [0.826, 2.353] |
+| Qwen | Aligned | −0.606 [−0.855, −0.356] | −1.434 [−1.723, −1.146] | 0.829 [0.790, 0.867] |
+| Qwen | Reversed | −0.554 [−0.726, −0.381] | −2.904 [−4.221, −1.587] | 2.350 [0.861, 3.839] |
+| Gemma | All | −0.874 [−1.268, −0.481] | −1.031 [−1.429, −0.632] | 0.157 [−0.635, 0.949] |
+| Gemma | Aligned | −0.365 [−0.455, −0.276] | −1.082 [−1.337, −0.828] | 0.717 [0.552, 0.882] |
+| Gemma | Reversed | −1.383 [−2.259, −0.506] | −0.979 [−1.522, −0.437] | −0.403 [−1.823, 1.016] |
+
+The pilot's component-level E summaries are retained in the analysis JSON as per-edit/per-query records. For a compact audit summary, the table gives means over those records by construction, marker state (0 absent, 1 present), and aligned/reversed history-current order; each cell is E / replacement component / source component:
+
+| Model | Construction | Marker | Aligned | Reversed |
+|---|---|---:|---:|---:|
+| Qwen | Superseded | 0 | 4.533 / 0.830 / −3.702 | 5.454 / 3.077 / −2.377 |
+| Qwen | Superseded | 1 | 3.296 / 2.044 / −1.252 | 3.197 / 1.060 / −2.136 |
+| Qwen | Entity-mention | 0 | 8.260 / 3.949 / −4.311 | 10.707 / 5.654 / −5.053 |
+| Qwen | Entity-mention | 1 | 5.779 / 2.599 / −3.181 | 7.372 / 4.268 / −3.104 |
+| Gemma | Superseded | 0 | 6.086 / 1.389 / −4.697 | 6.904 / 1.579 / −5.325 |
+| Gemma | Superseded | 1 | 2.596 / 0.627 / −1.968 | 2.866 / 1.131 / −1.735 |
+| Gemma | Entity-mention | 0 | 5.553 / 1.594 / −3.959 | 4.704 / 1.864 / −2.840 |
+| Gemma | Entity-mention | 1 | 4.656 / 2.138 / −2.518 | 4.476 / 2.783 / −1.693 |
+
+The construction contrast does not isolate conflict from syntax. Given the two-history pilot size, the apparent Qwen interaction and Gemma order-stratum intervals are exploratory only; the planned 24-history marker × construction confirmation remains warranted.
+
+The full pilot result files are the scored pilot JSONLs themselves (`qwen_harder_pilot_rerun1.jsonl`, `gemma_harder_pilot_rerun1.jsonl`, and their marker-pilot equivalents), with matching `.provenance.json` and `.run.json` sidecars and analysis JSONs. Development n=2 datasets/reports and per-model score, provenance, run, and analysis files are `development_n2.jsonl`, `development_n2_report.json`, and `qwen_development_n2_*` / `gemma_development_n2_*`. Verified SHA-256 values are:
+
+| Stage/model | Dataset SHA-256 | Model score SHA-256 |
+|---|---|---|
+| Harder rerun1, Qwen | `b282a4a1362b11acbd6be523d3898b5ccb77a5e26d83b94c5a13b499502b528d` | `845eb0e4b454c4c0a8a8cc85de9c71c877c96dd831e6a06e5645d9871d685c11` |
+| Harder rerun1, Gemma | `b282a4a1362b11acbd6be523d3898b5ccb77a5e26d83b94c5a13b499502b528d` | `3475b1dfa835d80005389871d24a82a45aa7214e646e89bbdd11e14eff58c81e` |
+| Marker rerun1, Qwen | `f42cc115be1715b46d70587fd5a8e311eed33c8868e34d516e1454774aa4fec4` | `37936c1f65d30156fed4de87371f464aa5129d95bfea6ffc93a9036c3539d405` |
+| Marker rerun1, Gemma | `f42cc115be1715b46d70587fd5a8e311eed33c8868e34d516e1454774aa4fec4` | `f5fa07544df77f2f794abef91de608b9b5eeb64d0893589c27dc132b7c15bd3e` |
+| Development n=2, Qwen | `26e01f7f5c8992d49178d7da4fa9136a06247c2d964d2ac558a4a071a7efc25f` | `0f224cb78efcb2013bba10b52dc6390e56d544759eb26ca3de07fb47317296f4` |
+| Development n=2, Gemma | `26e01f7f5c8992d49178d7da4fa9136a06247c2d964d2ac558a4a071a7efc25f` | `6abbac7d70defc7c684a6f3cfd89f689680ad450e165bae07fac5bf8721e2ff5` |
+
+Harder-pilot inference times were 0.818 s/prompt for Qwen and 2.268 s/prompt for Gemma; marker-pilot times were 0.804 and 2.240 s/prompt; n=2 development times were 1.837 and 3.074 s/prompt, respectively. These GPU timings describe the recorded RTX 5080 runs and should not be treated as portable runtime guarantees.
 
 The generator reuses the v2 candidate vocabulary and the same current assignments, entity pair, query structure, paired historical-value edit, and history-level estimand logic. V2 candidate likelihood scoring is the preferred scoring method for E/R and current-versus-historical margins. Existing history bootstrap convention is 2,000 draws with seed 73021.
 
-V2 always marks historical assignments with `Previously`; this follow-up crosses that marker with assigned superseded history versus unrelated entity mention. It does not identify a pure marker effect independent of construction, because assignment and mention differ in syntax and meaning. Report both within-construction marker effects and their difference-in-differences with history bootstrap intervals. A CI crossing zero is inconclusive, not evidence of equivalence. Report the source/replacement E components contributing to R.
+V2 always marks historical assignments with `Previously`; this follow-up crosses that marker with assigned superseded history versus unrelated entity mention. Within each construction, marker presence is varied with the remaining cell content held fixed. The construction contrast combines differences in syntax and assignment semantics and does not isolate conflict from syntax. Report both within-construction marker effects and their difference-in-differences with history bootstrap intervals. A CI crossing zero is inconclusive, not evidence of equivalence. Report the source/replacement E components contributing to R.
 
 V2 scores candidate continuations and imposes a ≥99% competence gate. This follow-up has no competence gate. Its runner records deterministic complete answers with exact parsing, all-history transition counts, and candidate continuation scores. The parser contract is frozen here: strip whitespace and edge punctuation, then exact case-insensitive candidate match; every other string is `other`.
 
@@ -43,7 +105,7 @@ For each history and cell, compute E from the paired candidate scores using the 
 
 ## Experiment 2: harder histories
 
-Difficulty levels are prespecified as 2, 4, and 6 distractor entities. Development chooses the hardest level whose complete-answer accuracy is between 0.65 and 0.90 inclusive; if none qualifies, choose the level nearest 0.775 (ties go to the smaller level). Freeze that level, prompt, candidate values, parser, metrics, and analysis before generating test rows. Development and test use disjoint seeded history namespaces. Generate a balanced, fixed allocation before model outcomes; evaluate every test history.
+Difficulty levels are prespecified as 2, 4, and 6 distractor entities, with 12 fresh, matched target histories per development level and explicit rerun1 pilot exclusions. Complete all three Qwen levels and apply the stopping amendment above first. If the stop rule does not apply, Qwen development chooses the hardest level whose complete-answer accuracy is between 0.65 and 0.90 inclusive; if none qualifies, record the level nearest 0.775 (ties go to the smaller level) for reporting only and skip the harder-task test. For a qualifying level, freeze that level, prompt, candidate values, parser, metrics, and analysis before generating the separate 24-history test, explicitly excluding the pilot and all development histories. Development and test use disjoint seeded history namespaces. Generate a balanced, fixed allocation before model outcomes; evaluate every test history.
 
 Each history includes superseded, entity-mention, early-unassigned, and late-unassigned conditions, both query entities, both history/current order factors, each edited entity, and paired baseline/edit prompts. The edited history changes only the historical value; the answer and current assignment remain fixed. Report complete-answer accuracy, stale-answer frequency, all paired correct/stale/other transitions, candidate-score current-minus-historical margins, and v2 R secondarily. Estimate edit effects on stale-answer frequency and the difference of that effect between superseded and each matched control. More errors under harder prompts alone do not establish a historical-information cause.
 
