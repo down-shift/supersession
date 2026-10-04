@@ -49,113 +49,27 @@ Each history includes superseded, entity-mention, early-unassigned, and late-una
 
 Use deterministic greedy decoding and the parser above. No ≥99% competence gate applies. No test-only error selection or difficulty tuning is allowed. Record model/revision, runtime, seed, dataset/code hashes, exclusions, and every failed development rule. Qwen and Gemma are the intended model pair; if only Qwen can run, mark Gemma pending.
 
-## Commands and execution status
+## Running the follow-ups
 
-The authoritative pilots are complete; preserve their output paths. The harder development requires 3,456 unique prompts per model; the harder test and marker confirmation each have a nominal budget of up to 2,304 unique prompts. Actual prompt deduplication is recorded in each generation report. The runtime estimates above come from harder-pilot throughput and are approximate, particularly for longer histories and candidate-only marker scoring.
-
-On the GPU host, start with Qwen. Set the environment once and run every command with the same Python version and both extras:
-
-After confirming GPU availability, generate all three matched development levels. Use the completed rerun1 pilot dataset as an explicit exclusion for every development level:
+Run these commands from the repository checkout on the CUDA host after copying the updated code and `uv.lock`. The script creates separate frozen uv environments per model and keeps the pilot artifacts untouched. It generates all three development levels before scoring and applies the stopping/selection rules automatically.
 
 ```bash
-set -euo pipefail
-export UV_PROJECT_ENVIRONMENT=.venv-qwen-followups
-uv sync --frozen --python 3.13.5 --extra model --extra dev
-uv run --frozen --python 3.13.5 --extra model --extra dev pytest -q tests/test_followups.py
-uv run --frozen --python 3.13.5 --extra model --extra dev python -c 'import torch; assert torch.cuda.is_available(), "CUDA required"; print(torch.__version__, torch.cuda.get_device_name(0))'
-
-for N in 2 4 6; do
-  uv run --frozen --python 3.13.5 --extra model --extra dev python -m scripts.followups harder --stage development --histories 12 --distractors "$N" \
-    --prior-dataset outputs/followups/pilot_harder_rerun1.jsonl \
-    --output "outputs/followups/development_n${N}.jsonl" \
-    --report "outputs/followups/development_n${N}_report.json"
-done
-
-for N in 2 4 6; do
-  uv run --frozen --python 3.13.5 --extra model --extra dev python -m scripts.run_followups score \
-    --experiment harder --mode both --config configs/cross_model_relational_v2/qwen3_8b.yaml \
-    --dataset "outputs/followups/development_n${N}.jsonl" \
-    --output "outputs/followups/qwen_development_n${N}_scores.jsonl"
-  uv run --frozen --python 3.13.5 --extra model --extra dev python -m scripts.run_followups analyze --experiment harder --stage development \
-    --dataset "outputs/followups/development_n${N}.jsonl" \
-    --scores "outputs/followups/qwen_development_n${N}_scores.jsonl" \
-    --output "outputs/followups/qwen_development_n${N}_analysis.json"
-done
-uv run --frozen --python 3.13.5 --extra model --extra dev python -m scripts.run_followups select-hard-difficulty \
-  --development-reports outputs/followups/qwen_development_n2_analysis.json \
-    outputs/followups/qwen_development_n4_analysis.json \
-    outputs/followups/qwen_development_n6_analysis.json \
-  --output outputs/followups/harder_protocol_freeze.json
+bash scripts/followups_gpu.sh develop qwen
 ```
 
-Preserve any `.failures.jsonl`. The selector now enforces the amendment above and refuses to create a freeze when all three levels exceed 90%. If Gemma cannot run in the available time, use Qwen development for selection and label Gemma pending, not as a replication. Generate the test dataset only after reviewing the sealed freeze. A fallback freeze with `selection_gate_passed: false` is diagnostic only: generation and scoring reject it. If all three levels are above 90%, the selector exits with the amended-stopping-rule message and writes no freeze; record the stop and proceed to the independent marker confirmation. Set `N` to the recorded `selected_n_distractors` in that file:
+If Qwen has a qualifying level, run Gemma development when runtime permits, then run Qwen confirmation:
 
 ```bash
-export UV_PROJECT_ENVIRONMENT=.venv-qwen-followups
-N=4  # replace with selected_n_distractors from the freeze
-uv run --frozen --python 3.13.5 --extra model --extra dev python -m scripts.followups harder --stage test --histories 24 \
-  --distractors "$N" --freeze outputs/followups/harder_protocol_freeze.json \
-  --prior-dataset outputs/followups/pilot_harder_rerun1.jsonl \
-  --prior-dataset outputs/followups/development_n2.jsonl \
-  --prior-dataset outputs/followups/development_n4.jsonl \
-  --prior-dataset outputs/followups/development_n6.jsonl \
-  --output outputs/followups/test_n${N}.jsonl \
-  --report outputs/followups/test_n${N}_report.json
-uv run --frozen --python 3.13.5 --extra model --extra dev python -m scripts.run_followups score \
-  --experiment harder --mode both --config configs/cross_model_relational_v2/qwen3_8b.yaml \
-  --dataset "outputs/followups/test_n${N}.jsonl" \
-  --output "outputs/followups/qwen_test_n${N}_scores.jsonl" \
-  --freeze outputs/followups/harder_protocol_freeze.json
-uv run --frozen --python 3.13.5 --extra model --extra dev python -m scripts.run_followups analyze --experiment harder --stage test \
-  --dataset "outputs/followups/test_n${N}.jsonl" \
-  --scores "outputs/followups/qwen_test_n${N}_scores.jsonl" \
-  --output "outputs/followups/qwen_test_n${N}_analysis.json"
+bash scripts/followups_gpu.sh develop gemma
+bash scripts/followups_gpu.sh confirm qwen
 ```
 
-Use the matching Gemma config and fresh `gemma_test...` output names for its test run after Qwen, if feasible. If Gemma cannot run in the available time, mark it pending and report Qwen as a single-model evaluation, not a replication. To run Experiment 1 after the runtime pilot passes, generate confirmatory histories with explicit pilot exclusions, then score and analyze:
+Run Gemma confirmation when runtime permits:
 
 ```bash
-export UV_PROJECT_ENVIRONMENT=.venv-qwen-followups
-uv run --frozen --python 3.13.5 --extra model --extra dev python -m scripts.followups marker --stage confirmatory --histories 24 \
-  --prior-dataset outputs/followups/pilot_marker_rerun1.jsonl \
-  --output outputs/followups/marker_confirmatory.jsonl \
-  --report outputs/followups/marker_confirmatory_report.json
-uv run --frozen --python 3.13.5 --extra model --extra dev python -m scripts.run_followups score \
-  --experiment marker --mode candidate --config configs/cross_model_relational_v2/qwen3_8b.yaml \
-  --dataset outputs/followups/marker_confirmatory.jsonl \
-  --output outputs/followups/qwen_marker_confirmatory_scores.jsonl
-uv run --frozen --python 3.13.5 --extra model --extra dev python -m scripts.run_followups analyze --experiment marker --stage confirmatory \
-  --dataset outputs/followups/marker_confirmatory.jsonl \
-  --scores outputs/followups/qwen_marker_confirmatory_scores.jsonl \
-  --output outputs/followups/qwen_marker_confirmatory_analysis.json
+bash scripts/followups_gpu.sh confirm gemma
 ```
 
-The score command's `--resume` requires the exact original dataset, code, config, seed, freeze and decoding options. Preserve all failure sidecars and report failed development gates; do not generate test data before a sealed freeze exists. No results are added to the paper draft until actually scored outcomes exist. The design limitation to report is that the two Experiment 1 constructions remain syntactically and semantically different.
+If Qwen is above 90% at all three levels, development prints the required stop decision and creates no test freeze. Run `confirm qwen` for the independent marker confirmation; the script skips the harder test. If Qwen has no level in [0.65,0.90], the freeze records the prespecified nearest-level fallback for reporting, but the harder test is skipped. If Gemma exceeds 90% at the selected level, report it as near ceiling. The script preserves failed score checkpoints for exact-runtime resume and refuses incomplete dataset/report pairs.
 
-### Next execution steps after the code review
-
-1. Transfer this code revision and `uv.lock` to the CUDA host with the rerun1 artifacts. Run the frozen Qwen setup, tests, and CUDA check above. The lock versions match both pilots' recorded inference packages; keep Python 3.13.5. Use the same GPU and configuration across each model's stages.
-2. Generate all three 12-history development datasets before scoring any level. The generation loop above does this; each uses the explicit harder rerun1 pilot exclusion. Score and analyze all three with Qwen, then apply the selector. Only Qwen reports with 12 matched histories per level can seal a freeze.
-3. If feasible, run Gemma development on those exact three datasets using the block below. Report its selected-level accuracy separately. A selected-level accuracy above 90% is near ceiling and is not an informative behavioral replication.
-4. If a Qwen level qualifies in [0.65,0.90], review and retain the sealed freeze and hash, then generate the separate 24-history test using all pilot/development exclusions. Score Qwen first and Gemma if feasible. A Qwen test must match its selected-level development runtime. Every test history contributes to the existing metrics and matched-control contrasts.
-5. Independently generate the 24-history marker confirmation with the marker rerun1 pilot exclusion, even if the harder experiment stops. Run the marker commands above for Qwen, then repeat score/analyze with Gemma's config and fresh `gemma_marker_confirmatory_*` output names. Re-export the matching model environment before each model's commands.
-6. Verify the completed sidecars and analysis reports, update this status with development, stop/selection, freeze hash, test/confirmation outcomes, and measured runtime. Preserve v2 and the paper.
-
-Gemma development, after Qwen and when runtime permits:
-
-```bash
-export UV_PROJECT_ENVIRONMENT=.venv-gemma-followups
-uv sync --frozen --python 3.13.5 --extra model --extra dev
-for N in 2 4 6; do
-  uv run --frozen --python 3.13.5 --extra model --extra dev python -m scripts.run_followups score \
-    --experiment harder --mode both --config configs/cross_model_relational_v2/gemma3_4b.yaml \
-    --dataset "outputs/followups/development_n${N}.jsonl" \
-    --output "outputs/followups/gemma_development_n${N}_scores.jsonl"
-  uv run --frozen --python 3.13.5 --extra model --extra dev python -m scripts.run_followups analyze \
-    --experiment harder --stage development --dataset "outputs/followups/development_n${N}.jsonl" \
-    --scores "outputs/followups/gemma_development_n${N}_scores.jsonl" \
-    --output "outputs/followups/gemma_development_n${N}_analysis.json"
-done
-```
-
-The standard `DATASET_STEM_report.json` generation report is now required for nonpilot scoring; use `--dataset-report` if the report has a custom path. Scoring authenticates the dataset and excluded prior files, records their hashes and exclusions, and analysis carries that lineage forward. Resume checks also bind the generation report, Python, lockfile, and shared implementation code. A resumed run's timing describes the current invocation and divides by newly evaluated prompts; earlier interrupted runtime is excluded and must be reported separately.
+Use fresh output names if an earlier partial run left an incomplete artifact pair. The script records outputs under `outputs/followups/`, including each dataset report, model score provenance, and analysis. Update the execution status here after the runs with accuracies, the stopping/selection decision, freeze hash if one exists, confirmation results, and runtime. Preserve the v2 results and paper.
