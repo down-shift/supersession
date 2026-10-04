@@ -125,5 +125,3 @@ The primary intervals resample histories without restricting draws to the 48 ent
 | Other attribute | 0.314 [0.225, 0.403] | 0.004 [−0.079, 0.090] |
 
 **Table B8.** Sensitivity intervals resampling histories within each fixed entity-pair-by-attribute-by-orientation cell. Primary inference continues to use the unrestricted history bootstrap specified in the dated amendment.
-
-

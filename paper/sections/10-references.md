@@ -23,4 +23,3 @@ Wilie, B., Cahyawijaya, S., Ishii, E., He, J., and Fung, P. (2024). *Belief Revi
 Xie, J., Cao, P., Chen, Y., Liu, K., and Zhao, J. (2025). *Revealing the Deceptiveness of Knowledge Editing: A Mechanistic Analysis of Superficial Editing.* Proceedings of ACL, Volume 1: Long Papers, pp. 17756–17780. https://aclanthology.org/2025.acl-long.868/
 
 Yang, X., Liu, Z., Li, R., and Lei, Y. (2026). *Large Language Models in Resolving Contextual Knowledge Conflicts.* arXiv:2609.03148. https://arxiv.org/abs/2609.03148
-

@@ -1,6 +1,6 @@
 # Paper sections
 
-Split from `../paper_draft.md`. Sections are in manuscript order.
+Split from `../NEW_supersession_paper_draft(2).md`. Sections are in manuscript order.
 
 - [Front matter](00-front-matter.md)
 - [Abstract](01-abstract.md)
