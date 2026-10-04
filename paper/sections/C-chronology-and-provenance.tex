@@ -9,6 +9,8 @@
 
 \paragraph{Completion.} Each model's confirmation produced 18,432 valid scored rows over 96 histories with no row errors. The two models were scored on byte-identical datasets, so every comparison between them uses the same histories, values, and donors.
 
+\paragraph{Edit-span geometry.} The tokenizer-aware geometry audit covers all 9,216 baseline/edit pairs per model. In both Qwen and Gemma, every replaced source span and donor span is exactly one token, so the unchanged suffix keeps the same token positions in this dataset. The model-specific geometry artifacts are included in Table~\ref{tab:c-hashes}.
+
 \paragraph{Prespecification record.} The decision rule for the original hypothesis was recorded on 3 October 2026, before the confirmation results were examined. It required the lower 95\% bound of all three overall superseded-minus-control contrasts (early unassigned, entity mention, other attribute) to exceed zero, and the same for their reversed-order versions to support a claim under reversed order.
 
 \begin{table}[h]
@@ -22,6 +24,8 @@ Artifact & SHA-256 \\
 \midrule
 Implementation snapshot & \lit{f2981fa0f05a5e29e9478f8a94987e7578b2ce3667d1c941e8ce31cf8cdfef9a} \\
 Confirmation dataset & \lit{27c1e9b80e62a0cb0266d393fd6120dff2bcf637d8e9468491748e740287c08d} \\
+Qwen prompt geometry audit & \lit{7366bab33eff134e775bdb67e4764d10b350c2c9c535d505b62355af8cb535cf} \\
+Gemma prompt geometry audit & \lit{c64f548a2002e66cb36f05e780fd3ff28d5469bb31150d168c9f49ce9e7d7db5} \\
 Decision-rule amendment & \lit{0371b4e1c9a363bbcb8dfdc0a0ccc6a3c39c08f49843b59eea9bcbde27ccd2b9} \\
 \bottomrule
 \end{tabular}

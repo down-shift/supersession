@@ -1,0 +1,4 @@
+n_distractors,n_members,strict_exact_correct,correct_candidate_prefix,stale_candidate_prefix,other_candidate_prefix,no_candidate_prefix
+2,1536,8,1516,19,0,1
+4,1536,38,1530,6,0,0
+6,1536,66,1527,8,1,0

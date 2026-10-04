@@ -3,10 +3,14 @@
 
 Because both models answer at ceiling, we tried to make the task harder by adding distractor entities to the Experiment 1 constructions. Each distractor contributed its own \lit{Previously} line and \lit{Currently} line for the target attribute, with values from a separate vocabulary. The plan was to choose, on development data, the hardest of three levels (2, 4, or 6 distractors) at which Qwen's accuracy on generated answers fell between 65\% and 90\%, and then to test whether edits to the earlier value change generated answers. Before the development results were available, we added a stopping rule: if Qwen exceeded 90\% at all three levels, the study would stop without a test.
 
-Each development level used 12 histories and 1,536 scored prompts (1,152 distinct) per model, with greedy decoding and exact matching of the answer. Qwen exceeded 90\% at every level (Table~\ref{tab:e-accuracy}), so the study stopped: no level was selected and no test data were generated. Gemma was also near ceiling. Every Qwen error was in the reversed-order entity-mention construction. The superseded construction made up a quarter of the prompts---384 per level and model, 1,152 across the three levels---and both models answered every one of them with the current value, never with the earlier one.
+Each development level used 12 matched target histories and 1,536 scored prompt members (1,152 unique prompts) per model, with greedy decoding and exact matching of the answer. Prompt members include repeated renderings across paired cells; the three levels are matched development conditions, not independent replications. Qwen exceeded 90\% at every level (Table~\ref{tab:e-accuracy}), so the prespecified Experiment 2 decision rule stopped the study: no level was selected and no test data were generated. Gemma was also near ceiling and is not an informative behavioral replication. Qwen's few source-value responses occurred in reversed-order entity-mention controls, where the queried attribute had not been assigned that value; they are not stale-assignment errors. The superseded construction made up a quarter of the prompts---384 per level and model, 1,152 across the three levels---and Qwen and Gemma answered every one of them with the current value, never with the earlier one.
+
+Phi-4-mini was also scored on the same three development datasets as an additional, exploratory model; it was not part of the prespecified level-selection rule. Its exact-match accuracy was 8/1,536 (0.52\%), 38/1,536 (2.47\%), and 66/1,536 (4.30\%) at 2, 4, and 6 distractors. These rates are dominated by response-format failures: in a post hoc string-prefix diagnostic, respectively 1,516, 1,530, and 1,527 outputs began with the expected candidate label, but continued with extra text and therefore remained incorrect under the exact-answer parser. The prefix diagnostic is descriptive and does not redefine correctness. Phi's strict accuracy cannot be interpreted as a response to increasing distractor difficulty, and its floor-level exact-match outcomes do not provide an informative behavioral replication. No Phi test was generated.
+
+This was a limited difficulty manipulation. Distractors used a separate vocabulary and were appended after the target blocks; each distractor's historical and current assignment lines were adjacent. The results show that this specific manipulation did not create the intended difficulty for Qwen. They do not establish robustness to long, crowded, or conflicting contexts generally.
 
 \begin{table}[h]
-\caption{Accuracy of generated answers in the distractor development runs, by number of distractor entities.}
+\caption{Strict exact-match accuracy of generated answers in the distractor development runs, by number of distractor entities.}
 \label{tab:e-accuracy}
 \begin{center}
 \small
@@ -16,6 +20,7 @@ Model & 2 distractors & 4 distractors & 6 distractors \\
 \midrule
 Qwen3-8B & 1,531/1,536 (99.67\%) & 1,532/1,536 (99.74\%) & 1,533/1,536 (99.80\%) \\
 Gemma 3 4B & 1,534/1,536 (99.87\%) & 1,532/1,536 (99.74\%) & 1,532/1,536 (99.74\%) \\
+Phi-4-mini & 8/1,536 (0.52\%) & 38/1,536 (2.47\%) & 66/1,536 (4.30\%) \\
 \bottomrule
 \end{tabular}
 \end{center}
