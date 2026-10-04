@@ -51,7 +51,17 @@ Use deterministic greedy decoding and the parser above. No ≥99% competence gat
 
 ## Running the follow-ups
 
-Run these commands from the repository checkout on the CUDA host after copying the updated code and `uv.lock`. The script creates separate frozen uv environments per model and keeps the pilot artifacts untouched. It generates all three development levels before scoring and applies the stopping/selection rules automatically.
+Run these commands from the repository checkout on the CUDA host after copying the updated code and `uv.lock`. The scripts create separate frozen uv environments per model and keep the pilot artifacts untouched.
+
+The marker × construction confirmation is the highest experimental priority. To run only that study, use:
+
+```bash
+bash scripts/run_marker_confirmation.sh
+```
+
+This creates 24 fresh histories with an explicit marker pilot exclusion, then scores Qwen and Gemma sequentially. It resumes matching partial score checkpoints and does not run the harder-task test.
+
+To run the harder-task development and test workflow, use:
 
 ```bash
 bash scripts/followups_gpu.sh develop qwen
@@ -70,6 +80,6 @@ Run Gemma confirmation when runtime permits:
 bash scripts/followups_gpu.sh confirm gemma
 ```
 
-If Qwen is above 90% at all three levels, development prints the required stop decision and creates no test freeze. Run `confirm qwen` for the independent marker confirmation; the script skips the harder test. If Qwen has no level in [0.65,0.90], the freeze records the prespecified nearest-level fallback for reporting, but the harder test is skipped. If Gemma exceeds 90% at the selected level, report it as near ceiling. The script preserves failed score checkpoints for exact-runtime resume and refuses incomplete dataset/report pairs.
+If Qwen is above 90% at all three levels, development prints the required stop decision and creates no test freeze. If Qwen has no level in [0.65,0.90], the freeze records the prespecified nearest-level fallback for reporting, but the harder test is skipped. If Gemma exceeds 90% at the selected level, report it as near ceiling. The harder-task script preserves failed score checkpoints for exact-runtime resume and refuses incomplete dataset/report pairs.
 
 Use fresh output names if an earlier partial run left an incomplete artifact pair. The script records outputs under `outputs/followups/`, including each dataset report, model score provenance, and analysis. Update the execution status here after the runs with accuracies, the stopping/selection decision, freeze hash if one exists, confirmation results, and runtime. Preserve the v2 results and paper.

@@ -126,6 +126,15 @@ if [[ "$MODEL" == gemma && ! -f outputs/followups/qwen_marker_confirmatory_analy
   echo "Run Qwen confirmation first: bash scripts/followups_gpu.sh confirm qwen" >&2
   exit 1
 fi
+
+# Marker × construction is the highest-priority confirmation, so run it before
+# the optional harder-task test on each model.
+ensure_marker_dataset
+MARKER_SCORES="outputs/followups/${MODEL_OUT}_marker_confirmatory_scores.jsonl"
+MARKER_ANALYSIS="outputs/followups/${MODEL_OUT}_marker_confirmatory_analysis.json"
+run_score marker candidate outputs/followups/marker_confirmatory.jsonl "$MARKER_SCORES"
+run_analysis marker confirmatory outputs/followups/marker_confirmatory.jsonl "$MARKER_SCORES" "$MARKER_ANALYSIS"
+
 HAS_FREEZE=false
 if [[ -f outputs/followups/harder_protocol_freeze.json ]]; then
   HAS_FREEZE=$(uv run --frozen --python 3.13.5 --extra model --extra dev python -c \
@@ -160,9 +169,3 @@ if [[ "$HAS_FREEZE" == True ]]; then
 else
   echo "No qualifying Qwen freeze; harder test skipped."
 fi
-
-ensure_marker_dataset
-MARKER_SCORES="outputs/followups/${MODEL_OUT}_marker_confirmatory_scores.jsonl"
-MARKER_ANALYSIS="outputs/followups/${MODEL_OUT}_marker_confirmatory_analysis.json"
-run_score marker candidate outputs/followups/marker_confirmatory.jsonl "$MARKER_SCORES"
-run_analysis marker confirmatory outputs/followups/marker_confirmatory.jsonl "$MARKER_SCORES" "$MARKER_ANALYSIS"
