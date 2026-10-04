@@ -4,6 +4,10 @@ Infrastructure for testing how causal decoder-only Transformers make overwritten
 
 The separately versioned [corrected relational/order robustness protocol](docs/cross_model_relational_v2.md) records completed Qwen and Gemma confirmation runs and their analyses. Initial previews and early reanalysis reports remain archived as superseded; existing v2 results are preserved unchanged. Completed [cross_model_v1 experiments](docs/cross_model_v1.md) retain their original status and outputs. Separate, currently unscored [time-limited follow-up designs](docs/followup_experiments.md) are documented independently.
 
+## Paper and workflow
+
+The TMLR manuscript is in [`paper/`](paper/) (one `.tex` file per section). Work on it advances through the autonomous `/continue` loop: see [`CLAUDE.md`](CLAUDE.md), [`docs/AUTONOMY.md`](docs/AUTONOMY.md), and the step ledger [`docs/PLAN.md`](docs/PLAN.md). The gate is `bash scripts/check.sh`.
+
 ## Environment
 
 The repository uses uv for interpreter selection, dependency resolution, locking, and command execution. `.python-version` selects Python 3.13. Install the CPU/data/test environment with:
