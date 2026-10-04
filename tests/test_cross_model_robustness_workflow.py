@@ -9,6 +9,8 @@ from scripts import robustness_v2 as cli
 from src.cross_model import robustness_protocol as design
 from src.cross_model import robustness_v2 as data
 from src.cross_model.protocol import digest, read_sealed, sealed, write_new
+from src.cross_model.runtime_provenance import (resolve_inference_provenance,
+                                               runtime_mismatches, validate_saved_score_runtime)
 from src.cross_model.workflow import dataset_info, gate_report, verify_gate
 from src.data.io import sha256_file, write_jsonl
 from src.utils import load_config
@@ -221,3 +223,127 @@ def test_failed_gemma_histories_are_recorded_in_new_exclusion_revision():
     assert record['score_stage_status'] == 'geometry span texts differ from semantic values/entities'
     assert record['physical_signature_count'] == 96
     assert len(record['physical_signatures']) == len(set(record['physical_signatures'])) == 96
+
+
+def test_runtime_resolution_uses_original_inference_environment_after_migration():
+    inference = {'python': '3.12.13', 'packages': {'torch': '2.7.1', 'transformers': '4.52.4'}}
+    migration = {'python': '3.13.5', 'packages': {'torch': '2.7.1', 'transformers': '4.52.4'}}
+    sidecar = {'provenance': migration, 'original_inference_provenance': inference}
+
+    resolved = resolve_inference_provenance(sidecar)
+    assert resolved is inference
+    assert runtime_mismatches(resolved, inference) == []
+    assert runtime_mismatches(resolved, migration) == [
+        "Python version: expected '3.12.13', found '3.13.5'"
+    ]
+
+
+def test_runtime_resolution_uses_ordinary_provenance_for_unmigrated_scores():
+    ordinary = {'python': '3.13.5', 'packages': {'torch': '2.7.1'}}
+    assert resolve_inference_provenance({'provenance': ordinary}) is ordinary
+    assert runtime_mismatches(ordinary, ordinary) == []
+    assert runtime_mismatches(ordinary, {'python': '3.13.5', 'packages': {'torch': '2.7.2'}}) == [
+        "package torch: expected '2.7.1', found '2.7.2'"
+    ]
+
+
+def test_malformed_original_inference_provenance_is_not_silently_replaced():
+    with pytest.raises(ValueError, match='no valid inference provenance'):
+        resolve_inference_provenance({'original_inference_provenance': None,
+                                     'provenance': {'python': '3.12.13', 'packages': {}}})
+
+
+def test_unrecorded_python_cannot_pass_runtime_equality():
+    assert runtime_mismatches({'packages': {}}, {'packages': {}})
+
+
+def test_missing_package_record_is_distinct_from_recorded_not_installed():
+    assert runtime_mismatches({'python': '3.12.13', 'packages': {'torch': None}},
+                              {'python': '3.12.13', 'packages': {}})
+
+
+def test_score_stage_rejects_mismatched_resume_before_model_loading(tmp_path, monkeypatch):
+    import json
+
+    output = tmp_path / 'scores.jsonl'
+    output.write_text('preserve partial score bytes')
+    marker = tmp_path / 'scores.jsonl.run.json'
+    active = {'python': '3.12.13', 'packages': {'torch': '2.14.0'}}
+    marker.write_text(json.dumps({'config': {**active, 'python': '3.13.5'}}))
+    before = marker.read_bytes()
+    monkeypatch.setattr(cli, 'dataset_info', lambda *a, **kw: ([], {'stage': 'development'}))
+    monkeypatch.setattr(design, 'manifest', lambda *a, **kw: active)
+    args = SimpleNamespace(dataset='unused', config='unused', candidates='unused',
+                           output=str(output), resume=True)
+    with pytest.raises(ValueError, match='saved score runtime differs'):
+        cli.score_stage(args, {}, {})
+    assert marker.read_bytes() == before
+    assert output.read_text() == 'preserve partial score bytes'
+
+
+def test_orphaned_score_file_is_rejected_without_modification(tmp_path):
+    output = tmp_path / 'scores.jsonl'
+    output.write_text('preserve')
+    with pytest.raises(ValueError, match='without checkpoint or completion provenance'):
+        validate_saved_score_runtime(output, {'python': '3.12.13', 'packages': {}})
+    assert output.read_text() == 'preserve'
+
+
+@pytest.fixture
+def migration_source(tmp_path):
+    config_path = 'configs/cross_model_relational_v2_geometryfix_exclusions/qwen3_8b.yaml'
+    config = load_config(config_path)
+    candidate = tmp_path / 'candidates.json'
+    frozen = tmp_path / 'freeze.json'
+    write_new(frozen, sealed({'contract': design.CONTRACT, 'code_sha256': design.code_hash(),
+                             'configs': {'qwen3_8b': {'sha256': sha256_file(config_path)}}}))
+    events = {value: [{'ids': [index], 'text': ' ' + value}]
+              for index, value in enumerate(data.VALUES)}
+    write_new(candidate, sealed({'events': events, 'freeze_sha256': sha256_file(frozen)}))
+    history = data._history_definitions('development')[0]
+    rows = [data._member(history, 'superseded', 0, 0, 'x', 'x', direction) for direction in (0, 1)]
+    scores = []
+    for row in rows:
+        masses = {v: -.1 if v == row['answer'] else -10. for v in data.VALUES}
+        scores.append({**row, 'semantic_log_mass': masses, 'semantic_rank': 1, 'semantic_accuracy': 1,
+                       'surface_likelihoods': {v: [{**events[v][0], 'log_probability': masses[v]}]
+                                              for v in data.VALUES}})
+    dataset, score_path = tmp_path / 'development.jsonl', tmp_path / 'development_scores.jsonl'
+    write_jsonl(rows, dataset)
+    write_jsonl(scores, score_path)
+    prov = design.manifest(config, config_path, candidate, dataset)
+    info = {'stage': 'development', 'provenance': copy.deepcopy(prov),
+            'freeze_path': str(frozen), 'freeze_sha256': sha256_file(frozen)}
+    sidecar = {'stage': 'development', 'scores_sha256': sha256_file(score_path), 'provenance': prov}
+    args = SimpleNamespace(stage='development', dataset=str(dataset), scores=str(score_path),
+                           original_candidates=str(candidate))
+    return args, config, info, sidecar, rows, scores
+
+
+def test_migration_authenticates_original_source_before_rebinding(migration_source):
+    args, config, info, sidecar, rows, scores = migration_source
+    assert cli.verify_migration_source(args, config, info, sidecar, rows, scores) is sidecar['provenance']
+
+
+@pytest.mark.parametrize('damage', ['score_hash', 'dataset_hash', 'candidate_hash', 'freeze_binding',
+                                    'code_binding', 'settings', 'metadata', 'surface_ids'])
+def test_migration_rejects_tampered_original_source(migration_source, damage):
+    args, config, info, sidecar, rows, scores = migration_source
+    if damage == 'score_hash':
+        sidecar['scores_sha256'] = 'wrong'
+    elif damage == 'dataset_hash':
+        info['provenance']['dataset_sha256'] = 'wrong'
+    elif damage == 'candidate_hash':
+        sidecar['provenance']['candidate_map_sha256'] = 'wrong'
+    elif damage == 'freeze_binding':
+        info['freeze_sha256'] = 'wrong'
+    elif damage == 'code_binding':
+        sidecar['provenance']['code_sha256'] = 'wrong'
+    elif damage == 'settings':
+        sidecar['provenance']['quantization'] = 'none'
+    elif damage == 'metadata':
+        scores[0]['edited_entity'] = 'wrong'
+    else:
+        scores[0]['surface_likelihoods'][data.VALUES[0]][0]['ids'] = [9999]
+    with pytest.raises(ValueError):
+        cli.verify_migration_source(args, config, info, sidecar, rows, scores)

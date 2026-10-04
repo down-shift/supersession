@@ -270,7 +270,7 @@ def test_gate_unique_condition_accuracy_and_failed_development_not_a_veto(develo
 
 def test_config_continuity_including_actual_gemma_provenance():
     for slug in design.MODEL_SETTINGS:
-        config = load_config(f'configs/cross_model_relational_v2_factorial_final/{slug}.yaml')
+        config = load_config(f'configs/cross_model_relational_v2_geometryfix_exclusions/{slug}.yaml')
         design.validate_config(config)
         lineage = design.verify_v1_lineage(config)
         assert lineage['scientific_settings']['model_revision'] == config['model']['revision']

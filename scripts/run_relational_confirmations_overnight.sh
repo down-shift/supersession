@@ -3,9 +3,13 @@ set -euo pipefail
 
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 
-REV=factorial_relation_counterbalanced_geometryfix_exclusions_20261003
+REV="${RELATIONAL_REVISION:-factorial_relation_counterbalanced_geometryfix_exclusions_20261003}"
 BASE="outputs/cross_model_relational_v2/$REV"
-CFG_DIR=configs/cross_model_relational_v2_geometryfix_exclusions
+CFG_DIR="${RELATIONAL_CONFIG_DIR:-configs/cross_model_relational_v2_geometryfix_exclusions}"
+for tool in uv python3 tee; do
+  command -v "$tool" >/dev/null || { echo "Required Ubuntu command is missing: $tool" >&2; exit 1; }
+done
+export PYTHONUNBUFFERED=1
 LOG_DIR="$BASE/overnight_logs"
 mkdir -p "$LOG_DIR"
 LOG_FILE="$LOG_DIR/confirmations-$(date -u +%Y%m%dT%H%M%SZ).log"
@@ -15,8 +19,18 @@ echo "Repository: $(pwd)"
 echo "Log: $LOG_FILE"
 echo "Inference is limited to Qwen and Gemma confirmation scoring."
 
+inference_python_version() {
+  PYTHONPATH="$PWD${PYTHONPATH:+:$PYTHONPATH}" python3 - "$1" <<'PY'
+import json, sys
+from src.cross_model.runtime_provenance import resolve_inference_provenance
+
+with open(sys.argv[1], encoding="utf8") as handle:
+    print(resolve_inference_provenance(json.load(handle))["python"])
+PY
+}
+
 run_model() {
-  local model="$1" python_version="$2"
+  local model="$1"
   (
     set -euo pipefail
     local run="$BASE/$model"
@@ -26,39 +40,43 @@ run_model() {
     local dataset="$run/confirmatory.jsonl"
     local scores="$run/confirmatory_scores.jsonl"
     local analysis="$run/confirmatory_analysis.json"
+    local python_version
 
     echo "===== $model: prepare and score confirmation ====="
     for required in "$config" "$run/candidates.json" "$gate" "$run/migrated/preflight.json" "$expected_runtime"; do
       [[ -f "$required" ]] || { echo "Missing required artifact: $required" >&2; exit 1; }
     done
+    python_version="$(inference_python_version "$expected_runtime")"
+    echo "Required inference Python for $model: $python_version"
 
-    # The current .venv is the verified Qwen/Python 3.13.5 environment;
-    # keep Gemma's Python 3.12.13 environment separate so switching cannot replace it.
+    # Keep model environments separate so uv cannot replace one when switching models.
     if [[ "$model" == qwen3_8b ]]; then
-      export UV_PROJECT_ENVIRONMENT=.venv
+      export UV_PROJECT_ENVIRONMENT="${RELATIONAL_QWEN_ENV:-.venv-qwen-runtimefix}"
     else
-      export UV_PROJECT_ENVIRONMENT=.venv-gemma312
+      export UV_PROJECT_ENVIRONMENT="${RELATIONAL_GEMMA_ENV:-.venv-gemma-runtimefix}"
     fi
     export HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1
     uv sync --frozen --extra model --python "$python_version"
 
-    export MODEL_CONFIG="$config" EXPECTED_RUNTIME="$expected_runtime"
+    export MODEL_CONFIG="$config" EXPECTED_RUNTIME="$expected_runtime" SCORES="$scores"
     uv run --frozen --extra model --python "$python_version" python - <<'PY'
 import json, os, torch
 from src.utils import load_config, provenance
+from src.cross_model.runtime_provenance import resolve_inference_provenance, runtime_mismatches, validate_saved_score_runtime
 
-expected = json.load(open(os.environ["EXPECTED_RUNTIME"]))["provenance"]
+with open(os.environ["EXPECTED_RUNTIME"], encoding="utf8") as handle:
+    expected = resolve_inference_provenance(json.load(handle))
 current = provenance(load_config(os.environ["MODEL_CONFIG"]), None)
-assert (current["python"], current["packages"]) == (expected["python"], expected["packages"]), (
-    f"Runtime mismatch: Python {current['python']} vs {expected['python']}; "
-    f"packages current={current['packages']} expected={expected['packages']}"
-)
+mismatches = runtime_mismatches(expected, current)
+if mismatches:
+    raise SystemExit("Runtime mismatch with original inference environment: " + "; ".join(mismatches))
+validate_saved_score_runtime(os.environ["SCORES"], current)
 assert torch.cuda.is_available(), "CUDA unavailable"
 print(f"Runtime and CUDA match (Python {current['python']})")
 PY
 
     export MODEL="$model" MODEL_CONFIG="$config" CANDIDATES="$run/candidates.json"
-    export DATASET="$dataset" GATE="$gate" PREFLIGHT="$run/migrated/preflight.json"
+    export DATASET="$dataset" SCORES="$scores" GATE="$gate" PREFLIGHT="$run/migrated/preflight.json"
 
     if [[ ! -f "$dataset" ]]; then
       # Generation audits the full tokenizer geometry and validates gate,
@@ -104,17 +122,16 @@ assert len(scores) == 18432, f"Expected 18432 scores; found {len(scores)}"
 print(f"Saved scores validate: {len(scores)} members")
 PY
     else
-      local resume_args=()
+      local score_command=(uv run --frozen --extra model --python "$python_version" python -m scripts.robustness_v2 score
+        --config "$config" --candidates "$run/candidates.json" --dataset "$dataset" --output "$scores")
       if [[ -f "$scores.run.json" ]]; then
-        resume_args=(--resume)
+        score_command+=(--resume)
         echo "Resuming saved score progress."
       elif [[ -e "$scores" ]]; then
         echo "Score file exists without a resume marker or completion provenance; preserving it and stopping." >&2
         exit 1
       fi
-      uv run --frozen --extra model --python "$python_version" python -m scripts.robustness_v2 score \
-        --config "$config" --candidates "$run/candidates.json" \
-        --dataset "$dataset" --output "$scores" "${resume_args[@]}"
+      "${score_command[@]}"
     fi
 
     if [[ ! -f "$analysis" ]]; then
@@ -140,7 +157,7 @@ PY
 }
 
 preflight_model() {
-  local model="$1" python_version="$2"
+  local model="$1"
   (
     set -euo pipefail
     local run="$BASE/$model"
@@ -148,29 +165,34 @@ preflight_model() {
     local gate="$run/migrated/gate_report.json"
     local expected_runtime="$run/migrated/gate.jsonl.scores.jsonl.provenance.json"
     local dataset="$run/confirmatory.jsonl"
+    local python_version
 
     echo "===== $model: preflight before any confirmation scoring ====="
     for required in "$config" "$run/candidates.json" "$gate" "$run/migrated/preflight.json" "$expected_runtime"; do
       [[ -f "$required" ]] || { echo "Missing required artifact: $required" >&2; exit 1; }
     done
+    python_version="$(inference_python_version "$expected_runtime")"
+    echo "Required inference Python for $model: $python_version"
     if [[ "$model" == qwen3_8b ]]; then
-      export UV_PROJECT_ENVIRONMENT=.venv
+      export UV_PROJECT_ENVIRONMENT="${RELATIONAL_QWEN_ENV:-.venv-qwen-runtimefix}"
     else
-      export UV_PROJECT_ENVIRONMENT=.venv-gemma312
+      export UV_PROJECT_ENVIRONMENT="${RELATIONAL_GEMMA_ENV:-.venv-gemma-runtimefix}"
     fi
     export HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1
     uv sync --frozen --extra model --python "$python_version"
-    export MODEL_CONFIG="$config" EXPECTED_RUNTIME="$expected_runtime"
+    export MODEL_CONFIG="$config" EXPECTED_RUNTIME="$expected_runtime" SCORES="$run/confirmatory_scores.jsonl"
     uv run --frozen --extra model --python "$python_version" python - <<'PY'
 import json, os, torch
 from src.utils import load_config, provenance
+from src.cross_model.runtime_provenance import resolve_inference_provenance, runtime_mismatches, validate_saved_score_runtime
 
-expected = json.load(open(os.environ["EXPECTED_RUNTIME"]))["provenance"]
+with open(os.environ["EXPECTED_RUNTIME"], encoding="utf8") as handle:
+    expected = resolve_inference_provenance(json.load(handle))
 current = provenance(load_config(os.environ["MODEL_CONFIG"]), None)
-assert (current["python"], current["packages"]) == (expected["python"], expected["packages"]), (
-    f"Runtime mismatch: Python {current['python']} vs {expected['python']}; "
-    f"packages current={current['packages']} expected={expected['packages']}"
-)
+mismatches = runtime_mismatches(expected, current)
+if mismatches:
+    raise SystemExit("Runtime mismatch with original inference environment: " + "; ".join(mismatches))
+validate_saved_score_runtime(os.environ["SCORES"], current)
 assert torch.cuda.is_available(), "CUDA unavailable"
 print(f"Runtime and CUDA match (Python {current['python']})")
 PY
@@ -213,9 +235,9 @@ PY
 
 # Preflight both models before starting either long confirmation run.
 set +e
-preflight_model qwen3_8b 3.13.5
+preflight_model qwen3_8b
 QWEN_PREFLIGHT_STATUS=$?
-preflight_model gemma3_4b 3.12.13
+preflight_model gemma3_4b
 GEMMA_PREFLIGHT_STATUS=$?
 set -e
 echo "Qwen preflight exit status: $QWEN_PREFLIGHT_STATUS"
@@ -227,9 +249,9 @@ fi
 
 # One scoring failure must not prevent the other eligible model from running.
 set +e
-run_model qwen3_8b 3.13.5
+run_model qwen3_8b
 QWEN_STATUS=$?
-run_model gemma3_4b 3.12.13
+run_model gemma3_4b
 GEMMA_STATUS=$?
 set -e
 

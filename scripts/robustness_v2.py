@@ -12,6 +12,8 @@ from src.cross_model import robustness_protocol as design
 from src.cross_model import robustness_v2 as data
 from src.cross_model.progress import configure_logging, progress
 from src.cross_model.protocol import digest, read_sealed, sealed, write_new
+from src.cross_model.runtime_provenance import (resolve_inference_provenance,
+                                               runtime_mismatches, validate_saved_score_runtime)
 from src.cross_model.tokens import check_tokenizer, surface_geometry_audit, validate as validate_tokens
 from src.cross_model.workflow import (dataset_info, gate_report, local_artifact_path,
                                       score_info, verify_confirmation, verify_gate)
@@ -127,6 +129,53 @@ def register_shared_histories(histories, stage):
     return {'path': str(path.resolve()), 'sha256': sha256_file(path)}
 
 
+def verify_migration_source(args, config, old_info, old_score_info, old_rows, old_scored):
+    """Authenticate source bindings and score metadata before rebinding rows."""
+    from src.cross_model.score_checks import checked_scores
+    source = old_score_info['provenance']
+    if old_score_info.get('stage') != args.stage or old_info.get('stage') != args.stage:
+        raise ValueError('migration source stage mismatch')
+    if sha256_file(args.scores) != old_score_info.get('scores_sha256'):
+        raise ValueError('migration source score hash differs from original sidecar')
+    dataset_hash = sha256_file(args.dataset)
+    if (dataset_hash != source.get('dataset_sha256')
+            or dataset_hash != old_info['provenance'].get('dataset_sha256')):
+        raise ValueError('migration source dataset hash differs from original sidecars')
+    if sha256_file(args.original_candidates) != source.get('candidate_map_sha256'):
+        raise ValueError('migration source candidate map hash differs from original sidecar')
+    old_candidate = read_sealed(args.original_candidates)
+    frozen_path = local_artifact_path(old_info['freeze_path'])
+    frozen_hash = sha256_file(frozen_path)
+    if frozen_hash != old_info.get('freeze_sha256') or frozen_hash != old_candidate.get('freeze_sha256'):
+        raise ValueError('migration source freeze binding differs')
+    frozen = read_sealed(frozen_path)
+    slug = design.model_slug(config)
+    if (source.get('code_sha256') != frozen['code_sha256']
+            or source.get('config_sha256') != frozen['configs'][slug]['sha256']
+            or source.get('contract_sha256') != digest(frozen['contract'])):
+        raise ValueError('migration source inference/validation implementation differs from its original freeze')
+    inference = resolve_inference_provenance(old_score_info)
+    model = config['model']
+    settings = {'model_id': model['id'], 'model_revision': model['revision'],
+                'tokenizer_id': model.get('tokenizer_id') or model['id'],
+                'tokenizer_revision': model['tokenizer_revision'],
+                'dtype': model['dtype'], 'quantization': model['quantization']}
+    if any(inference.get(key) != value for key, value in settings.items()):
+        raise ValueError('migration original inference scientific settings differ')
+    original_model = inference['config']['model']
+    for key in ('attn_implementation', 'chat_template', 'trust_remote_code', 'device_map', 'require_full_gpu'):
+        if original_model.get(key) != model.get(key):
+            raise ValueError(f'migration original inference scientific setting differs: {key}')
+    checked_scores(old_rows, old_scored, require_surfaces=True)
+    original_events = old_candidate['events']
+    for score in old_scored:
+        for value, events in original_events.items():
+            saved = score['surface_likelihoods'][value]
+            if {(tuple(e['ids']), e['text']) for e in saved} != {(tuple(e['ids']), e['text']) for e in events}:
+                raise ValueError('migration saved surface events differ from authenticated candidate map')
+    return inference
+
+
 def migrate_saved_stage(args, config, candidate):
     """Rebind unchanged saved competence rows to corrected geometry, without inference."""
     if args.stage not in ('development', 'frozen_gate') or not args.dataset or not args.scores:
@@ -140,6 +189,7 @@ def migrate_saved_stage(args, config, candidate):
     old_info = read_sealed(str(old_dataset) + '.provenance.json')
     old_score_info = read_sealed(str(old_scores) + '.provenance.json')
     old_rows, old_scored = read_jsonl(old_dataset), read_jsonl(old_scores)
+    original_inference = verify_migration_source(args, config, old_info, old_score_info, old_rows, old_scored)
     histories = data._history_definitions(args.stage)
     rows = [data._member(h, *cell) for h in histories for cell in sorted(data.required_cells())]
     data.audit_structure(histories, rows)
@@ -205,7 +255,7 @@ def migrate_saved_stage(args, config, candidate):
                 'original_score_sha256': sha256_file(old_scores),
                 'original_score_provenance_sha256': sha256_file(str(old_scores)+'.provenance.json'),
                 'original_freeze_sha256': old_info.get('freeze_sha256'),
-                'original_inference_revision': old_score_info['provenance']['model_revision'],
+                'original_inference_revision': original_inference['model_revision'],
                 'corrected_validation_revision': data.DESIGN_REVISION,
                 'corrected_freeze_sha256': candidate['freeze_sha256'],
                 'reason': 'correct abstract semantic span labels when physical prompts are shared across opposite orientations'},
@@ -225,7 +275,7 @@ def migrate_saved_stage(args, config, candidate):
     write_new(str(migrated_score_path)+'.provenance.json', sealed({
         'stage': args.stage, 'scores_sha256': sha256_file(migrated_score_path),
         'provenance': design.manifest(config, args.config, args.candidates, str(output)),
-        'migration': info['migration'], 'original_inference_provenance': old_score_info['provenance']}))
+        'migration': info['migration'], 'original_inference_provenance': original_inference}))
     write_new(args.output + '.migration.json', sealed({'migration': info['migration'],
         'migrated_dataset_sha256': sha256_file(output),
         'migrated_geometry_sha256': sha256_file(geometry_path),
@@ -294,10 +344,19 @@ def score_stage(args, config, candidate):
     if info['stage'] == 'confirmatory':
         verify_confirmation(args.dataset, config, args.config, args.candidates, design=design)
         gate = read_sealed(local_artifact_path(info['gate_path']))
-        old = read_sealed(str(local_artifact_path(gate['scores_path'])) + '.provenance.json')['provenance']
+        old_sidecar = read_sealed(str(local_artifact_path(gate['scores_path'])) + '.provenance.json')
+        old = resolve_inference_provenance(old_sidecar)
         current = design.manifest(config, args.config, args.candidates, args.dataset)
-        if any(old[k] != current[k] for k in ('packages', 'python')):
-            raise ValueError('confirmation runtime differs from gate runtime')
+        mismatches = runtime_mismatches(old, current)
+        if mismatches:
+            raise ValueError('confirmation runtime differs from gate inference runtime: '
+                             + '; '.join(mismatches))
+    if args.resume:
+        run_manifest = Path(args.output + '.run.json')
+        if not run_manifest.exists():
+            raise ValueError('--resume requires the original .run.json manifest')
+        active = design.manifest(config, args.config, args.candidates, args.dataset)
+        validate_saved_score_runtime(args.output, active)
     if not args.resume:
         fresh_bundle(args.output)
     if Path(args.output + '.provenance.json').exists():
