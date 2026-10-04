@@ -17,3 +17,4 @@ Split from `../paper_draft.md`. Sections are in manuscript order.
 - [Appendix B. V2 order and score diagnostics](12-appendix-b-v2-order-and-score-diagnostics.md)
 - [Appendix C. Protocol chronology and provenance](13-appendix-c-protocol-chronology-and-provenance.md)
 - [Appendix D. Marker × construction confirmation](14-appendix-d-marker-construction-confirmation.md)
+- [Appendix E. Harder-task development follow-up](15-appendix-e-harder-task-development-follow-up.md)
