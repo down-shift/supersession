@@ -5,7 +5,24 @@ All intervals in this appendix are 95\% history-bootstrap intervals (Section~\re
 
 \subsection{Order groups}
 
-Table~\ref{tab:b-order} gives each superseded-minus-control contrast by order group, and Table~\ref{tab:b-paired} the paired difference between the aligned and reversed contrasts, computed within history. The live control has one assignment block and no order split.
+Table~\ref{tab:b-paired-r} gives the paired order effect on $R$ itself for each construction, Table~\ref{tab:b-order} each superseded-minus-control contrast by order group, and Table~\ref{tab:b-paired} the paired difference between the aligned and reversed contrasts. Paired differences are computed within history. The live control has one assignment block and no order split.
+
+\begin{table}[h]
+\caption{Paired order effect on query relevance, $R_{\text{aligned}}-R_{\text{reversed}}$ (nats), computed within history, with the fraction of the 96 histories in which it is positive.}
+\label{tab:b-paired-r}
+\begin{center}
+\small
+\begin{tabular}{@{}lrr@{}}
+\toprule
+Construction & Qwen3-8B & Gemma 3 4B \\
+\midrule
+Superseded & 0.340 [0.218, 0.470]; 0.688 & 0.032 [−0.101, 0.168]; 0.531 \\
+Early unassigned & 6.578 [6.356, 6.789]; 1.000 & 4.970 [4.700, 5.257]; 1.000 \\
+Late unassigned & 6.371 [6.113, 6.646]; 1.000 & 6.639 [6.308, 6.967]; 1.000 \\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{table}
 
 \begin{table}[h]
 \caption{Superseded minus control, $R_{\text{superseded}}-R_{\text{control}}$ (nats), by order group. Overall values are in Table~\ref{tab:frozen}.}
