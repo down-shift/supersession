@@ -1,0 +1,357 @@
+#!/usr/bin/env python3
+"""Run resumable model scoring for the separate relational follow-ups."""
+import argparse
+import json
+import random
+import time
+from collections import defaultdict
+from pathlib import Path
+
+import numpy as np
+
+from src.cross_model.followups import (VERSION, analyze_marker, complete_answer_outcome,
+    analyze_harder, generate_harder, generate_marker, choose_difficulty)
+from src.cross_model.protocol import VALUES, digest, sealed, write_new, read_sealed
+from src.cross_model.progress import progress
+from src.cross_model.scoring import score_prompt
+from src.cross_model.tokens import continuations, encode
+from src.data.io import read_jsonl, sha256_file
+from src.data.supersession_behavior import _answer_prefix
+from src.utils import load_config, provenance
+
+
+def _code_hash():
+    paths = ('src/cross_model/followups.py', 'scripts/followups.py', 'scripts/run_followups.py',
+             'src/cross_model/scoring.py', 'src/cross_model/tokens.py',
+             'src/models/loader.py', 'src/data/supersession_behavior.py')
+    return digest({p: sha256_file(p) for p in paths})
+
+
+def _prompt(row, tokenizer):
+    return _answer_prefix(row['prompt'], tokenizer, True)
+
+
+def _generate(model, tokenizer, prompt, max_new_tokens):
+    import torch
+    encoded = tokenizer(prompt, return_tensors='pt', add_special_tokens=False)
+    device = model.get_input_embeddings().weight.device
+    encoded = {k: v.to(device) for k, v in encoded.items()}
+    with torch.inference_mode():
+        output = model.generate(**encoded, do_sample=False, num_beams=1,
+                                max_new_tokens=max_new_tokens,
+                                pad_token_id=tokenizer.pad_token_id or tokenizer.eos_token_id,
+                                eos_token_id=tokenizer.eos_token_id)
+    generated = output[0, encoded['input_ids'].shape[1]:]
+    return tokenizer.decode(generated, skip_special_tokens=True), int(generated.numel())
+
+
+def _load_model(config):
+    import torch
+    if not torch.cuda.is_available():
+        raise RuntimeError('follow-up inference requires CUDA; no CPU fallback')
+    from src.cross_model.runtime import load_pinned_model
+    model, tokenizer = load_pinned_model(config)
+    model.eval()
+    return model, tokenizer
+
+
+def run(args):
+    config = load_config(args.config)
+    rows = read_jsonl(args.dataset)
+    if not rows:
+        raise ValueError('empty dataset')
+    stages = {r.get('stage') for r in rows}
+    if len(stages) != 1:
+        raise ValueError('dataset contains mixed or missing stage labels')
+    stage = next(iter(stages))
+    valid_stages = {'marker': {'pilot', 'confirmatory'}, 'harder': {'pilot', 'development', 'test'}}
+    if stage not in valid_stages[args.experiment]:
+        raise ValueError(f'{args.experiment} does not define stage {stage!r}')
+    if args.experiment == 'harder' and args.mode != 'both':
+        raise ValueError('harder experiment requires --mode both (answers and candidate scores)')
+    if args.experiment == 'marker' and args.mode not in ('candidate', 'both'):
+        raise ValueError('marker experiment requires candidate scores')
+    if args.experiment == 'harder' and stage == 'test':
+        if not args.freeze:
+            raise ValueError('scoring test histories requires --freeze')
+        frozen = read_sealed(args.freeze)
+        if (frozen.get('prompt_code_sha256') != _code_hash()
+                or frozen.get('selected_n_distractors') != rows[0].get('n_distractors')
+                or frozen.get('max_new_tokens') != args.max_new_tokens
+                or frozen.get('scoring_seed') != args.seed
+                or len({r['history_id'] for r in rows}) != frozen.get('test_histories')
+                or {r['seed'] for r in rows} != {frozen.get('test_dataset_seed') + 1_000_003}):
+            raise ValueError('test dataset/scoring settings differ from frozen development protocol')
+        test_targets = {r['target_history_signature'] for r in rows}
+        if test_targets & set(frozen.get('excluded_history_signatures', [])):
+            raise ValueError('test target histories overlap frozen development histories')
+    out = Path(args.output)
+    run_path, prov_path = Path(str(out) + '.run.json'), Path(str(out) + '.provenance.json')
+    dataset_hash, code_hash = sha256_file(args.dataset), _code_hash()
+    freeze_hash = sha256_file(args.freeze) if args.freeze else None
+    fingerprint = {'protocol': VERSION, 'experiment': args.experiment,
+        'mode': args.mode, 'model_id': config['model']['id'],
+        'model_revision': config['model']['revision'],
+        'tokenizer_revision': config['model'].get('tokenizer_revision', config['model']['revision']),
+        'dataset_sha256': dataset_hash, 'code_sha256': code_hash,
+        'seed': args.seed, 'max_new_tokens': args.max_new_tokens,
+        'protocol_freeze_sha256': freeze_hash,
+        'decoding': 'greedy; do_sample=false; num_beams=1',
+        'parser': 'trim whitespace and edge punctuation; exact case-insensitive candidate match'}
+    if args.resume:
+        if not run_path.exists():
+            raise ValueError('--resume requires matching .run.json')
+        saved = json.loads(run_path.read_text())
+        if saved.get('fingerprint') != fingerprint:
+            raise ValueError('resume fingerprint mismatch')
+        if prov_path.exists():
+            raise ValueError('run is already complete')
+    elif out.exists() or run_path.exists() or prov_path.exists():
+        raise FileExistsError('output bundle exists; choose a fresh path or use --resume')
+    else:
+        out.parent.mkdir(parents=True, exist_ok=True)
+        write_new(run_path, {'fingerprint': fingerprint, 'status': 'started',
+                             'started_utc': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())})
+    random.seed(args.seed); np.random.seed(args.seed)
+    import torch
+    torch.manual_seed(args.seed); torch.cuda.manual_seed_all(args.seed)
+    load_start = time.perf_counter()
+    model, tokenizer = _load_model(config)
+    torch.cuda.synchronize()
+    model_load_seconds = time.perf_counter() - load_start
+    if not getattr(tokenizer, 'chat_template', None):
+        raise ValueError('pinned tokenizer chat template required')
+    device = model.get_input_embeddings().weight.device
+    scored = read_jsonl(out) if out.exists() else []
+    expected = {r['example_id']: r for r in rows}
+    prompts = {r['example_id']: _prompt(r, tokenizer) for r in rows}
+    prompt_answers = {}
+    for row in rows:
+        prompt = prompts[row['example_id']]
+        if prompt in prompt_answers and prompt_answers[prompt] != row['answer']:
+            raise ValueError('same rendered prompt has conflicting correct answers')
+        prompt_answers[prompt] = row['answer']
+    done = {}
+    cache = {}
+    for saved in scored:
+        eid = saved.get('example_id')
+        if eid not in expected or eid in done or any(saved.get(k) != v for k, v in expected[eid].items()):
+            raise ValueError('checkpoint record does not match dataset')
+        done[eid] = saved
+        cache[saved['rendered_prompt']] = {k: saved[k] for k in ('semantic_log_mass', 'surface_likelihoods',
+            'generated_answer', 'parsed_answer', 'answer_category', 'generation_token_count') if k in saved}
+    runtime_start = time.perf_counter()
+    with out.open('a', encoding='utf8') as handle:
+        for row in progress(rows, desc=f'Scoring {args.experiment}', unit='member'):
+            if row['example_id'] in done:
+                continue
+            prompt = prompts[row['example_id']]
+            core = cache.get(prompt)
+            if core is None:
+                events = continuations(tokenizer, prompt)
+                if set(events) != set(VALUES):
+                    raise ValueError('candidate continuation map must cover the fixed eight-value vocabulary')
+                masses, surfaces, _, _ = score_prompt(model, tokenizer, prompt, events)
+                core = {'semantic_log_mass': masses, 'surface_likelihoods': surfaces}
+                if args.mode == 'both':
+                    answer, token_count = _generate(model, tokenizer, prompt, args.max_new_tokens)
+                    outcome = complete_answer_outcome(answer, row['answer'], row.get('stale_value'))
+                    core.update(generated_answer=answer, parsed_answer=outcome['parsed_answer'],
+                                answer_category=outcome['category'], generation_token_count=token_count)
+                cache[prompt] = core
+            stale = row.get('stale_value') or row.get('historical_values', {}).get(row.get('query_entity'))
+            margin = core['semantic_log_mass'][row['answer']] - core['semantic_log_mass'][stale] if stale else None
+            record = {**row, **core, 'rendered_prompt': prompt,
+                      'current_minus_historical_log_mass': margin}
+            parsed = core.get('parsed_answer')
+            record['source_response'] = parsed == row.get('source_value_for_query', row.get('source_value'))
+            record['donor_response'] = parsed == row.get('replacement_value_for_query', row.get('replacement_value'))
+            handle.write(json.dumps(record, sort_keys=True, allow_nan=False) + '\n')
+            handle.flush()
+            done[row['example_id']] = record
+    torch.cuda.synchronize()
+    elapsed = time.perf_counter() - runtime_start
+    if set(done) != set(expected):
+        raise ValueError('incomplete scored dataset')
+    config_prov = provenance(config, args.dataset)
+    runtime = {'python': config_prov['python'], 'packages': config_prov['packages'],
+        'cuda_version': torch.version.cuda, 'gpu_name': torch.cuda.get_device_name(0),
+        'parameter_dtypes': sorted({str(p.dtype) for p in model.parameters()}),
+        'tokenizer_vocab_sha256': digest(tokenizer.get_vocab()),
+        'chat_template_sha256': digest(tokenizer.chat_template),
+        'model_load_seconds': model_load_seconds,
+        'elapsed_seconds': elapsed, 'unique_prompts': len(cache),
+        'seconds_per_unique_prompt': elapsed / max(1, len(cache))}
+    report = {'fingerprint': fingerprint, 'dataset_path': str(Path(args.dataset).resolve()),
+        'dataset_sha256': dataset_hash, 'scores_sha256': sha256_file(out),
+        'model_config_sha256': digest(json.loads(model.config.to_json_string())),
+        'runtime': runtime, 'n_members': len(rows), 'n_unique_prompts': len(cache),
+        'n_histories': len({r['history_id'] for r in rows}),
+        'n_distractors': rows[0].get('n_distractors'),
+        'history_signatures': sorted({r['history_signature'] for r in rows}),
+        'target_history_signatures': sorted({r['target_history_signature'] for r in rows}),
+        'exclusions': [],
+        'status': 'complete'}
+    write_new(prov_path, sealed(report))
+    run_path.write_text(json.dumps({'fingerprint': fingerprint, 'status': 'complete',
+        'completed_utc': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()),
+        'scores_sha256': report['scores_sha256']}, indent=2) + '\n')
+    print(json.dumps(report, indent=2))
+
+
+def summarize_harder(scores):
+    by = defaultdict(list)
+    for row in scores:
+        by[(row['condition'], row['edited'])].append(row)
+    return {f'{condition}_edited_{edited}': {
+        'n_rows': len(rows), 'accuracy': float(np.mean([r['answer_category'] == 'correct' for r in rows])),
+        'stale_frequency': float(np.mean([r['answer_category'] == 'stale' for r in rows])),
+        'mean_current_minus_historical_log_mass': float(np.mean([r['current_minus_historical_log_mass'] for r in rows if r['current_minus_historical_log_mass'] is not None]))}
+        for (condition, edited), rows in sorted(by.items())}
+
+
+def analyze(args):
+    rows, scores = read_jsonl(args.dataset), read_jsonl(args.scores)
+    stages = {r.get('stage') for r in rows}
+    if len(stages) != 1 or stages != {args.stage}:
+        raise ValueError(f'analysis stage {args.stage!r} does not match dataset stage(s) {sorted(stages)}')
+    valid_stages = {'marker': {'pilot', 'confirmatory'}, 'harder': {'pilot', 'development', 'test'}}
+    if args.stage not in valid_stages[args.experiment]:
+        raise ValueError(f'{args.experiment} does not define stage {args.stage!r}')
+    score_prov_path = Path(args.scores + '.provenance.json')
+    if not score_prov_path.exists():
+        raise ValueError('analysis requires the completed score provenance sidecar')
+    score_prov = read_sealed(score_prov_path)
+    expected_dataset_hash, expected_scores_hash = sha256_file(args.dataset), sha256_file(args.scores)
+    fingerprint = score_prov.get('fingerprint', {})
+    if (score_prov.get('status') != 'complete'
+            or score_prov.get('dataset_sha256') != expected_dataset_hash
+            or score_prov.get('scores_sha256') != expected_scores_hash
+            or fingerprint.get('experiment') != args.experiment
+            or fingerprint.get('dataset_sha256') != expected_dataset_hash):
+        raise ValueError('score provenance does not authenticate this dataset and score file')
+    result = analyze_marker(rows, scores) if args.experiment == 'marker' else analyze_harder(rows, scores)
+    result.update(protocol=VERSION, experiment=args.experiment, stage=args.stage,
+                  dataset_sha256=sha256_file(args.dataset), scores_sha256=sha256_file(args.scores),
+                  code_sha256=_code_hash(), dataset_seeds=sorted({r['seed'] for r in rows}),
+                  n_distractors=rows[0].get('n_distractors'),
+                  history_signatures=sorted({r['history_signature'] for r in rows}),
+                  target_history_signatures=sorted({r['target_history_signature'] for r in rows}),
+                  exclusions=[])
+    result['inference_provenance_sha256'] = sha256_file(score_prov_path)
+    result['inference_provenance'] = score_prov
+    write_new(args.output, sealed(result))
+    print(json.dumps({'experiment': args.experiment, 'stage': args.stage,
+        'output': args.output, 'status': 'analysis_complete'}, indent=2))
+
+
+def select_difficulty(args):
+    reports = {}
+    for level, path in zip((2, 4, 6), args.development_reports):
+        report = read_sealed(path)
+        if report.get('protocol') != VERSION or report.get('experiment') != 'harder' or report.get('stage') != 'development':
+            raise ValueError('difficulty selection requires sealed harder-task development analyses')
+        fingerprint = report.get('inference_provenance', {}).get('fingerprint', {})
+        if fingerprint.get('experiment') != 'harder' or fingerprint.get('code_sha256') != _code_hash():
+            raise ValueError('development report lacks authenticated inference provenance')
+        if report.get('code_sha256') != _code_hash():
+            raise ValueError('development analysis was produced by a different code version')
+        reports[str(level)] = {'accuracy': report['overall_complete_answer_accuracy'],
+            'analysis_path': str(Path(path).resolve()), 'analysis_sha256': sha256_file(path),
+            'dataset_sha256': report['dataset_sha256'], 'scores_sha256': report['scores_sha256'],
+            'dataset_seeds': report['dataset_seeds'],
+            'model_id': fingerprint['model_id'], 'model_revision': fingerprint['model_revision'],
+            'n_distractors': report.get('n_distractors'),
+            'history_signatures': report.get('history_signatures', []),
+            'target_history_signatures': report.get('target_history_signatures', []),
+            'n_histories': len(report.get('target_history_signatures', [])),
+            'max_new_tokens': fingerprint['max_new_tokens'], 'scoring_seed': fingerprint['seed']}
+        if not np.isfinite(reports[str(level)]['accuracy']) or not 0 <= reports[str(level)]['accuracy'] <= 1:
+            raise ValueError('development accuracy must be finite and between zero and one')
+    models = {(x['model_id'], x['model_revision']) for x in reports.values()}
+    if len(models) != 1:
+        raise ValueError('all three development levels must use the same model and immutable revision')
+    max_tokens = {x['max_new_tokens'] for x in reports.values()}
+    scoring_seeds = {x['scoring_seed'] for x in reports.values()}
+    if len(max_tokens) != 1 or len(scoring_seeds) != 1:
+        raise ValueError('development levels must use identical answer-generation settings')
+    if len({tuple(v['dataset_seeds']) for v in reports.values()}) != 1:
+        raise ValueError('development levels must use the same dataset seed')
+    if any(v['n_distractors'] != int(level) for level, v in reports.items()):
+        raise ValueError('development report difficulty does not match its declared level')
+    if len({v['n_histories'] for v in reports.values()}) != 1:
+        raise ValueError('development levels must use the same history count')
+    signature_sets = [set(v['target_history_signatures']) for v in reports.values()]
+    if not signature_sets[0] or any(s != signature_sets[0] for s in signature_sets[1:]):
+        raise ValueError('development difficulty levels must share exactly matched physical histories')
+    selected = choose_difficulty(reports)
+    frozen = {'protocol': VERSION, 'experiment': 'harder', 'stage': 'frozen_test_protocol',
+        'selected_n_distractors': selected,
+        'selection_rule': 'hardest development accuracy in [0.65,0.90]; otherwise nearest 0.775, ties smaller level',
+        'development_levels': reports, 'model_id': next(iter(models))[0],
+        'model_revision': next(iter(models))[1], 'difficulty_levels': [2,4,6],
+        'prompt_code_sha256': _code_hash(), 'candidate_values': VALUES,
+        'prompt_templates': {'historical_assignment': 'Previously, {entity}\'s {attribute} was {value}.',
+            'entity_mention': '{entity} mentioned {value} in an unrelated note.',
+            'unassigned': 'The unassigned {attribute} value was {value}.',
+            'current_assignment': 'Currently, {entity}\'s {attribute} is {value}.',
+        'distractor': 'Previously, {entity} badge was {old}. Currently, {entity} badge is {current}.',
+            'query': 'What is {entity}\'s current {attribute}?',
+            'instruction': 'Respond with only the value, with no explanation.'},
+        'decoding': 'greedy; do_sample=false; num_beams=1',
+        'max_new_tokens': next(iter(max_tokens)),
+        'parser': 'trim whitespace and edge punctuation; exact case-insensitive candidate match',
+        'metrics': ['complete_answer_accuracy', 'stale_answer_frequency', 'paired_transitions',
+                    'current_minus_historical_candidate_log_mass', 'secondary_R'],
+        'bootstrap': {'unit': 'history', 'draws': 2000, 'seed': 73021},
+        'test_dataset_seed': 20261004, 'exclusions': [],
+        'test_histories': 24,
+        'development_histories_per_level': next(iter({v['n_histories'] for v in reports.values()})),
+        'excluded_history_signatures': sorted(set.union(*signature_sets))}
+    eligible = [v['accuracy'] for v in reports.values() if .65 <= v['accuracy'] <= .90]
+    frozen['selection_gate_passed'] = bool(eligible)
+    frozen['failed_gates'] = [] if eligible else ['no_development_level_accuracy_in_0.65_to_0.90; nearest_0.775_fallback_used']
+    frozen['scoring_seed'] = next(iter(scoring_seeds))
+    write_new(args.output, sealed(frozen))
+    print(json.dumps({'selected_n_distractors': selected, 'output': args.output,
+        'development_accuracy': {k:v['accuracy'] for k,v in reports.items()}}, indent=2))
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    sub = parser.add_subparsers(dest='command', required=True)
+    score = sub.add_parser('score')
+    score.add_argument('--experiment', choices=('marker', 'harder'), required=True)
+    score.add_argument('--mode', choices=('candidate', 'both'), default='both')
+    score.add_argument('--config', required=True); score.add_argument('--dataset', required=True)
+    score.add_argument('--output', required=True); score.add_argument('--seed', type=int, default=20261006)
+    score.add_argument('--max-new-tokens', type=int, default=32); score.add_argument('--resume', action='store_true')
+    score.add_argument('--freeze')
+    analysis = sub.add_parser('analyze')
+    analysis.add_argument('--experiment', choices=('marker','harder'), required=True)
+    analysis.add_argument('--stage', choices=('pilot','development','test','confirmatory'), required=True)
+    analysis.add_argument('--dataset', required=True); analysis.add_argument('--scores', required=True)
+    analysis.add_argument('--output', required=True)
+    select = sub.add_parser('select-hard-difficulty')
+    select.add_argument('--development-reports', nargs=3, required=True, metavar=('N2_REPORT','N4_REPORT','N6_REPORT'))
+    select.add_argument('--output', required=True)
+    args = parser.parse_args()
+    try:
+        if args.command == 'score': run(args)
+        elif args.command == 'analyze': analyze(args)
+        else: select_difficulty(args)
+    except Exception as exc:
+        if args.command == 'score':
+            failure = Path(str(args.output) + '.failures.jsonl')
+            failure.parent.mkdir(parents=True, exist_ok=True)
+            with failure.open('a', encoding='utf8') as handle:
+                handle.write(json.dumps({'utc': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()),
+                    'experiment': args.experiment, 'model_config': args.config,
+                    'error_type': type(exc).__name__, 'error': str(exc),
+                    'dataset_sha256': sha256_file(args.dataset) if Path(args.dataset).exists() else None,
+                    'code_sha256': _code_hash()}, sort_keys=True) + '\n')
+        raise
+
+
+if __name__ == '__main__':
+    main()
