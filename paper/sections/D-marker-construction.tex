@@ -5,6 +5,8 @@
 
 Experiment 2's 24 histories exclude both histories of its two-history pilot, with no overlap in full-history or target-history signatures; pilot results are not pooled with these. Each model scored all 3,072 prompts (2,272 distinct, none resumed from a checkpoint). Both models used the same dataset (generation seed 23261011, scoring seed 20261006), the checkpoint revisions of Appendix~\ref{app:provenance}, Python 3.13.5, an NVIDIA GeForce RTX 5080 with CUDA 13.0, and the same int8 configurations as Experiment 1. Recomputing the analyses from the saved scores reproduces the reported estimates exactly. Experiment 2 recorded candidate scores only, not generated answers. Artifact hashes are in Table~\ref{tab:d-hashes}.
 
+Phi-4-mini was scored separately on the same 24-history dataset as an exploratory model extension, not as part of the prespecified Qwen/Gemma confirmation. Its pinned revision was \lit{cfbefacb99257ffa30c83adab238a50856ac3083}; it used the RTX 5080 with CUDA 13.0, int8 weights, and float16 activations. Its saved analysis recomputes exactly from all 3,072 score rows. As for the primary models, these are candidate-score results only and do not measure generated-answer accuracy.
+
 \subsection{Query relevance and its components}
 
 $E$ can be split into the change in the donor's score minus the change in the source's score. Applying the $R$ transformation to each part gives $R=R_{\text{donor}}-R_{\text{source}}$. Table~\ref{tab:d-decomposition} reports $R$ and both components for every construction and marker state, and Table~\ref{tab:d-paired} the marker-induced change in each component. With the marker, the donor component is smaller and the source component less negative, at the mean level, in both constructions and both models. The paired component changes are noisier than the marker effects on $R$ in Table~\ref{tab:marker}, which remain the primary result.
@@ -31,6 +33,8 @@ Gemma 3 4B & Entity mention & Present & 2.353 [2.114, 2.605] & 1.079 [0.874, 1.2
 \end{tabular}
 \end{center}
 \end{table}
+
+
 
 \begin{table}[h]
 \caption{Paired marker-induced changes (present minus absent) in the donor and source components (nats; 24 histories); $\Delta R=\Delta R_{\text{donor}}-\Delta R_{\text{source}}$.}
@@ -59,6 +63,29 @@ Gemma 3 4B & Reversed & Entity mention & −0.626 [−1.085, −0.207] & 0.139 [
 \end{center}
 \end{table}
 
+\subsection{Exploratory Phi-4-mini extension}
+
+For Phi-4-mini, adding the explicit prefix \lit{Previously,} reduced $R$ in the superseded construction by 1.355 nats (95\% CI [−1.561, −1.138]), from 5.146 [4.947, 5.362] without the marker to 3.791 [3.592, 4.004] with it. In the entity-mention construction, the marker effect was 0.145 [−0.018, 0.310], an unresolved change from 4.808 [4.557, 5.107] to 4.953 [4.677, 5.269]. The paired marker-by-construction interaction was −1.500 [−1.734, −1.264], indicating a larger reduction for the superseded construction in this model.
+
+The order-stratified estimates show additional heterogeneity. Superseded marker effects were −1.227 [−1.412, −1.026] in aligned order and −1.483 [−1.758, −1.194] in reversed order. Entity-mention effects were −0.253 [−0.450, −0.059] aligned and 0.544 [0.384, 0.703] reversed. The corresponding interaction was −0.973 [−1.221, −0.714] aligned and −2.027 [−2.330, −1.725] reversed. These exploratory estimates indicate construction- and order-dependent score effects for Phi-4-mini; they do not establish a general model-family pattern or identify a mechanism. They are effects of adding the literal prefix, not evidence of active suppression. No answer-generation accuracy was collected in this candidate-scoring run.
+
+\begin{table}[h]
+\caption{Exploratory Phi-4-mini marker-confirmation estimates (nats; 24 histories; 95\% history-bootstrap intervals). Marker effect is present minus absent; interaction is the superseded marker effect minus the entity-mention marker effect.}
+\label{tab:d-phi-marker}
+\begin{center}
+\small
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+Order & Superseded marker effect & Entity-mention marker effect & Interaction \\
+\midrule
+All & −1.355 [−1.561, −1.138] & 0.145 [−0.018, 0.310] & −1.500 [−1.734, −1.264] \\
+Aligned & −1.227 [−1.412, −1.026] & −0.253 [−0.450, −0.059] & −0.973 [−1.221, −0.714] \\
+Reversed & −1.483 [−1.758, −1.194] & 0.544 [0.384, 0.703] & −2.027 [−2.330, −1.725] \\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{table}
+
 \begin{table}[h]
 \caption{SHA-256 hashes of the Experiment 2 artifacts.}
 \label{tab:d-hashes}
@@ -77,6 +104,10 @@ Gemma scores & \lit{a329720a535ae7ad60db8727d1112173ddedb51b1f1ca2882624df130291
 Gemma score provenance & \lit{3842e40ffd4f42b284692e73d00cb00104360b3da63b396b545cf20e05ca2822} \\
 Qwen analysis & \lit{60383f56fe6f29cbe04d7c1c1c75f661d7bd15be6a42b836461d4b160988e9bf} \\
 Gemma analysis & \lit{5d2c0fc95c74f080e32fa7cc191d00383132440b830e1ca0dec96d0693648019} \\
+Phi-4-mini scores & \lit{744a1864ec1fa0db8fffb314b81e01c34eaa3c5cb898071215040b849e452954} \\
+Phi-4-mini analysis & \lit{97bbeca29adc553584e911d9a9926a35b4cad6ed9bb4aefa3307b1edf9eb5c35} \\
+Phi-4-mini score provenance & \lit{7e4e2258b1a923c7b2656d6862f41c9b4d4ea890d62162308af0da34fed5a908} \\
+Phi-4-mini run record & \lit{a9a66bd9396622a5b6fee2ddbb070e41c8fd41b7d028712f66227961241b3e9f} \\
 Dependency lock file & \lit{55c8fc8089a4258c33ee2c6ee054abf210ff2006dcdca956b83aebc72cfa14e4} \\
 Scoring and analysis code & \lit{1ec47a290a3ceb2a31e0f8d622d8328aa23096f92bd08670bb7aa42956473bc8} \\
 \bottomrule
