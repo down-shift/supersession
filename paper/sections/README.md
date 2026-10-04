@@ -1,6 +1,6 @@
 # Paper sections
 
-Split from `../NEW_supersession_paper_draft(2).md`. Sections are in manuscript order.
+Split from `../paper_draft.md`. Sections are in manuscript order.
 
 - [Front matter](00-front-matter.md)
 - [Abstract](01-abstract.md)
@@ -16,3 +16,4 @@ Split from `../NEW_supersession_paper_draft(2).md`. Sections are in manuscript o
 - [Appendix A. Initial v1 and derived-code observations](11-appendix-a-initial-v1-and-derived-code-observations.md)
 - [Appendix B. V2 order and score diagnostics](12-appendix-b-v2-order-and-score-diagnostics.md)
 - [Appendix C. Protocol chronology and provenance](13-appendix-c-protocol-chronology-and-provenance.md)
+- [Appendix D. Marker × construction confirmation](14-appendix-d-marker-construction-confirmation.md)

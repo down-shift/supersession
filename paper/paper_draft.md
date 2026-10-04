@@ -5,7 +5,7 @@
 
 ## Abstract
 
-Do earlier values continue to shape a language model's answer scores after a contextual update? We replace a historical value with a donor while holding the current assignment fixed, then compare candidate score changes for questions about the associated entity and another entity. In Qwen3-8B and Gemma 3 4B, the entity-mention construction yields greater query relevance than the superseded construction (5.478 versus 1.974 nats for Qwen; 4.277 versus 1.688 for Gemma). For unassigned values, query relevance is positive when historical and current mention orders align and negative when they are reversed. Superseded relevance stays positive in both order groups. The three-control prediction, fixed in an internal amendment before confirmation but not externally preregistered, is not supported. The current candidate remains top-ranked in every v2 superseded trial for both models. In an exploratory Qwen-only derived-code task, current-code rank-one accuracy was 93.8% before editing and 94.8% after; paired changes in current-code log probability and margin were inconclusive. Effects on unrestricted generation and reliable practical accuracy remain unresolved.
+Do earlier values continue to shape a language model's answer scores after a contextual update? In relational v2, replacing a historical value while holding current assignments fixed produced greater query relevance for entity-mention than superseded constructions in Qwen3-8B and Gemma 3 4B (5.478 versus 1.974 nats for Qwen; 4.277 versus 1.688 for Gemma). For unassigned values, relevance reverses sign when historical and current mention orders are reversed; superseded relevance stays positive in both order groups. A separate 24-history marker confirmation found that adding `Previously` reduced measured relevance in both constructions for both models. The marker-by-construction interaction was positive for Qwen (1.337 nats, 95% CI [0.976, 1.712]) and inconclusive for Gemma (−0.125 [−0.390, 0.136]). These marker results use candidate scores only and do not establish answer changes or active suppression. The current candidate remained top-ranked in every v2 superseded trial. The internal three-control prediction was not supported; it was recorded before confirmation but not externally preregistered. Effects on unrestricted generation and reliable practical accuracy remain unresolved.
 
 ## 1. Introduction
 
@@ -28,9 +28,9 @@ The correct answer is `jade`. We replace the earlier `amber` with `violet` and l
 
 In the first experiment, superseded assignments had greater query relevance than one counterbalanced unassigned control in three eligible model configurations. The comparison did not match entity association or position. The follow-up added early and late unassigned mentions, entity-associated notes without the target assignment, and earlier assignments to another attribute. It also varied historical and current order independently.
 
-In both tested models, the entity-mention construction yields greater query relevance than the superseded construction. Effects for unassigned values reverse sign when relative mention order is reversed; superseded effects remain positive under both orders. The order pattern in the unassigned constructions is consistent with position-based association in this task. Because we measure output scores, the experiment does not test an internal binding mechanism.
+In both tested models, the entity-mention construction yields greater query relevance than the superseded construction. Effects for unassigned values reverse sign when relative mention order is reversed; superseded effects remain positive under both orders. A separate marker confirmation shows that adding `Previously` reduces the score-sensitivity measure in both superseded and entity-mention constructions, with a larger reduction for entity mentions in Qwen and no resolved construction difference in Gemma. The order pattern in the unassigned constructions is consistent with position-based association in this task. Because we measure output scores, these experiments do not test an internal binding mechanism.
 
-The controlled comparison shows that positive query relevance occurs in several prompt constructions. The entity-mention construction yields a larger effect than the superseded construction, while order-stratified estimates show opposing effects for unassigned values that averaging conceals. The three-control prediction tests the original interpretation and fails because superseded relevance is lower than entity-mention relevance in both models. The main v2 estimates concern fixed answer-prefix scores. In the exploratory derived-code task, some current-code rankings changed in both directions, while paired changes in score and margin were inconclusive. Whether these score shifts affect unrestricted generation or reliable practical accuracy remains unresolved.
+The controlled comparison shows that positive query relevance occurs in several prompt constructions. The entity-mention construction yields a larger effect than the superseded construction, while order-stratified estimates show opposing effects for unassigned values that averaging conceals. A separate marker confirmation finds lower relevance with `Previously` in both tested constructions and models; the reduction is larger for entity mentions in Qwen, while Gemma's interaction interval includes zero. The three-control prediction tests the original interpretation and fails because superseded relevance is lower than entity-mention relevance in both models. These studies measure fixed answer-prefix scores, not unrestricted generation. Whether the score shifts affect generated answers or reliable practical accuracy remains unresolved.
 
 ## 2. Related work
 
@@ -179,9 +179,15 @@ V1 used 24 development histories, 24 gate histories, and 96 confirmation histori
 
 Each v2 history contributes $6\times2\times2\times2\times2\times2=192$ scored rows: six conditions, two queries, two edited values, two historical orders, two current orders, and baseline versus edit. This gives 18,432 rows and 9,216 matched edit pairs per model. Each condition contributes 3,072 rows, half baseline and half edited. Some rows share the same rendered prompt, including live's duplicated current-order variants. Confirmation accuracy uses all rows, whereas gate accuracy deduplicates prompts. Estimates and uncertainty are computed over the 96 histories, and the primary analysis retains histories containing task errors.
 
-We aggregate edit and query contrasts within each history before averaging across histories. The reported primary percentile 95% intervals use 2,000 unrestricted history-bootstrap samples with seed 73021: each draw samples 96 histories with replacement from the full confirmation set, without resampling within the 48 entity-pair-by-attribute-by-orientation cells. This follows the dated analysis amendment's history-level bootstrap and targets variation across histories in the balanced confirmation mixture. Appendix B reports a design-preserving sensitivity analysis that resamples two histories within each of the 48 fixed cells. Qwen and Gemma share the same confirmation histories, enabling comparisons under the same assignments and donors. These intervals describe variation across histories under the fixed task design; they do not cover changes in names, vocabulary, sentence templates, numerical precision, or model selection. The exclusion audit and implementation chronology are reported in Appendix C.
+We aggregate edit and query contrasts within each history before averaging across histories. The reported primary percentile 95% intervals use 2,000 unrestricted history-bootstrap samples with seed 73021: each draw samples 96 histories with replacement from the full confirmation set, without resampling within the 48 entity-pair-by-attribute-by-orientation cells. This follows the dated analysis amendment's history-level bootstrap and targets variation across histories in the balanced confirmation mixture. Appendix B reports a design-preserving sensitivity analysis that resamples two histories within each of the 48 fixed cells. Qwen and Gemma share the same confirmation histories, enabling comparisons under the same assignments and donors. These intervals describe variation across histories under the fixed task design; they do not cover changes in names, vocabulary, sentence templates, numerical precision, or model selection. The exclusion audit and implementation chronology for v2 are reported in Appendix C. The separate marker confirmation protocol and its provenance are documented in Appendix D.
 
-Tokenizer audits checked that each baseline/edit pair differed only at the selected value span, apart from the consequences of changing its token length. The reported model configurations used int8 weights; Qwen used float16 computation and Gemma bfloat16. Model checkpoint revisions, inference settings, and the implementation and dataset hashes are reported in Appendix C. Protocol decisions were internally logged rather than externally preregistered.
+Tokenizer audits checked that each baseline/edit pair differed only at the selected value span, apart from the consequences of changing its token length. The reported model configurations used int8 weights; Qwen used float16 computation and Gemma bfloat16. Model checkpoint revisions, inference settings, and the implementation and dataset hashes are reported in Appendix C. Protocol decisions were internally logged rather than externally preregistered. The marker confirmation used the same int8 model configurations and is documented separately in Appendix D.
+
+### 4.3 Separate marker × construction confirmation
+
+After relational v2, we ran a separate, internally prespecified 24-history confirmation (not externally preregistered) to test whether the word `Previously` changes measured sensitivity similarly in superseded and entity-mention prompts. It crossed construction (superseded, entity mention) with marker presence (absent, present), historical entity order, current entity order, edited entity, queried entity, and baseline/edit status. Within a history, values, assignments, query wording, and the rest of each prompt were held fixed across marker states; marker presence changed only the historical sentence marker. The superseded and entity-mention constructions still differ in syntax and assignment meaning, so their interaction does not isolate conflict from syntax.
+
+Qwen and Gemma were scored on the same 24 histories using the v2 bounded candidate continuation masses. Each model has 3,072 scored members and 2,272 unique rendered prompts. This confirmation is candidate-only: it has no generated-answer categories, so it cannot estimate answer accuracy, stale-answer frequency, or answer transitions. We computed $R$ with the same history-level $E$ and symmetric query-specific contrast as in Section 3.3. Marker effect is $R_{present}-R_{absent}$ within a construction; the interaction is the superseded marker effect minus the entity-mention marker effect. Intervals are 95% percentile history-bootstrap intervals from 2,000 draws with seed 73021. We report overall and aligned/reversed order estimates separately from the original v2 confirmation.
 
 ## 5. Initial observation under the v1 control
 
@@ -262,21 +268,36 @@ The donor shift reflects both a lower source score and a higher donor score. In 
 
 The entity-mention construction has greater relevance than the superseded construction in all four target attributes for both models. The other-attribute contrast varies by attribute. For Qwen it is positive for badge and color, negative for code (−0.570 [−0.866, −0.280]), and inconclusive for label (0.200 [−0.042, 0.459]). Gemma's attribute-specific other-attribute intervals all include zero. Each attribute contributes 24 histories. These strata describe heterogeneity and are not additional confirmatory tests of the three-control prediction.
 
+### 6.5 Marker × construction confirmation
+
+In the separate 24-history marker confirmation, adding `Previously` reduced $R$ in both superseded and entity-mention constructions for Qwen and Gemma. For Qwen, the reduction was larger in entity-mention prompts: the overall marker-by-construction interaction was 1.337 nats (95% CI [0.976, 1.712]) and remained positive in aligned and reversed order strata. For Gemma, the interaction was −0.125 [−0.390, 0.136]; its interval includes zero, so the construction difference is unresolved. Every within-construction marker-effect interval was below zero, and $R$ remained positive with the marker in every construction/order cell.
+
+| Model | Order | Superseded marker effect | Entity-mention marker effect | Interaction |
+|---|---|---:|---:|---:|
+| Qwen | All | −0.750 [−0.917, −0.590] | −2.087 [−2.410, −1.772] | 1.337 [0.976, 1.712] |
+| Qwen | Aligned | −0.372 [−0.552, −0.187] | −1.298 [−1.580, −0.979] | 0.926 [0.581, 1.274] |
+| Qwen | Reversed | −1.127 [−1.324, −0.939] | −2.876 [−3.354, −2.429] | 1.749 [1.236, 2.274] |
+| Gemma | All | −1.085 [−1.308, −0.864] | −0.960 [−1.183, −0.727] | −0.125 [−0.390, 0.136] |
+| Gemma | Aligned | −1.100 [−1.359, −0.851] | −1.155 [−1.384, −0.915] | 0.055 [−0.233, 0.328] |
+| Gemma | Reversed | −1.069 [−1.372, −0.785] | −0.765 [−1.123, −0.387] | −0.304 [−0.753, 0.116] |
+
+**Table 5.** Marker effects ($R_{present}-R_{absent}$) and marker-by-construction interactions in nats. Intervals are pointwise 95% history-bootstrap intervals over 24 histories (2,000 draws, seed 73021). A zero-crossing interaction interval is inconclusive about a construction difference and does not establish equivalence. This candidate-only study estimates score changes; it does not estimate answer accuracy or stale-answer outcomes. Detailed $R$ and component results appear in Appendix D.
+
 ## 7. Discussion
 
 The results identify two prompt-level regularities. Entity-associated mentions produce greater query relevance than superseded assignments in both tested models. Unassigned-value effects reverse sign across aligned and reversed mention orders, while superseded effects remain positive in both groups. These findings make the entity association and order of mentions central to interpreting historical-value sensitivity.
 
-The order pattern fits a positional account: when an unassigned value and an entity occupy corresponding positions, the model's score response follows that order. Reversing it reverses the query contrast. The experiment does not intervene on internal representations and cannot identify a binding-ID mechanism. The lower superseded relevance than entity-mention relevance may also reflect the temporal marker or predicate structure. The other-attribute condition uses `Previously` too, but the superseded-minus-other contrast is positive for Qwen and near zero for Gemma. The pending marker-by-construction comparison is needed to separate these possibilities.
+The order pattern fits a positional account: when an unassigned value and an entity occupy corresponding positions, the model's score response follows that order. Reversing it reverses the query contrast. The experiment does not intervene on internal representations and cannot identify a binding-ID mechanism. The lower superseded relevance than entity-mention relevance may reflect the temporal marker or predicate structure. The other-attribute condition uses `Previously` too, but the superseded-minus-other contrast is positive for Qwen and near zero for Gemma. The separate marker confirmation shows that `Previously` lowers measured $R$ within both constructions for both models. Qwen's reduction is larger for entity mention; Gemma's marker-by-construction interaction is inconclusive. This supports a marker effect on the measured score contrast under these prompts, but does not establish active suppression or show that conflict is the source of the construction difference.
 
 The initial three-control prediction fails in v2. Superseded relevance exceeds early-unassigned relevance in both models and other-attribute relevance for Qwen, but is below entity-mention relevance in both. Positive $R$ is not unique to the superseded prompt construction. The experiment cannot determine whether obsolete relation status contributes to the superseded effect because the prompt constructions do not vary that status alone.
 
-The outcome is a score for a fixed set of answer prefixes, with no termination event. Historical source and donor events have low absolute mass, and the current answer remains top-ranked in every superseded trial. The study establishes score sensitivity under high competence. The derived-code extension is reported in Appendix A.2. Whether the score shifts change unrestricted generated answers or cause a reliable practical accuracy effect remains unresolved.
+The outcome is a score for a fixed set of answer prefixes, with no termination event. Historical source and donor events have low absolute mass, and the current answer remains top-ranked in every v2 superseded trial. The marker confirmation also scores candidate masses only; it does not measure generated answers or transitions to stale answers. The studies establish sensitivity of these scores under the tested constructions and high competence, while effects on unrestricted generation and practical accuracy remain unresolved. The derived-code extension is reported in Appendix A.2.
 
 The experiments use two-entity English prompts and a fixed eight-value vocabulary. V1 and v2 use different templates; v2 varies six entity pairs and four target attributes within one renderer. Color-like values may fit some attributes more naturally than others, and the `team`/`project` conditions are different-relation controls. The v2 confirmation results cover Qwen and Gemma; Phi's gate result and Mistral's v1 gate failure are reported separately. Generalization to longer histories, distractors, multiple turns, other languages, and other model families has not been tested.
 
 ## 8. Conclusion
 
-In Qwen3-8B and Gemma 3 4B, the entity-mention construction yields greater $R$ than the superseded construction. Unassigned-value effects reverse sign when historical and current mention order is reversed, while superseded effects stay positive in both groups. The three-control prediction specified in an internal amendment before confirmation fails because superseded relevance is lower than entity-mention relevance in both models. The estimates vary with prompt construction and mention order. The score-based design does not establish whether the effect changes unrestricted answers.
+In Qwen3-8B and Gemma 3 4B, the entity-mention construction yields greater $R$ than the superseded construction. Unassigned-value effects reverse sign when historical and current mention order is reversed, while superseded effects stay positive in both groups. A separate confirmation finds that adding `Previously` reduces measured $R$ in both tested constructions for both models; the reduction is larger for entity mentions in Qwen, while Gemma's interaction remains inconclusive. The three-control prediction specified in an internal amendment before confirmation fails because superseded relevance is lower than entity-mention relevance in both models. These results concern candidate scores and do not establish changes in unrestricted answers.
 
 ## References
 
@@ -454,3 +475,82 @@ The completion audit recorded 18,432 valid score rows and 96 histories per model
 The corrected implementation freeze has SHA-256 `f2981fa0f05a5e29e9478f8a94987e7578b2ce3667d1c941e8ce31cf8cdfef9a`. The shared confirmation dataset has SHA-256 `27c1e9b80e62a0cb0266d393fd6120dff2bcf637d8e9468491748e740287c08d`.
 
 The interpretation amendment was recorded on 3 October 2026 before confirmation results were examined, with SHA-256 `0371b4e1c9a363bbcb8dfdc0a0ccc6a3c39c08f49843b59eea9bcbde27ccd2b9`. It specified that all three overall superseded-minus-control lower 95% bounds must exceed zero to support the three-control prediction, and applied the same rule to a separate reversed-order prediction. The rule and its limitations are described in Section 3.3.
+
+## Appendix D. Marker × construction confirmation
+
+### D.1 Scope and verification
+
+This confirmation is separate from relational v2 and the two-history marker pilot. The 24-history dataset explicitly excludes both pilot histories; there is no full-history or target-history signature overlap. Each model has 3,072/3,072 scored members over 2,272 unique prompts, covering every factorial cell. Both run records and sealed score provenance report completion. Dataset, score, report, and provenance hashes agree with the sealed analyses, and recomputing the analyses from the saved scores reproduces the saved estimates. The generation report was written before inference and therefore records evaluation as pending; completed score sidecars and analyses establish the final status. The original report is preserved.
+
+The models share the same dataset (generation seed 23261011; scoring seed 20261006), Python 3.13.5, and the repository's locked environment. Qwen/Qwen3-8B used model and tokenizer revision `b968826d9c46dd6066d109eabc6255188de91218`; google/gemma-3-4b-it used `093f9f388b31de276ce2de164bdc2081324b9767`. The runtime was an NVIDIA GeForce RTX 5080 with CUDA 13.0. Qwen used int8 weights with float16 computation; Gemma used int8 weights with bfloat16 computation. Each scored 2,272 new unique prompts with no resumed prompts. Scoring took 1,551.08 seconds for Qwen and 657.75 seconds for Gemma; these candidate-only runtimes do not estimate harder-task runs that generate answers.
+
+### D.2 Marker effects
+
+Marker effect is $R$ with `Previously` minus $R$ without it. The interaction is the superseded marker effect minus the entity-mention marker effect. Aligned order means historical and current entity orders agree; reversed order means they differ. Intervals are pointwise 95% percentile history-bootstrap intervals (2,000 draws, seed 73021; 24 histories per estimate).
+
+| Model | Order | Superseded marker effect | Entity-mention marker effect | Interaction |
+|---|---|---:|---:|---:|
+| Qwen | All | −0.750 [−0.917, −0.590] | −2.087 [−2.410, −1.772] | 1.337 [0.976, 1.712] |
+| Qwen | Aligned | −0.372 [−0.552, −0.187] | −1.298 [−1.580, −0.979] | 0.926 [0.581, 1.274] |
+| Qwen | Reversed | −1.127 [−1.324, −0.939] | −2.876 [−3.354, −2.429] | 1.749 [1.236, 2.274] |
+| Gemma | All | −1.085 [−1.308, −0.864] | −0.960 [−1.183, −0.727] | −0.125 [−0.390, 0.136] |
+| Gemma | Aligned | −1.100 [−1.359, −0.851] | −1.155 [−1.384, −0.915] | 0.055 [−0.233, 0.328] |
+| Gemma | Reversed | −1.069 [−1.372, −0.785] | −0.765 [−1.123, −0.387] | −0.304 [−0.753, 0.116] |
+
+**Table D1.** Marker effects and marker-by-construction interactions in nats. All within-construction marker-effect intervals are below zero. Qwen's interaction interval is above zero overall and in both order strata. Gemma's interaction intervals include zero; this is inconclusive about a construction difference and does not establish equivalence. $R$ remains positive with the marker in every model, construction, and order cell.
+
+The Qwen interaction agrees in direction with the exploratory two-history pilot. Gemma's overall interaction remains inconclusive, while its pilot aligned-stratum interaction does not persist as a clear difference in confirmation. Pilot histories are not pooled with confirmation.
+
+### D.3 R decomposition
+
+For each baseline-to-edit pair, $E$ is the change in replacement log mass minus the change in source log mass. $R$ subtracts $E$ for the other query entity from $E$ for the matching query entity, then symmetrizes over edited entities. The same transformation is applied to each component, so $R=R_{replacement}-R_{source}$. Table D2 reports means and 95% history-bootstrap intervals (2,000 draws, seed 73021; 24 histories).
+
+| Model | Construction | `Previously` | $R$ | Replacement component | Source component |
+|---|---|---|---:|---:|---:|
+| Qwen | Superseded | Absent | 3.738 [3.536, 3.934] | 1.590 [1.118, 2.005] | −2.149 [−2.623, −1.705] |
+| Qwen | Superseded | Present | 2.989 [2.791, 3.186] | 1.283 [0.832, 1.746] | −1.705 [−2.151, −1.242] |
+| Qwen | Entity mention | Absent | 7.304 [6.629, 7.966] | 3.875 [3.477, 4.277] | −3.429 [−4.135, −2.764] |
+| Qwen | Entity mention | Present | 5.217 [4.749, 5.705] | 2.540 [2.171, 2.917] | −2.677 [−3.193, −2.165] |
+| Gemma | Superseded | Absent | 2.631 [2.409, 2.863] | 1.413 [1.170, 1.652] | −1.218 [−1.501, −0.934] |
+| Gemma | Superseded | Present | 1.546 [1.379, 1.714] | 0.685 [0.445, 0.932] | −0.861 [−1.115, −0.610] |
+| Gemma | Entity mention | Absent | 3.313 [2.975, 3.669] | 1.732 [1.427, 2.048] | −1.582 [−1.915, −1.276] |
+| Gemma | Entity mention | Present | 2.353 [2.114, 2.605] | 1.079 [0.874, 1.287] | −1.274 [−1.468, −1.068] |
+
+**Table D2.** Overall $R$ and its source/replacement components by model, construction, and marker condition. Marker presence lowers the replacement component and makes the source component less negative at the mean level in both constructions and models. Paired component changes, rather than overlap between marginal intervals, are the relevant decomposition of marker effects; their order-stratified estimates are included in the audit report.
+
+The paired changes in the components, where $\Delta R=\Delta R_{replacement}-\Delta R_{source}$, are:
+
+| Model | Order | Construction | $\Delta$ replacement component | $\Delta$ source component |
+|---|---|---|---:|---:|
+| Qwen | All | Superseded | −0.306 [−0.812, 0.237] | 0.443 [−0.100, 1.040] |
+| Qwen | All | Entity mention | −1.335 [−1.640, −1.013] | 0.752 [0.323, 1.140] |
+| Qwen | Aligned | Superseded | −0.286 [−0.840, 0.267] | 0.086 [−0.522, 0.704] |
+| Qwen | Aligned | Entity mention | −0.810 [−1.328, −0.330] | 0.488 [−0.179, 1.070] |
+| Qwen | Reversed | Superseded | −0.327 [−0.995, 0.399] | 0.800 [0.088, 1.557] |
+| Qwen | Reversed | Entity mention | −1.859 [−2.283, −1.435] | 1.017 [0.480, 1.492] |
+| Gemma | All | Superseded | −0.727 [−1.046, −0.420] | 0.357 [−0.009, 0.720] |
+| Gemma | All | Entity mention | −0.653 [−1.003, −0.310] | 0.307 [−0.021, 0.645] |
+| Gemma | Aligned | Superseded | −0.547 [−1.049, −0.015] | 0.553 [0.062, 1.085] |
+| Gemma | Aligned | Entity mention | −0.679 [−1.101, −0.245] | 0.475 [0.056, 0.909] |
+| Gemma | Reversed | Superseded | −0.907 [−1.298, −0.486] | 0.162 [−0.301, 0.629] |
+| Gemma | Reversed | Entity mention | −0.626 [−1.085, −0.207] | 0.139 [−0.285, 0.532] |
+
+**Table D3.** Paired marker changes in the $R$ decomposition, with 95% history-bootstrap intervals (2,000 draws, seed 73021; 24 histories). For Qwen entity mention, both component changes exclude zero overall; the source-component interval includes zero when aligned and excludes zero when reversed. In Qwen superseded, both overall component intervals cross zero; only the reversed source-component interval excludes zero. For Gemma, replacement-component changes exclude zero in every stratum for both constructions. Source-component changes exclude zero in aligned order for both constructions; the overall and reversed intervals include zero. The combined $R$ effects in Table D1 remain the primary interpretation.
+
+### D.4 Artifact hashes
+
+| Artifact | SHA-256 |
+|---|---|
+| Confirmation dataset | `af1b33a73e4235a4e1bc0550ea2bea008a652972f299be0e5da21e8e880b299b` |
+| Generation report | `3aae4c6419e2301c44c84410208a137cece6f278a5fda07e1218db51d34dba71` |
+| Excluded marker pilot dataset | `f42cc115be1715b46d70587fd5a8e311eed33c8868e34d516e1454774aa4fec4` |
+| Qwen scores | `ddf600c12b6d58b84779ffa48571f29dd9f2e64ecc99dbd77b81aceb2461c866` |
+| Qwen score provenance | `2627828f16bdf08ffe538883d609f59e72d552593e601744f185046ce94b002e` |
+| Gemma scores | `a329720a535ae7ad60db8727d1112173ddedb51b1f1ca2882624df1302914bb1` |
+| Gemma score provenance | `3842e40ffd4f42b284692e73d00cb00104360b3da63b396b545cf20e05ca2822` |
+| Qwen analysis | `60383f56fe6f29cbe04d7c1c1c75f661d7bd15be6a42b836461d4b160988e9bf` |
+| Gemma analysis | `5d2c0fc95c74f080e32fa7cc191d00383132440b830e1ca0dec96d0693648019` |
+| uv.lock | `55c8fc8089a4258c33ee2c6ee054abf210ff2006dcdca956b83aebc72cfa14e4` |
+| Scoring and analysis code | `1ec47a290a3ceb2a31e0f8d622d8328aa23096f92bd08670bb7aa42956473bc8` |
+
+The complete detailed audit, including order-stratified component changes and the full matching-query/other-query $E$ decomposition, is in [marker_construction_confirmation.md](../docs/marker_construction_confirmation.md). The saved artifacts are [dataset](../outputs/followups/marker_confirmatory.jsonl), [generation report](../outputs/followups/marker_confirmatory_report.json), [Qwen analysis](../outputs/followups/qwen_marker_confirmatory_analysis.json), and [Gemma analysis](../outputs/followups/gemma_marker_confirmatory_analysis.json). Score files have matching `.provenance.json` and `.run.json` sidecars.

@@ -70,3 +70,18 @@ For Qwen's superseded condition, mean edit effects under the matched and other-e
 The donor shift reflects both a lower source score and a higher donor score. In superseded trials, Qwen's mean source log mass changes from −22.271 to −23.881 and donor log mass from −23.618 to −22.120. Gemma's corresponding changes are −24.311 to −25.552 and −25.498 to −24.268. The current candidate remains top-ranked, while the source and donor prefix events have low absolute mass. These score changes do not tell us whether unrestricted generation would change its answer.
 
 The entity-mention construction has greater relevance than the superseded construction in all four target attributes for both models. The other-attribute contrast varies by attribute. For Qwen it is positive for badge and color, negative for code (−0.570 [−0.866, −0.280]), and inconclusive for label (0.200 [−0.042, 0.459]). Gemma's attribute-specific other-attribute intervals all include zero. Each attribute contributes 24 histories. These strata describe heterogeneity and are not additional confirmatory tests of the three-control prediction.
+
+### 6.5 Marker × construction confirmation
+
+In the separate 24-history marker confirmation, adding `Previously` reduced $R$ in both superseded and entity-mention constructions for Qwen and Gemma. For Qwen, the reduction was larger in entity-mention prompts: the overall marker-by-construction interaction was 1.337 nats (95% CI [0.976, 1.712]) and remained positive in aligned and reversed order strata. For Gemma, the interaction was −0.125 [−0.390, 0.136]; its interval includes zero, so the construction difference is unresolved. Every within-construction marker-effect interval was below zero, and $R$ remained positive with the marker in every construction/order cell.
+
+| Model | Order | Superseded marker effect | Entity-mention marker effect | Interaction |
+|---|---|---:|---:|---:|
+| Qwen | All | −0.750 [−0.917, −0.590] | −2.087 [−2.410, −1.772] | 1.337 [0.976, 1.712] |
+| Qwen | Aligned | −0.372 [−0.552, −0.187] | −1.298 [−1.580, −0.979] | 0.926 [0.581, 1.274] |
+| Qwen | Reversed | −1.127 [−1.324, −0.939] | −2.876 [−3.354, −2.429] | 1.749 [1.236, 2.274] |
+| Gemma | All | −1.085 [−1.308, −0.864] | −0.960 [−1.183, −0.727] | −0.125 [−0.390, 0.136] |
+| Gemma | Aligned | −1.100 [−1.359, −0.851] | −1.155 [−1.384, −0.915] | 0.055 [−0.233, 0.328] |
+| Gemma | Reversed | −1.069 [−1.372, −0.785] | −0.765 [−1.123, −0.387] | −0.304 [−0.753, 0.116] |
+
+**Table 5.** Marker effects ($R_{present}-R_{absent}$) and marker-by-construction interactions in nats. Intervals are pointwise 95% history-bootstrap intervals over 24 histories (2,000 draws, seed 73021). A zero-crossing interaction interval is inconclusive about a construction difference and does not establish equivalence. This candidate-only study estimates score changes; it does not estimate answer accuracy or stale-answer outcomes. Detailed $R$ and component results appear in Appendix D.
