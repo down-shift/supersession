@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Run resumable model scoring for the separate relational follow-ups."""
 import argparse
+import importlib.metadata
 import json
 import random
 import time
@@ -25,6 +26,43 @@ def _code_hash():
              'src/cross_model/scoring.py', 'src/cross_model/tokens.py',
              'src/models/loader.py', 'src/data/supersession_behavior.py')
     return digest({p: sha256_file(p) for p in paths})
+
+
+def _runtime_fingerprint(config, config_path, model, tokenizer, torch):
+    packages = {}
+    for package in ('torch', 'transformers', 'accelerate', 'bitsandbytes', 'tokenizers'):
+        try:
+            packages[package] = importlib.metadata.version(package)
+        except importlib.metadata.PackageNotFoundError:
+            packages[package] = None
+    quantization = getattr(model.config, 'quantization_config', None)
+    if hasattr(quantization, 'to_dict'):
+        quantization = quantization.to_dict()
+    elif not isinstance(quantization, (dict, list, str, int, float, bool, type(None))):
+        quantization = repr(quantization)
+    quantization = json.loads(json.dumps(quantization, default=str))
+    tokenizer_kwargs = json.loads(json.dumps(getattr(tokenizer, 'init_kwargs', {}), default=str))
+    model_config = json.loads(json.dumps(model.config.to_dict(), default=str))
+    return {
+        'configuration_sha256': sha256_file(config_path),
+        'configuration_digest': digest(config),
+        'model_config_digest': digest(model_config),
+        'model_class': f'{model.__class__.__module__}.{model.__class__.__qualname__}',
+        'configured_model': config.get('model', {}),
+        'parameter_dtypes': sorted({str(p.dtype) for p in model.parameters()}),
+        'parameter_devices': sorted({str(p.device) for p in model.parameters()}),
+        'model_quantization_config': quantization,
+        'model_attention_implementation': getattr(model.config, '_attn_implementation', None),
+        'tokenizer_class': f'{tokenizer.__class__.__module__}.{tokenizer.__class__.__qualname__}',
+        'tokenizer_name_or_path': getattr(tokenizer, 'name_or_path', None),
+        'tokenizer_init_kwargs_digest': digest(tokenizer_kwargs),
+        'tokenizer_vocab_sha256': digest(tokenizer.get_vocab()),
+        'chat_template_sha256': digest(tokenizer.chat_template),
+        'torch_version': torch.__version__, 'cuda_version': torch.version.cuda,
+        'gpu_name': torch.cuda.get_device_name(0),
+        'gpu_capability': list(torch.cuda.get_device_capability(0)),
+        'packages': packages,
+    }
 
 
 def _prompt(row, tokenizer):
@@ -87,31 +125,10 @@ def run(args):
             raise ValueError('test target histories overlap frozen development histories')
     out = Path(args.output)
     run_path, prov_path = Path(str(out) + '.run.json'), Path(str(out) + '.provenance.json')
-    dataset_hash, code_hash = sha256_file(args.dataset), _code_hash()
-    freeze_hash = sha256_file(args.freeze) if args.freeze else None
-    fingerprint = {'protocol': VERSION, 'experiment': args.experiment,
-        'mode': args.mode, 'model_id': config['model']['id'],
-        'model_revision': config['model']['revision'],
-        'tokenizer_revision': config['model'].get('tokenizer_revision', config['model']['revision']),
-        'dataset_sha256': dataset_hash, 'code_sha256': code_hash,
-        'seed': args.seed, 'max_new_tokens': args.max_new_tokens,
-        'protocol_freeze_sha256': freeze_hash,
-        'decoding': 'greedy; do_sample=false; num_beams=1',
-        'parser': 'trim whitespace and edge punctuation; exact case-insensitive candidate match'}
-    if args.resume:
-        if not run_path.exists():
-            raise ValueError('--resume requires matching .run.json')
-        saved = json.loads(run_path.read_text())
-        if saved.get('fingerprint') != fingerprint:
-            raise ValueError('resume fingerprint mismatch')
-        if prov_path.exists():
-            raise ValueError('run is already complete')
-    elif out.exists() or run_path.exists() or prov_path.exists():
+    if args.resume and not run_path.exists():
+        raise ValueError('--resume requires matching .run.json')
+    if not args.resume and (out.exists() or run_path.exists() or prov_path.exists()):
         raise FileExistsError('output bundle exists; choose a fresh path or use --resume')
-    else:
-        out.parent.mkdir(parents=True, exist_ok=True)
-        write_new(run_path, {'fingerprint': fingerprint, 'status': 'started',
-                             'started_utc': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())})
     random.seed(args.seed); np.random.seed(args.seed)
     import torch
     torch.manual_seed(args.seed); torch.cuda.manual_seed_all(args.seed)
@@ -121,6 +138,30 @@ def run(args):
     model_load_seconds = time.perf_counter() - load_start
     if not getattr(tokenizer, 'chat_template', None):
         raise ValueError('pinned tokenizer chat template required')
+    dataset_hash, code_hash = sha256_file(args.dataset), _code_hash()
+    freeze_hash = sha256_file(args.freeze) if args.freeze else None
+    runtime_fingerprint = _runtime_fingerprint(config, args.config, model, tokenizer, torch)
+    fingerprint = {'protocol': VERSION, 'experiment': args.experiment,
+        'stage': stage, 'mode': args.mode, 'model_id': config['model']['id'],
+        'model_revision': config['model']['revision'],
+        'tokenizer_revision': config['model'].get('tokenizer_revision', config['model']['revision']),
+        'dataset_sha256': dataset_hash, 'code_sha256': code_hash,
+        'seed': args.seed, 'max_new_tokens': args.max_new_tokens,
+        'protocol_freeze_sha256': freeze_hash,
+        'decoding': 'greedy; do_sample=false; num_beams=1',
+        'parser': 'trim whitespace and edge punctuation; exact case-insensitive candidate match',
+        'runtime_fingerprint': runtime_fingerprint}
+    if args.resume:
+        saved = json.loads(run_path.read_text())
+        if saved.get('fingerprint') != fingerprint:
+            raise ValueError('resume fingerprint mismatch: configuration, model runtime, tokenizer, packages, data or code changed')
+        if prov_path.exists():
+            raise ValueError('run is already complete')
+    else:
+        out.parent.mkdir(parents=True, exist_ok=True)
+        write_new(run_path, {'fingerprint': fingerprint, 'status': 'started',
+            'started_utc': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()),
+            'runtime_fingerprint': runtime_fingerprint})
     device = model.get_input_embeddings().weight.device
     scored = read_jsonl(out) if out.exists() else []
     expected = {r['example_id']: r for r in rows}
@@ -164,8 +205,10 @@ def run(args):
             record = {**row, **core, 'rendered_prompt': prompt,
                       'current_minus_historical_log_mass': margin}
             parsed = core.get('parsed_answer')
-            record['source_response'] = parsed == row.get('source_value_for_query', row.get('source_value'))
-            record['donor_response'] = parsed == row.get('replacement_value_for_query', row.get('replacement_value'))
+            record['query_source_response'] = parsed == row.get('source_value_for_query', row.get('source_value'))
+            record['query_donor_response'] = parsed == row.get('replacement_value_for_query', row.get('replacement_value'))
+            record['edited_source_response'] = parsed == row.get('source_value')
+            record['edited_donor_response'] = parsed == row.get('replacement_value')
             handle.write(json.dumps(record, sort_keys=True, allow_nan=False) + '\n')
             handle.flush()
             done[row['example_id']] = record
@@ -261,6 +304,9 @@ def select_difficulty(args):
             'dataset_sha256': report['dataset_sha256'], 'scores_sha256': report['scores_sha256'],
             'dataset_seeds': report['dataset_seeds'],
             'model_id': fingerprint['model_id'], 'model_revision': fingerprint['model_revision'],
+            'configuration_sha256': fingerprint['runtime_fingerprint']['configuration_sha256'],
+            'runtime_fingerprint_sha256': digest(fingerprint['runtime_fingerprint']),
+            'runtime_fingerprint': fingerprint['runtime_fingerprint'],
             'n_distractors': report.get('n_distractors'),
             'history_signatures': report.get('history_signatures', []),
             'target_history_signatures': report.get('target_history_signatures', []),
@@ -275,6 +321,8 @@ def select_difficulty(args):
     scoring_seeds = {x['scoring_seed'] for x in reports.values()}
     if len(max_tokens) != 1 or len(scoring_seeds) != 1:
         raise ValueError('development levels must use identical answer-generation settings')
+    if len({v['runtime_fingerprint_sha256'] for v in reports.values()}) != 1:
+        raise ValueError('development levels used incompatible configurations or runtimes')
     if len({tuple(v['dataset_seeds']) for v in reports.values()}) != 1:
         raise ValueError('development levels must use the same dataset seed')
     if any(v['n_distractors'] != int(level) for level, v in reports.items()):

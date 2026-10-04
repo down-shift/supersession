@@ -125,7 +125,8 @@ def generate_marker(stage='pilot', n_histories=2, seed=20261004, excluded_signat
                 'edited_variable': edited_variable, 'query_variable': query_variable,
                 'edited': edited, 'source_value': source, 'replacement_value': replacement,
                 'query_entity': query_entity, 'answer': h['current_values'][query_entity],
-                'stale_value': h['historical_values'][query_entity] if construction == 'superseded' else None,
+                'stale_value': (replacement if edited and edited_variable == query_variable else
+                    h['historical_values'][query_entity]) if construction == 'superseded' else None,
                 'candidate_values': list(VALUES), 'prompt': rendered,
                 'example_id': f"{h['history_id']}:{construction}:m{marker}:h{historical_order}:c{current_order}:v{edited_variable}:q{query_variable}:e{edited}"})
     validate_marker_dataset(rows)
@@ -451,10 +452,11 @@ def analyze_marker(rows, scores):
             for metric in ('E', 'E_replacement_component', 'E_source_component'):
                 r_x = cell_value('x', 'x', metric) - cell_value('x', 'z', metric)
                 r_z = cell_value('z', 'z', metric) - cell_value('z', 'x', metric)
-                out[f'{cond}_m{marker}_{order}_{metric}'] = .5 * (r_x + r_z)
+                r_metric = metric.replace('E', 'R', 1)
+                out[f'{cond}_m{marker}_{order}_{r_metric}'] = .5 * (r_x + r_z)
         for order in ('all', 'aligned', 'reversed'):
             for cond in ('superseded', 'entity_mention'):
-                out[f'{cond}_marker_effect_{order}'] = out[f'{cond}_m1_{order}_E'] - out[f'{cond}_m0_{order}_E']
+                out[f'{cond}_marker_effect_{order}'] = out[f'{cond}_m1_{order}_R'] - out[f'{cond}_m0_{order}_R']
             out[f'marker_by_construction_interaction_{order}'] = (
                 out[f'superseded_marker_effect_{order}'] - out[f'entity_mention_marker_effect_{order}'])
         history_rows.append(out)
@@ -475,7 +477,7 @@ def analyze_harder(rows, scores):
     validate_harder_dataset(rows)
     expected = {r['example_id']: r for r in rows}
     actual = {r['example_id']: r for r in scores}
-    if len(expected) != len(rows) or actual.keys() != expected.keys():
+    if len(expected) != len(rows) or len(actual) != len(scores) or actual.keys() != expected.keys():
         raise ValueError('harder dataset/score IDs are duplicated or incomplete')
     paired = defaultdict(dict)
     for eid, row in expected.items():
@@ -492,10 +494,15 @@ def analyze_harder(rows, scores):
         outcome = complete_answer_outcome(score['generated_answer'], row['answer'], row['stale_value'])
         if score.get('parsed_answer') != outcome['parsed_answer'] or score['answer_category'] != outcome['category']:
             raise ValueError('harder answer parse/category disagrees with the frozen parser')
-        if score.get('source_response') is not (outcome['parsed_answer'] == row['source_value']):
-            raise ValueError('source response indicator disagrees with generated answer')
-        if score.get('donor_response') is not (outcome['parsed_answer'] == row['replacement_value']):
-            raise ValueError('donor response indicator disagrees with generated answer')
+        expected_responses = {
+            'query_source_response': outcome['parsed_answer'] == row['source_value_for_query'],
+            'query_donor_response': outcome['parsed_answer'] == row['replacement_value_for_query'],
+            'edited_source_response': outcome['parsed_answer'] == row['source_value'],
+            'edited_donor_response': outcome['parsed_answer'] == row['replacement_value'],
+        }
+        for indicator, value in expected_responses.items():
+            if score.get(indicator) is not value:
+                raise ValueError(f'{indicator} indicator disagrees with generated answer')
         margin = score.get('current_minus_historical_log_mass')
         if margin is None or not np.isfinite(margin):
             raise ValueError('current-versus-historical candidate margin required')
@@ -528,10 +535,14 @@ def analyze_harder(rows, scores):
             'baseline_category': b['answer_category'], 'edited_category': e['answer_category'],
             'baseline_stale': int(b['answer_category'] == 'stale'),
             'edited_stale': int(e['answer_category'] == 'stale'),
-            'baseline_source_response': int(b.get('source_response', False)),
-            'edited_source_response': int(e.get('source_response', False)),
-            'baseline_donor_response': int(b.get('donor_response', False)),
-            'edited_donor_response': int(e.get('donor_response', False)),
+            'baseline_intervention_source_response': int(b['edited_source_response']),
+            'intervention_source_response': int(e['edited_source_response']),
+            'baseline_intervention_donor_response': int(b['edited_donor_response']),
+            'intervention_donor_response': int(e['edited_donor_response']),
+            'baseline_query_source_response': int(b['query_source_response']),
+            'edited_query_source_response': int(e['query_source_response']),
+            'baseline_query_donor_response': int(b['query_donor_response']),
+            'edited_query_donor_response': int(e['query_donor_response']),
             'candidate_margin_baseline': b['current_minus_historical_log_mass'],
             'candidate_margin_edited': e['current_minus_historical_log_mass']})
     grouped = defaultdict(list)
@@ -541,8 +552,10 @@ def analyze_harder(rows, scores):
     for (hid, condition), cells in sorted(grouped.items()):
         out = {'history_id': hid, 'condition': condition}
         out['stale_edit_change'] = float(np.mean([r['edited_stale'] - r['baseline_stale'] for r in cells]))
-        out['source_response_edit_change'] = float(np.mean([r['edited_source_response'] - r['baseline_source_response'] for r in cells]))
-        out['donor_response_edit_change'] = float(np.mean([r['edited_donor_response'] - r['baseline_donor_response'] for r in cells]))
+        out['intervention_source_response_edit_change'] = float(np.mean([r['intervention_source_response'] - r['baseline_intervention_source_response'] for r in cells]))
+        out['intervention_donor_response_edit_change'] = float(np.mean([r['intervention_donor_response'] - r['baseline_intervention_donor_response'] for r in cells]))
+        out['query_source_response_edit_change'] = float(np.mean([r['edited_query_source_response'] - r['baseline_query_source_response'] for r in cells]))
+        out['query_donor_response_edit_change'] = float(np.mean([r['edited_query_donor_response'] - r['baseline_query_donor_response'] for r in cells]))
         out['candidate_margin_edit_change'] = float(np.mean([
             r['candidate_margin_edited'] - r['candidate_margin_baseline'] for r in cells
             if r['candidate_margin_baseline'] is not None and r['candidate_margin_edited'] is not None]))
@@ -566,7 +579,8 @@ def analyze_harder(rows, scores):
         by_condition[row['condition']].append(row)
     summaries = {}
     for condition, group in by_condition.items():
-        for metric in ('stale_edit_change', 'source_response_edit_change', 'donor_response_edit_change',
+        for metric in ('stale_edit_change', 'intervention_source_response_edit_change', 'intervention_donor_response_edit_change',
+                       'query_source_response_edit_change', 'query_donor_response_edit_change',
                        'candidate_margin_baseline', 'candidate_margin_edited', 'candidate_margin_edit_change',
                        'R_all', 'R_aligned', 'R_reversed'):
             summaries[f'{condition}_{metric}'] = _bootstrap([r[metric] for r in group])
@@ -597,6 +611,8 @@ def analyze_harder(rows, scores):
         'stale_edit_change_contrasts': stale_contrasts, 'bootstrap': BOOTSTRAP,
         'all_test_histories_policy': 'all generated scored rows included; no error-only selection',
         'source_donor_response_edit_changes': {
-            c: {'source_mean_change': float(np.mean([r['source_response_edit_change'] for r in g])),
-                'donor_mean_change': float(np.mean([r['donor_response_edit_change'] for r in g]))}
+            c: {'intervention_source_mean_change': float(np.mean([r['intervention_source_response_edit_change'] for r in g])),
+                'intervention_donor_mean_change': float(np.mean([r['intervention_donor_response_edit_change'] for r in g])),
+                'query_source_response_mean_change': float(np.mean([r['query_source_response_edit_change'] for r in g])),
+                'query_donor_response_mean_change': float(np.mean([r['query_donor_response_edit_change'] for r in g]))}
             for c, g in by_condition.items()}}

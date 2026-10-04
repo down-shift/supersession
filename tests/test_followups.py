@@ -32,6 +32,9 @@ def test_marker_marker_prefixes_both_history_lines_and_stages_are_fresh():
 
 def test_marker_requires_complete_factorial_and_known_nonzero_estimands():
     rows = generate_marker(n_histories=1)
+    assert all(r['stale_value'] == r['replacement_value'] for r in rows
+               if r['condition'] == 'superseded' and r['edited']
+               and r['edited_variable'] == r['query_variable'])
     scores = []
     for row in rows:
         masses = {v: 0.0 for v in VALUES}
@@ -47,15 +50,15 @@ def test_marker_requires_complete_factorial_and_known_nonzero_estimands():
         scores.append({**row, 'semantic_log_mass': masses})
     result = analyze_marker(rows, scores)
     summary = result['summary']
-    assert summary['superseded_m0_all_E']['mean'] == pytest.approx(1.0)
-    assert summary['superseded_m1_all_E']['mean'] == pytest.approx(4.0)
-    assert summary['entity_mention_m0_all_E']['mean'] == pytest.approx(2.0)
-    assert summary['entity_mention_m1_all_E']['mean'] == pytest.approx(4.0)
+    assert summary['superseded_m0_all_R']['mean'] == pytest.approx(1.0)
+    assert summary['superseded_m1_all_R']['mean'] == pytest.approx(4.0)
+    assert summary['entity_mention_m0_all_R']['mean'] == pytest.approx(2.0)
+    assert summary['entity_mention_m1_all_R']['mean'] == pytest.approx(4.0)
     assert summary['superseded_marker_effect_all']['mean'] == pytest.approx(3.0)
     assert summary['entity_mention_marker_effect_all']['mean'] == pytest.approx(2.0)
     assert summary['marker_by_construction_interaction_all']['mean'] == pytest.approx(1.0)
-    assert summary['superseded_m1_all_E_replacement_component']['mean'] == pytest.approx(4.0)
-    assert summary['superseded_m1_all_E_source_component']['mean'] == pytest.approx(0.0)
+    assert summary['superseded_m1_all_R_replacement_component']['mean'] == pytest.approx(4.0)
+    assert summary['superseded_m1_all_R_source_component']['mean'] == pytest.approx(0.0)
     known_cell = next(r for r in result['edit_effect_rows'] if r['condition'] == 'superseded'
         and r['marker'] == 0 and r['historical_order'] == 0 and r['current_order'] == 0
         and r['edited_variable'] == r['query_variable'] == 'x')
@@ -96,20 +99,29 @@ def test_harder_analysis_uses_fixed_context_query_crossing_and_all_transition_ce
     rows = generate_harder('pilot', n_histories=1, n_distractors=2)
     scores = []
     for row in rows:
-        answer = row['answer'] if not row['edited'] else row['stale_value']
-        category = 'correct' if not row['edited'] else 'stale'
+        if row['edited'] and row['edited_variable'] != row['query_variable']:
+            answer = row['source_value'] if row['edited_variable'] == 'x' else row['replacement_value']
+        else:
+            answer = row['answer'] if not row['edited'] else row['stale_value']
+        category = complete_answer_outcome(answer, row['answer'], row['stale_value'])['category']
         masses = {v: -1.0 for v in VALUES}
         masses[row['answer']] = 1.0
         scores.append({**row, 'answer_category': category, 'parsed_answer': answer,
             'generated_answer': answer,
-            'source_response': answer == row['source_value'],
-            'donor_response': answer == row['replacement_value'],
+            'query_source_response': answer == row['source_value_for_query'],
+            'query_donor_response': answer == row['replacement_value_for_query'],
+            'edited_source_response': answer == row['source_value'],
+            'edited_donor_response': answer == row['replacement_value'],
             'semantic_log_mass': masses, 'current_minus_historical_log_mass': 2.0})
     result = analyze_harder(rows, scores)
     assert result['overall_complete_answer_accuracy'] == pytest.approx(.5)
     assert sum(result['condition_order_transition_counts'].values()) == len(rows) // 2
-    assert result['summaries']['superseded_stale_edit_change']['mean'] == pytest.approx(1.0)
+    assert result['summaries']['superseded_stale_edit_change']['mean'] == pytest.approx(.5)
     assert 'superseded_minus_entity_mention_stale_edit_change' in result['stale_edit_change_contrasts']
+    cross_entity = [r for r in result['paired_edit_effect_rows'] if r['edited_variable'] != r['query']]
+    assert any(r['edited_category'] == 'other' for r in cross_entity)
+    assert any(r['intervention_source_response'] == 1 for r in cross_entity)
+    assert any(r['intervention_donor_response'] == 1 for r in cross_entity)
     corrupted = [dict(s) for s in scores]
     corrupted[0]['answer_category'] = 'other'
     with pytest.raises(ValueError, match='parser'):
@@ -118,6 +130,8 @@ def test_harder_analysis_uses_fixed_context_query_crossing_and_all_transition_ce
     corrupted[0]['current_minus_historical_log_mass'] = 99.0
     with pytest.raises(ValueError, match='margin disagrees'):
         analyze_harder(rows, corrupted)
+    with pytest.raises(ValueError, match='duplicate'):
+        analyze_harder(rows, scores + [scores[0]])
 
 
 def test_stage_labels_reject_invalid_experiment_combinations(monkeypatch, tmp_path):
@@ -129,6 +143,8 @@ def test_stage_labels_reject_invalid_experiment_combinations(monkeypatch, tmp_pa
 def test_difficulty_rule_freeze_binds_matched_development_histories(tmp_path):
     assert choose_difficulty({'2': {'accuracy': .8}, '4': {'accuracy': .7}, '6': {'accuracy': .4}}) == 4
     paths = []
+    runtime_fp = {'configuration_sha256': 'cfg', 'parameter_dtypes': ['torch.float16'],
+                  'packages': {'torch': '2.14.0'}, 'gpu_name': 'test-gpu'}
     for level, accuracy in zip((2, 4, 6), (.95, .70, .45)):
         report = sealed({'protocol': 'relational_followups_v1', 'experiment': 'harder',
             'stage': 'development', 'overall_complete_answer_accuracy': accuracy,
@@ -136,10 +152,10 @@ def test_difficulty_rule_freeze_binds_matched_development_histories(tmp_path):
             'target_history_signatures': ['h1', 'h2'],
             'dataset_sha256': f'data{level}', 'scores_sha256': f'score{level}',
             'code_sha256': _code_hash(),
-            'dataset_seeds': [20261005], 'inference_provenance': {'fingerprint': {
-                'experiment': 'harder', 'model_id': 'Qwen/Qwen3-8B',
-                'model_revision': 'abc', 'max_new_tokens': 32, 'seed': 20261006,
-                'code_sha256': _code_hash()}}})
+                'dataset_seeds': [20261005], 'inference_provenance': {'fingerprint': {
+                    'experiment': 'harder', 'model_id': 'Qwen/Qwen3-8B',
+                    'model_revision': 'abc', 'max_new_tokens': 32, 'seed': 20261006,
+                    'code_sha256': _code_hash(), 'runtime_fingerprint': runtime_fp}}})
         path = tmp_path / f'n{level}.json'
         path.write_text(json.dumps(report))
         paths.append(str(path))
@@ -149,3 +165,16 @@ def test_difficulty_rule_freeze_binds_matched_development_histories(tmp_path):
     assert frozen['selected_n_distractors'] == 4
     assert frozen['excluded_history_signatures'] == ['h1', 'h2']
     assert frozen['test_histories'] == 24
+    runtime_fp['gpu_name'] = 'different-gpu'
+    report = sealed({'protocol': 'relational_followups_v1', 'experiment': 'harder',
+        'stage': 'development', 'overall_complete_answer_accuracy': .45,
+        'n_distractors': 6, 'history_signatures': ['full6'], 'target_history_signatures': ['h1', 'h2'],
+        'dataset_sha256': 'data6', 'scores_sha256': 'score6', 'code_sha256': _code_hash(),
+        'dataset_seeds': [20261005], 'inference_provenance': {'fingerprint': {
+            'experiment': 'harder', 'model_id': 'Qwen/Qwen3-8B', 'model_revision': 'abc',
+            'max_new_tokens': 32, 'seed': 20261006, 'code_sha256': _code_hash(),
+            'runtime_fingerprint': runtime_fp}}})
+    paths[-1] = str(tmp_path / 'different_runtime.json')
+    (tmp_path / 'different_runtime.json').write_text(json.dumps(report))
+    with pytest.raises(ValueError, match='incompatible configurations or runtimes'):
+        select_difficulty(Namespace(development_reports=paths, output=str(tmp_path/'bad_freeze.json')))
