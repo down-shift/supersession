@@ -1,0 +1,71 @@
+\section{Task and measurement}
+\label{sec:task}
+
+\subsection{Histories and prompt constructions}
+\label{sec:conditions}
+
+Each item, which we call a \emph{history}, specifies two entities (for example Nora and Liam), a target attribute (\lit{badge}, \lit{color}, \lit{code}, or \lit{label}), and six distinct values drawn from an eight-value vocabulary: \lit{amber}, \lit{coral}, \lit{jade}, \lit{pearl}, \lit{slate}, \lit{teal}, \lit{violet}, \lit{ivory}. Two values are the entities' earlier values, two are their current values, and two serve as replacement (donor) values for the edits. For analysis we label the entities $x$ and $z$; which name plays which role is counterbalanced.
+
+A history is rendered in six \emph{constructions} that differ only in how the two earlier values enter the context (Table~\ref{tab:conditions}). Every construction except the live control contains the current-state block $C$---\lit{Currently, Nora’s badge is jade.}\ and \lit{Currently, Liam’s badge is pearl.}---and every prompt ends with \lit{What is Nora’s current badge?}\ (or the Liam query) and \lit{Respond with only the value, with no explanation.} Each sentence is on its own line.
+
+\begin{table}[t]
+\caption{The six constructions, shown for a history in which Nora's and Liam's earlier values are \lit{amber} and \lit{coral} and their current values are \lit{jade} and \lit{pearl}. $C$ is the current-state block. In the other-attribute construction the earlier values belong to \lit{team} or \lit{project} (balanced across histories).}
+\label{tab:conditions}
+\begin{center}
+\small
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{0.15\linewidth}>{\raggedright\arraybackslash}p{0.47\linewidth}>{\raggedright\arraybackslash}p{0.31\linewidth}@{}}
+\toprule
+Construction & Context & Earlier value is\ldots \\
+\midrule
+Superseded & \lit{Previously, Nora’s badge was amber.} \lit{Previously, Liam’s badge was coral.} $C$ & assigned to the queried attribute, then updated \\
+Other attribute & \lit{Previously, Nora’s team was amber.} \lit{Previously, Liam’s team was coral.} $C$ & assigned to a different attribute \\
+Entity mention & \lit{Nora mentioned amber in an unrelated note.} \lit{Liam mentioned coral in an unrelated note.} $C$ & mentioned with the entity, never assigned \\
+Early unassigned & \lit{The unassigned badge value was amber.} \lit{The unassigned badge value was coral.} $C$ & mentioned without an entity, before $C$ \\
+Late unassigned & $C$ \lit{The unassigned badge value was amber.} \lit{The unassigned badge value was coral.} & mentioned without an entity, after $C$ \\
+Live & \lit{Currently, Nora’s badge is amber.} \lit{Currently, Liam’s badge is coral.} & the current value (positive control) \\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{table}
+
+In the live control the edited value is the current answer, so the edit changes the correct answer for the query about the edited entity; it calibrates the size of a fully relevant edit. In the other five constructions both current values stay fixed, so the correct answer never changes.
+
+Two order factors are crossed with every construction. \emph{Historical order} sets whether $x$'s or $z$'s earlier value is mentioned first; \emph{current order} independently sets whether $x$'s or $z$'s current assignment comes first. We call the orders \emph{aligned} when both blocks put the same entity first and \emph{reversed} otherwise. For the unassigned constructions, the earlier values carry the labels $x$ and $z$ only for the analysis; the text assigns them to no one, so aligned order means that the first unassigned value appears in the same ordinal slot as the entity listed first in $C$. The live control has a single assignment block, ordered by the historical-order factor.
+
+\subsection{Bounded answer-prefix score}
+\label{sec:score}
+
+Let $p$ be a tokenized prompt, including the model's chat template and the assistant prefix \lit{Answer:}. For a token continuation $w=(w_1,\ldots,w_m)$,
+\begin{equation}
+L(w\mid p)=\sum_{t=1}^{m}\log P(w_t\mid p,w_{<t}).
+\end{equation}
+Each value $v$ has a set $\mathcal{W}(v)$ of tokenizer-validated surface forms: lowercase and title case, each with and without one leading space. Validation keeps only forms whose tokens leave the prompt's tokenization unchanged, removes duplicate token sequences, and rejects any set in which one candidate's tokens are a prefix of another's, so the retained events are disjoint. The score of $v$ is their total log probability mass,
+\begin{equation}
+S(v\mid p)=\log\sum_{w\in\mathcal{W}(v)}\exp L(w\mid p),
+\end{equation}
+without length normalization or an end-of-answer token. $S$ is therefore the mass of a fixed set of answer prefixes, not the probability of a complete generated answer. Candidate-ranking accuracy compares $S$ across the eight vocabulary values.
+
+\subsection{Matched edits and query relevance}
+\label{sec:edits}
+
+An edit replaces one occurrence of a source value $s$ with a donor value $r$, leaving every other token unchanged. Let $p^0$ and $p^1$ be the baseline and edited prompts for history $h$, construction $c$, edited entity $e\in\{x,z\}$, query $q$, and order cell $o$. The edit effect is the change in the donor-versus-source score difference:
+\begin{equation}
+E_{h,c,e,q,o}=
+\big[S(r\mid p^1)-S(s\mid p^1)\big]
+-\big[S(r\mid p^0)-S(s\mid p^0)\big].
+\end{equation}
+A positive $E$ means that the edit moves the scores toward the donor. In the example of Section~\ref{sec:introduction}, replacing Nora's earlier \lit{amber} with \lit{violet} can raise \lit{violet} relative to \lit{amber} even though \lit{jade} remains the answer.
+
+Write the order cell as $o=(o_H,o_C)$, with each component 0 for $x$ first and 1 for $z$ first. For an order group $g$, let $\bar E^g$ average $E$ over its cells: all four cells (overall), $(0,0)$ and $(1,1)$ (aligned), or $(0,1)$ and $(1,0)$ (reversed). With $q_x$ and $q_z$ the queries about $x$ and $z$, \emph{query relevance} is
+\begin{equation}
+R^g_{h,c}=\frac12\left[
+\bar E^g_{h,c,x,q_x}-\bar E^g_{h,c,x,q_z}
++\bar E^g_{h,c,z,q_z}-\bar E^g_{h,c,z,q_x}
+\right].
+\end{equation}
+$R$ is the extra shift under the query about the edited entity, compared with the query about the other entity, averaged over edits to both entities. It is zero when the edit moves scores equally for both queries, however large that common shift is. Because the contrast is symmetric, additive effects of the edited label and of the query cancel; interactions between them, including order-dependent ones, do not, which is why we report aligned and reversed estimates as well as the overall mean. We omit $g$ for the overall estimate.
+
+\subsection{What each comparison isolates}
+\label{sec:decomposition-logic}
+
+The constructions are designed so that pairs of them differ in one property while sharing others. \textbf{Relation status} is estimated by superseded versus other attribute. The two share the sentence template, the marker \lit{Previously}, the position, and the entity--value pairing. They differ in the attribute word and, as a consequence, in whether the current block updates that attribute: a superseded value was the queried attribute and is contradicted by the current block, while an other-attribute value was neither, because the current block never mentions \lit{team} or \lit{project}. The contrast therefore measures the joint contribution of the two properties that make a value obsolete for the query, without separating them. A construction in which the other attribute is also updated (a current \lit{team} assignment, with \lit{badge} queried) would separate them; we did not run it. \textbf{Construction} is compared by entity mention versus superseded: both pair each value with its entity, but one assigns the value and carries \lit{Previously}, while the other only mentions it. \textbf{Position} is isolated by the unassigned constructions under aligned versus reversed order, where no text links a value to an entity. \textbf{Temporal marking} is varied directly in a second experiment that adds or removes \lit{Previously} within the superseded and entity-mention constructions (Section~\ref{sec:marker-protocol}). These comparisons are between prompt constructions; they do not identify the internal computation that produces the scores.

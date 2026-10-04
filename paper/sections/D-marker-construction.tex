@@ -1,0 +1,85 @@
+\section{Experiment 2 details}
+\label{app:marker}
+
+\subsection{Provenance}
+
+Experiment 2's 24 histories exclude both histories of its two-history pilot, with no overlap in full-history or target-history signatures; pilot results are not pooled with these. Each model scored all 3,072 prompts (2,272 distinct, none resumed from a checkpoint). Both models used the same dataset (generation seed 23261011, scoring seed 20261006), the checkpoint revisions of Appendix~\ref{app:provenance}, Python 3.13.5, an NVIDIA GeForce RTX 5080 with CUDA 13.0, and the same int8 configurations as Experiment 1. Recomputing the analyses from the saved scores reproduces the reported estimates exactly. Experiment 2 recorded candidate scores only, not generated answers. Artifact hashes are in Table~\ref{tab:d-hashes}.
+
+\subsection{Query relevance and its components}
+
+$E$ can be split into the change in the donor's score minus the change in the source's score. Applying the $R$ transformation to each part gives $R=R_{\text{donor}}-R_{\text{source}}$. Table~\ref{tab:d-decomposition} reports $R$ and both components for every construction and marker state, and Table~\ref{tab:d-paired} the marker-induced change in each component. With the marker, the donor component is smaller and the source component less negative, at the mean level, in both constructions and both models. The paired component changes are noisier than the marker effects on $R$ in Table~\ref{tab:marker}, which remain the primary result.
+
+\begin{table}[h]
+\caption{Overall $R$ and its donor and source components by construction and marker state (nats; 24 histories).}
+\label{tab:d-decomposition}
+\begin{center}
+\footnotesize
+\begin{tabular}{@{}lllrrr@{}}
+\toprule
+Model & Construction & \lit{Previously} & $R$ & Donor component & Source component \\
+\midrule
+Qwen3-8B & Superseded & Absent & 3.738 [3.536, 3.934] & 1.590 [1.118, 2.005] & −2.149 [−2.623, −1.705] \\
+Qwen3-8B & Superseded & Present & 2.989 [2.791, 3.186] & 1.283 [0.832, 1.746] & −1.705 [−2.151, −1.242] \\
+Qwen3-8B & Entity mention & Absent & 7.304 [6.629, 7.966] & 3.875 [3.477, 4.277] & −3.429 [−4.135, −2.764] \\
+Qwen3-8B & Entity mention & Present & 5.217 [4.749, 5.705] & 2.540 [2.171, 2.917] & −2.677 [−3.193, −2.165] \\
+\midrule
+Gemma 3 4B & Superseded & Absent & 2.631 [2.409, 2.863] & 1.413 [1.170, 1.652] & −1.218 [−1.501, −0.934] \\
+Gemma 3 4B & Superseded & Present & 1.546 [1.379, 1.714] & 0.685 [0.445, 0.932] & −0.861 [−1.115, −0.610] \\
+Gemma 3 4B & Entity mention & Absent & 3.313 [2.975, 3.669] & 1.732 [1.427, 2.048] & −1.582 [−1.915, −1.276] \\
+Gemma 3 4B & Entity mention & Present & 2.353 [2.114, 2.605] & 1.079 [0.874, 1.287] & −1.274 [−1.468, −1.068] \\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{table}
+
+\begin{table}[h]
+\caption{Paired marker-induced changes (present minus absent) in the donor and source components (nats; 24 histories); $\Delta R=\Delta R_{\text{donor}}-\Delta R_{\text{source}}$.}
+\label{tab:d-paired}
+\begin{center}
+\small
+\begin{tabular}{@{}lllrr@{}}
+\toprule
+Model & Order & Construction & $\Delta$ donor component & $\Delta$ source component \\
+\midrule
+Qwen3-8B & All & Superseded & −0.306 [−0.812, 0.237] & 0.443 [−0.100, 1.040] \\
+Qwen3-8B & All & Entity mention & −1.335 [−1.640, −1.013] & 0.752 [0.323, 1.140] \\
+Qwen3-8B & Aligned & Superseded & −0.286 [−0.840, 0.267] & 0.086 [−0.522, 0.704] \\
+Qwen3-8B & Aligned & Entity mention & −0.810 [−1.328, −0.330] & 0.488 [−0.179, 1.070] \\
+Qwen3-8B & Reversed & Superseded & −0.327 [−0.995, 0.399] & 0.800 [0.088, 1.557] \\
+Qwen3-8B & Reversed & Entity mention & −1.859 [−2.283, −1.435] & 1.017 [0.480, 1.492] \\
+\midrule
+Gemma 3 4B & All & Superseded & −0.727 [−1.046, −0.420] & 0.357 [−0.009, 0.720] \\
+Gemma 3 4B & All & Entity mention & −0.653 [−1.003, −0.310] & 0.307 [−0.021, 0.645] \\
+Gemma 3 4B & Aligned & Superseded & −0.547 [−1.049, −0.015] & 0.553 [0.062, 1.085] \\
+Gemma 3 4B & Aligned & Entity mention & −0.679 [−1.101, −0.245] & 0.475 [0.056, 0.909] \\
+Gemma 3 4B & Reversed & Superseded & −0.907 [−1.298, −0.486] & 0.162 [−0.301, 0.629] \\
+Gemma 3 4B & Reversed & Entity mention & −0.626 [−1.085, −0.207] & 0.139 [−0.285, 0.532] \\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{table}
+
+\begin{table}[h]
+\caption{SHA-256 hashes of the Experiment 2 artifacts.}
+\label{tab:d-hashes}
+\begin{center}
+\footnotesize
+\begin{tabular}{@{}ll@{}}
+\toprule
+Artifact & SHA-256 \\
+\midrule
+Dataset & \lit{af1b33a73e4235a4e1bc0550ea2bea008a652972f299be0e5da21e8e880b299b} \\
+Generation report & \lit{3aae4c6419e2301c44c84410208a137cece6f278a5fda07e1218db51d34dba71} \\
+Excluded pilot dataset & \lit{f42cc115be1715b46d70587fd5a8e311eed33c8868e34d516e1454774aa4fec4} \\
+Qwen scores & \lit{ddf600c12b6d58b84779ffa48571f29dd9f2e64ecc99dbd77b81aceb2461c866} \\
+Qwen score provenance & \lit{2627828f16bdf08ffe538883d609f59e72d552593e601744f185046ce94b002e} \\
+Gemma scores & \lit{a329720a535ae7ad60db8727d1112173ddedb51b1f1ca2882624df1302914bb1} \\
+Gemma score provenance & \lit{3842e40ffd4f42b284692e73d00cb00104360b3da63b396b545cf20e05ca2822} \\
+Qwen analysis & \lit{60383f56fe6f29cbe04d7c1c1c75f661d7bd15be6a42b836461d4b160988e9bf} \\
+Gemma analysis & \lit{5d2c0fc95c74f080e32fa7cc191d00383132440b830e1ca0dec96d0693648019} \\
+Dependency lock file & \lit{55c8fc8089a4258c33ee2c6ee054abf210ff2006dcdca956b83aebc72cfa14e4} \\
+Scoring and analysis code & \lit{1ec47a290a3ceb2a31e0f8d622d8328aa23096f92bd08670bb7aa42956473bc8} \\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{table}

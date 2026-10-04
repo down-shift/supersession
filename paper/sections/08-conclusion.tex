@@ -1,0 +1,4 @@
+\section{Conclusion}
+\label{sec:conclusion}
+
+We measured how much an edit to an earlier, updated value shifts a language model's candidate scores for a query about the associated entity, relative to a query about the other entity. In Qwen3-8B and Gemma 3 4B this sensitivity depends on surface association---whether the value is mentioned with the entity, where it sits relative to the entities, and whether it is marked as past---far more than on whether the value was ever assigned to the queried attribute. Studies of how models handle updated information should therefore control the construction and order of earlier mentions before attributing residual sensitivity to obsolete assignments.

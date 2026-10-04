@@ -1,0 +1,129 @@
+\section{Results}
+\label{sec:results}
+
+\subsection{Surface association dominates relation status}
+\label{sec:main-findings}
+
+Figure~\ref{fig:decomposition} sets the four comparisons of Section~\ref{sec:decomposition-logic} side by side. \textbf{Relation status} matters little: superseded relevance exceeds other-attribute relevance by 0.314 nats (95\% CI [0.147, 0.482]) in Qwen and by 0.004 [−0.104, 0.118] in Gemma. \textbf{Construction} matters a great deal: entity-mention relevance exceeds superseded relevance by 3.504 [3.198, 3.806] and 2.589 [2.361, 2.829] nats. \textbf{Position} decides the sign for never-assigned values: early-unassigned relevance is 3.252 [3.046, 3.455] under aligned order and −3.327 [−3.518, −3.150] under reversed order in Qwen, and 2.598 [2.395, 2.798] and −2.372 [−2.567, −2.178] in Gemma. \textbf{Temporal marking} lowers relevance: adding \lit{Previously} changes $R$ by between −0.750 and −2.087 nats across the two constructions and two models of Experiment 2. Every manipulation of how or where a value is mentioned moves $R$ by more than switching the attribute it was assigned to.
+
+\begin{figure}[t]
+\begin{center}
+\includegraphics[width=\linewidth]{figures/decomposition.pdf}
+\end{center}
+\caption{What drives query relevance, in nats, for both models, with 95\% history-bootstrap intervals. Relation status: superseded minus other attribute. Construction: entity mention minus superseded. Position: early-unassigned $R$ itself under aligned and under reversed order (these two rows are levels of $R$, not differences; their gap is the position effect). Temporal marker: $R$ with minus without \lit{Previously}, within each construction. Rows above the dark line come from Experiment 1 (96 histories); rows below it from Experiment 2 (24 histories, one entity pair and one attribute). [TODO: P0.6 --- replace the two position rows by the paired aligned-minus-reversed difference, from the per-history estimates.]}
+\label{fig:decomposition}
+\end{figure}
+
+Table~\ref{tab:main} gives $R$ for every construction. The live control shows the scale of a fully relevant edit: 32.598 nats in Qwen and 39.355 in Gemma. Superseded and other-attribute relevance are positive and similar to each other in both order groups. Entity-mention relevance is the largest among the non-live constructions. Unassigned relevance is near zero overall but large and of opposite sign in the two order groups.
+
+These sensitivities coexist with correct answers. In the superseded construction both models ranked the current value strictly first in all 1,536 baseline and all 1,536 edited prompts, with mean current-minus-earlier margins of 21.734 nats (Qwen) and 23.854 (Gemma). The edits move probability mass between two candidates that both have low absolute mass; for example, Qwen's mean superseded source score falls from −22.271 to −23.881 while the donor's rises from −23.618 to −22.120 (Appendix~\ref{app:score-changes}).
+
+\begin{table}[t]
+\caption{Query relevance $R$ (nats) by construction and order group in Experiment 1, with 95\% history-bootstrap intervals over 96 histories. The live control has one assignment block, so it has no order split.}
+\label{tab:main}
+\begin{center}
+\small
+\begin{tabular}{@{}llrrr@{}}
+\toprule
+Model & Construction & Overall $R$ & Aligned $R$ & Reversed $R$ \\
+\midrule
+Qwen3-8B & Live & 32.598 [31.258, 33.967] & — & — \\
+Qwen3-8B & Superseded & 1.974 [1.840, 2.109] & 2.144 [1.995, 2.301] & 1.804 [1.660, 1.947] \\
+Qwen3-8B & Other attribute & 1.660 [1.488, 1.835] & 1.679 [1.527, 1.835] & 1.641 [1.422, 1.863] \\
+Qwen3-8B & Entity mention & 5.478 [5.128, 5.825] & 4.493 [4.235, 4.770] & 6.463 [5.971, 6.940] \\
+Qwen3-8B & Early unassigned & −0.037 [−0.203, 0.121] & 3.252 [3.046, 3.455] & −3.327 [−3.518, −3.150] \\
+Qwen3-8B & Late unassigned & 0.001 [−0.208, 0.211] & 3.187 [2.948, 3.442] & −3.184 [−3.433, −2.945] \\
+\midrule
+Gemma 3 4B & Live & 39.355 [38.303, 40.415] & — & — \\
+Gemma 3 4B & Superseded & 1.688 [1.568, 1.817] & 1.703 [1.574, 1.841] & 1.672 [1.529, 1.831] \\
+Gemma 3 4B & Other attribute & 1.683 [1.541, 1.832] & 1.763 [1.598, 1.932] & 1.603 [1.453, 1.771] \\
+Gemma 3 4B & Entity mention & 4.277 [4.029, 4.545] & 5.181 [4.884, 5.496] & 3.372 [3.131, 3.633] \\
+Gemma 3 4B & Early unassigned & 0.113 [−0.023, 0.245] & 2.598 [2.395, 2.798] & −2.372 [−2.567, −2.178] \\
+Gemma 3 4B & Late unassigned & 0.125 [−0.055, 0.305] & 3.445 [3.202, 3.696] & −3.194 [−3.447, −2.945] \\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{table}
+
+\subsection{Relation status and construction}
+\label{sec:relation}
+
+The superseded and other-attribute constructions differ only in which attribute the earlier value belonged to and, with it, whether the current block updates that value (Section~\ref{sec:decomposition-logic}). Their difference is therefore the study's cleanest estimate of what being an obsolete value of the queried attribute adds (Table~\ref{tab:frozen}). In Qwen it adds 0.314 nats, about a sixth of superseded relevance; in Gemma the estimate is 0.004 and its interval spans zero. The Qwen estimate also varies in sign across target attributes, from −0.570 for \lit{code} to 0.876 for \lit{color} (Table~\ref{tab:b-attr-other}).
+
+Mentioning the earlier value in a note about the entity, without assigning it, produces more relevance than the superseded assignment: superseded minus entity mention is −3.504 nats in Qwen and −2.589 in Gemma. This holds for every target attribute in both models (Table~\ref{tab:b-attr-entity}). The two constructions differ in predicate, syntax, and the presence of \lit{Previously}; Experiment 2 removes the last of these differences (Section~\ref{sec:marker-results}).
+
+\begin{table}[t]
+\caption{Superseded minus each control construction, $R_{\text{superseded}}-R_{\text{control}}$ (nats), with 95\% history-bootstrap intervals over 96 histories. Because early-unassigned $R$ is near zero after averaging over orders (Section~\ref{sec:order}), the last contrast is close to superseded $R$ itself. Order-stratified versions are in Table~\ref{tab:b-order}.}
+\label{tab:frozen}
+\begin{center}
+\small
+\begin{tabular}{@{}llrr@{}}
+\toprule
+Control & Isolates & Qwen3-8B & Gemma 3 4B \\
+\midrule
+Other attribute & relation status & 0.314 [0.147, 0.482] & 0.004 [−0.104, 0.118] \\
+Entity mention & construction & −3.504 [−3.806, −3.198] & −2.589 [−2.829, −2.361] \\
+Early unassigned & none: order-averaged control near zero & 2.011 [1.855, 2.170] & 1.575 [1.440, 1.719] \\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{table}
+
+These three contrasts were the test of our original hypothesis, which predicted that superseded relevance would exceed all three controls, each with a lower 95\% bound above zero, both overall and under reversed order. The prediction fails in both models, because the entity-mention contrast is negative overall and under reversed order (Table~\ref{tab:b-order}).
+
+\subsection{Relative position}
+\label{sec:order}
+
+When no sentence links a value to an entity, the models link them by position. Under aligned order, the first unassigned value sits in the same slot as the entity listed first in the current block, and an edit to it is more relevant to that entity's query; under reversed order the same value lines up with the other entity, and relevance turns negative (Table~\ref{tab:main}). The pattern holds for early and late unassigned mentions in both models, with aligned and reversed estimates of similar size and opposite sign. It is the behavior expected if values and entities are matched by ordinal position, consistent with the positional retrieval mechanism described by \citet{gurarieh2026mixing}; our data show the behavior, not the mechanism. Explicit association overrides position: superseded relevance stays positive in both order groups (2.144 aligned and 1.804 reversed in Qwen; 1.703 and 1.672 in Gemma), as does entity-mention relevance.
+
+\begin{figure}[t]
+\begin{center}
+\includegraphics[width=0.8\linewidth]{figures/order_stratified_contrasts.pdf}
+\end{center}
+\caption{Superseded minus unassigned relevance by order group, in nats, with 95\% history-bootstrap intervals. The sign of the contrast follows the order of mentions, not the construction.}
+\label{fig:order}
+\end{figure}
+
+A corollary is that averaging over orders hides these effects. Overall unassigned relevance is near zero (−0.037 and 0.001 in Qwen; 0.113 and 0.125 in Gemma) not because the edit is ignored but because the aligned and reversed effects cancel. The edit to an early unassigned value shifts scores substantially under both queries---by 8.202 and 8.239 nats in Qwen and by 6.347 and 6.234 in Gemma---with almost no query specificity once orders are pooled. The same cancellation turns superseded-minus-unassigned from negative under aligned order to positive under reversed order (Figure~\ref{fig:order}); the positive order-averaged contrast of the preliminary comparison (Section~\ref{sec:prelim}) is consistent with this pattern, although that comparison used different templates.
+
+\subsection{The temporal marker}
+\label{sec:marker-results}
+
+Experiment 2 adds or removes \lit{Previously} with the rest of each prompt fixed (Table~\ref{tab:marker-templates}). The marker lowers relevance in both constructions and both models, with every within-construction interval below zero (Table~\ref{tab:marker}). In Qwen the reduction is larger for entity mentions: the marker-by-construction interaction is 1.337 nats [0.976, 1.712], and it is positive in both order groups. In Gemma the two reductions are similar and the interaction, −0.125 [−0.390, 0.136], is not resolved. Relevance stays positive with the marker in every construction and order group, so the marker attenuates the earlier value's influence without removing it.
+
+\begin{table}[t]
+\caption{The four historical-line templates of Experiment 2, shown for Nora. Each prompt has two such lines, one per entity, followed by the current-state block and query of Experiment 1.}
+\label{tab:marker-templates}
+\begin{center}
+\small
+\begin{tabular}{@{}l>{\raggedright\arraybackslash}p{0.33\linewidth}>{\raggedright\arraybackslash}p{0.40\linewidth}@{}}
+\toprule
+Construction & Marker absent & Marker present \\
+\midrule
+Superseded & \lit{Nora's badge was amber.} & \lit{Previously, Nora's badge was amber.} \\
+Entity mention & \lit{Nora mentioned amber in an unrelated note.} & \lit{Previously, Nora mentioned amber in an unrelated note.} \\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{table}
+
+\begin{table}[t]
+\caption{Marker effects, $R_{\text{present}}-R_{\text{absent}}$, and the marker-by-construction interaction (superseded minus entity-mention marker effect) in Experiment 2, in nats, with 95\% history-bootstrap intervals over 24 histories. The underlying $R$ values and their source/donor components are in Appendix~\ref{app:marker}.}
+\label{tab:marker}
+\begin{center}
+\small
+\begin{tabular}{@{}llrrr@{}}
+\toprule
+Model & Order & Superseded & Entity mention & Interaction \\
+\midrule
+Qwen3-8B & All & −0.750 [−0.917, −0.590] & −2.087 [−2.410, −1.772] & 1.337 [0.976, 1.712] \\
+Qwen3-8B & Aligned & −0.372 [−0.552, −0.187] & −1.298 [−1.580, −0.979] & 0.926 [0.581, 1.274] \\
+Qwen3-8B & Reversed & −1.127 [−1.324, −0.939] & −2.876 [−3.354, −2.429] & 1.749 [1.236, 2.274] \\
+\midrule
+Gemma 3 4B & All & −1.085 [−1.308, −0.864] & −0.960 [−1.183, −0.727] & −0.125 [−0.390, 0.136] \\
+Gemma 3 4B & Aligned & −1.100 [−1.359, −0.851] & −1.155 [−1.384, −0.915] & 0.055 [−0.233, 0.328] \\
+Gemma 3 4B & Reversed & −1.069 [−1.372, −0.785] & −0.765 [−1.123, −0.387] & −0.304 [−0.753, 0.116] \\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{table}

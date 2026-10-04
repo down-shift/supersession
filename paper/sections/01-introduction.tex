@@ -1,0 +1,29 @@
+\section{Introduction}
+\label{sec:introduction}
+
+Conversations and documents often update a fact while leaving its earlier version in view. A user's preference changes, an object moves, a task variable receives a new value. A language model can answer with the current value and still be influenced by the old one: its scores for candidate answers may shift when the old value changes, even though the top answer does not. This paper asks what governs that residual sensitivity.
+
+Consider a history from our main experiment:
+
+\begin{prompt}
+Previously, Nora’s badge was amber.
+Previously, Liam’s badge was coral.
+Currently, Nora’s badge is jade.
+Currently, Liam’s badge is pearl.
+What is Nora’s current badge?
+Respond with only the value, with no explanation.
+\end{prompt}
+
+The correct answer is \lit{jade}. Suppose we replace the earlier \lit{amber} with \lit{violet} and leave everything else unchanged. The edit can shift the model's scores for \lit{violet} relative to \lit{amber}. If the shift is larger when the question asks about Nora than when it asks about Liam, the old value carries information that is specific to Nora. We call the difference between these two shifts \emph{query relevance}, $R$ (Section~\ref{sec:edits}).
+
+A positive $R$ for the history above could arise for several reasons. The model may represent that \lit{amber} \emph{was} Nora's badge---a superseded assignment to the queried attribute. It may simply associate \lit{amber} with Nora because the two appear in the same sentence. Or it may link \lit{amber} to Nora by position, because both come first in their blocks. The marker \lit{Previously} could also change how much weight the old value receives. We separate these accounts with prompt constructions that hold some of these properties fixed while varying others, and we cross every construction with the order in which the entities appear in the historical and current blocks.
+
+The answer is consistent across the two models we test, Qwen3-8B and Gemma 3 4B: \textbf{query-specific score sensitivity to a historical value is governed by surface association---mention construction, relative position, and temporal marking---and only weakly by whether the value was ever assigned to the queried attribute.} Whether the earlier value belonged to the queried attribute and was then updated, or belonged to a different attribute that was never updated, with the sentence otherwise identical, moves $R$ by about a third of a nat in Qwen and not detectably in Gemma. Mentioning the value in a note about the entity instead of assigning it raises $R$ by several nats. Values that are mentioned but assigned to no one inherit the entity that occupies the same relative position, so their effect reverses sign when the order of mentions is reversed. And the marker \lit{Previously} lowers $R$ wherever it is added.
+
+Our contributions are:
+\begin{enumerate}
+\item A counterfactual measure of query-specific sensitivity to a historical value, applied to six prompt constructions crossed with independently varied historical and current mention order (Sections~\ref{sec:task}--\ref{sec:setup}).
+\item A decomposition showing that relation status contributes little to this sensitivity, whereas construction, relative position, and temporal marking each change it by nats (Section~\ref{sec:main-findings}, Figure~\ref{fig:decomposition}).
+\item Evidence of position-based association: never-assigned values raise relevance for the entity in the matching position and lower it for the other, effects that cancel when orders are averaged (Section~\ref{sec:order}).
+\item A controlled test of the temporal marker \lit{Previously}, which lowers relevance in superseded and entity-mention constructions in both models; the gap between the two constructions persists without the marker, which motivates a name--value proximity hypothesis for future tests (Sections~\ref{sec:marker-results} and~\ref{sec:discussion}).
+\end{enumerate}

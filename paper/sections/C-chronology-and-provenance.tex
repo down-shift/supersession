@@ -1,0 +1,29 @@
+\section{Provenance of Experiment 1}
+\label{app:provenance}
+
+\paragraph{Models and runtime.} Qwen3-8B used checkpoint revision \lit{\seqsplit{b968826d9c46dd6066d109eabc6255188de91218}} and Gemma 3 4B (\lit{gemma-3-4b-it}) used \lit{\seqsplit{093f9f388b31de276ce2de164bdc2081324b9767}}, both with int8 weights, CUDA inference, and Python 3.12.13; computation was float16 for Qwen and bfloat16 for Gemma.
+
+\paragraph{Scoring formats.} An earlier version of the competence screen scored only the first token of each candidate. It exposed a casing and tokenization problem for Phi-4-mini and genuine ranking errors for Mistral-7B. All results in this paper use the complete-continuation score of Section~\ref{sec:score} and screens run under it; results from the earlier format are not mixed in.
+
+\paragraph{History freshness.} A first confirmation attempt for Gemma stopped at a validation check before the model was loaded and produced no scores. Its 96 histories were excluded from the dataset used here, and a check of history signatures confirms zero overlap. The validator was then corrected; the saved screening scores, re-validated under the corrected implementation, gave the same screening results. Screening and confirmation histories do not overlap with each other or with any earlier stage.
+
+\paragraph{Completion.} Each model's confirmation produced 18,432 valid scored rows over 96 histories with no row errors. The two models were scored on byte-identical datasets, so every comparison between them uses the same histories, values, and donors.
+
+\paragraph{Prespecification record.} The decision rule for the original hypothesis was recorded on 3 October 2026, before the confirmation results were examined. It required the lower 95\% bound of all three overall superseded-minus-control contrasts (early unassigned, entity mention, other attribute) to exceed zero, and the same for their reversed-order versions to support a claim under reversed order.
+
+\begin{table}[h]
+\caption{SHA-256 hashes of the Experiment 1 artifacts.}
+\label{tab:c-hashes}
+\begin{center}
+\footnotesize
+\begin{tabular}{@{}ll@{}}
+\toprule
+Artifact & SHA-256 \\
+\midrule
+Implementation snapshot & \lit{f2981fa0f05a5e29e9478f8a94987e7578b2ce3667d1c941e8ce31cf8cdfef9a} \\
+Confirmation dataset & \lit{27c1e9b80e62a0cb0266d393fd6120dff2bcf637d8e9468491748e740287c08d} \\
+Decision-rule amendment & \lit{0371b4e1c9a363bbcb8dfdc0a0ccc6a3c39c08f49843b59eea9bcbde27ccd2b9} \\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{table}

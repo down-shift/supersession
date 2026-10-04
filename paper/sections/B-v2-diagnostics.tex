@@ -1,0 +1,183 @@
+\section{Additional results for Experiment 1}
+\label{app:exp1}
+
+All intervals in this appendix are 95\% history-bootstrap intervals (Section~\ref{sec:inference}).
+
+\subsection{Order groups}
+
+Table~\ref{tab:b-order} gives each superseded-minus-control contrast by order group, and Table~\ref{tab:b-paired} the paired difference between the aligned and reversed contrasts, computed within history. The live control has one assignment block and no order split.
+
+\begin{table}[h]
+\caption{Superseded minus control, $R_{\text{superseded}}-R_{\text{control}}$ (nats), by order group. Overall values are in Table~\ref{tab:frozen}.}
+\label{tab:b-order}
+\begin{center}
+\small
+\begin{tabular}{@{}llrr@{}}
+\toprule
+Control & Order & Qwen3-8B & Gemma 3 4B \\
+\midrule
+Other attribute & Aligned & 0.465 [0.295, 0.649] & −0.060 [−0.215, 0.099] \\
+Other attribute & Reversed & 0.162 [−0.049, 0.367] & 0.069 [−0.080, 0.213] \\
+Entity mention & Aligned & −2.350 [−2.572, −2.125] & −3.478 [−3.769, −3.197] \\
+Entity mention & Reversed & −4.659 [−5.119, −4.207] & −1.700 [−1.946, −1.465] \\
+Early unassigned & Aligned & −1.108 [−1.281, −0.925] & −0.895 [−1.084, −0.719] \\
+Early unassigned & Reversed & 5.130 [4.920, 5.348] & 4.044 [3.810, 4.292] \\
+Late unassigned & Overall & 1.973 [1.762, 2.183] & 1.562 [1.390, 1.742] \\
+Late unassigned & Aligned & −1.043 [−1.281, −0.810] & −1.741 [−1.968, −1.505] \\
+Late unassigned & Reversed & 4.988 [4.724, 5.266] & 4.866 [4.592, 5.155] \\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{table}
+
+\begin{table}[h]
+\caption{Paired aligned-minus-reversed differences in the superseded-minus-control contrast (nats).}
+\label{tab:b-paired}
+\begin{center}
+\small
+\begin{tabular}{@{}lrr@{}}
+\toprule
+Control & Qwen3-8B & Gemma 3 4B \\
+\midrule
+Other attribute & 0.302 [0.103, 0.509] & −0.128 [−0.323, 0.081] \\
+Entity mention & 2.309 [1.933, 2.707] & −1.778 [−2.049, −1.519] \\
+Early unassigned & −6.238 [−6.481, −5.983] & −4.939 [−5.275, −4.620] \\
+Late unassigned & −6.031 [−6.307, −5.754] & −6.607 [−6.951, −6.243] \\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{table}
+
+\subsection{Accuracy and correctly answered histories}
+
+Table~\ref{tab:b-accuracy} gives strict rank-one accuracy over all 3,072 scored prompts per construction in the main experiment, counting baseline and edited prompts and repeated renderings of identical prompts.
+
+\begin{table}[h]
+\caption{Strict rank-one candidate accuracy in Experiment 1, per construction.}
+\label{tab:b-accuracy}
+\begin{center}
+\small
+\begin{tabular}{@{}lrr@{}}
+\toprule
+Construction & Qwen3-8B & Gemma 3 4B \\
+\midrule
+Live & 3,064/3,072 (99.7396\%) & 3,072/3,072 (100\%) \\
+Superseded & 3,072/3,072 (100\%) & 3,072/3,072 (100\%) \\
+Other attribute & 3,072/3,072 (100\%) & 3,072/3,072 (100\%) \\
+Entity mention & 3,072/3,072 (100\%) & 3,072/3,072 (100\%) \\
+Early unassigned & 3,072/3,072 (100\%) & 3,071/3,072 (99.9674\%) \\
+Late unassigned & 3,069/3,072 (99.9023\%) & 3,072/3,072 (100\%) \\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{table}
+
+Restricting the analysis to histories in which every prompt was answered correctly retains 91/96 Qwen and 95/96 Gemma histories and leaves the contrasts essentially unchanged (Table~\ref{tab:b-selected}).
+
+\begin{table}[h]
+\caption{Superseded minus control (nats) among histories with every prompt ranked correctly.}
+\label{tab:b-selected}
+\begin{center}
+\small
+\begin{tabular}{@{}lrr@{}}
+\toprule
+Control & Qwen3-8B (91 histories) & Gemma 3 4B (95 histories) \\
+\midrule
+Other attribute & 0.371 [0.201, 0.532] & 0.004 [−0.106, 0.119] \\
+Entity mention & −3.445 [−3.750, −3.141] & −2.591 [−2.827, −2.354] \\
+Early unassigned & 2.015 [1.861, 2.176] & 1.576 [1.433, 1.714] \\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{table}
+
+\subsection{Source and donor score changes}
+\label{app:score-changes}
+
+Table~\ref{tab:b-score-changes} gives the mean baseline-to-edit change in the source and donor scores, averaged over both queries; their difference is the mean edit effect $E$. Unlike $R$, $E$ does not subtract the other query's effect. These are means over prompt pairs without intervals. Because the scores are log masses, exponentiating a mean gives a geometric mean of masses. The current answer's mean log mass rounds to 0.000 before and after editing in every non-live construction except Qwen's late unassigned (−0.004) and entity mention (−0.001) and Gemma's early unassigned (−0.004 after editing) and other attribute (−0.001 after editing).
+
+\begin{table}[h]
+\caption{Mean source and donor log-mass changes and mean edit effect $E$ (nats).}
+\label{tab:b-score-changes}
+\begin{center}
+\small
+\begin{tabular}{@{}llrrr@{}}
+\toprule
+Model & Construction & Source change & Donor change & Mean $E$ \\
+\midrule
+Qwen3-8B & Superseded & −1.610 & 1.497 & 3.108 \\
+Qwen3-8B & Other attribute & −1.348 & 1.331 & 2.679 \\
+Qwen3-8B & Entity mention & −3.832 & 3.584 & 7.417 \\
+Qwen3-8B & Early unassigned & −4.208 & 4.012 & 8.221 \\
+Qwen3-8B & Late unassigned & −5.901 & 5.682 & 11.583 \\
+\midrule
+Gemma 3 4B & Superseded & −1.241 & 1.230 & 2.471 \\
+Gemma 3 4B & Other attribute & −1.444 & 1.113 & 2.557 \\
+Gemma 3 4B & Entity mention & −3.209 & 2.957 & 6.166 \\
+Gemma 3 4B & Early unassigned & −3.315 & 2.975 & 6.290 \\
+Gemma 3 4B & Late unassigned & −4.511 & 3.999 & 8.510 \\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{table}
+
+\subsection{Target attributes}
+
+Each target attribute contributes 24 histories. Superseded minus entity mention is negative for every attribute in both models (Table~\ref{tab:b-attr-entity}); superseded minus other attribute varies by attribute in Qwen and has intervals spanning zero for every attribute in Gemma (Table~\ref{tab:b-attr-other}).
+
+\begin{table}[h]
+\caption{Superseded minus entity mention by target attribute (nats; 24 histories each).}
+\label{tab:b-attr-entity}
+\begin{center}
+\small
+\begin{tabular}{@{}lrr@{}}
+\toprule
+Attribute & Qwen3-8B & Gemma 3 4B \\
+\midrule
+Badge & −4.310 [−4.819, −3.787] & −1.794 [−2.047, −1.556] \\
+Color & −1.794 [−2.129, −1.469] & −2.532 [−2.852, −2.203] \\
+Code & −4.570 [−5.098, −4.058] & −3.937 [−4.418, −3.452] \\
+Label & −3.342 [−3.668, −3.017] & −2.094 [−2.358, −1.809] \\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{table}
+
+\begin{table}[h]
+\caption{Superseded minus other attribute by target attribute (nats; 24 histories each).}
+\label{tab:b-attr-other}
+\begin{center}
+\small
+\begin{tabular}{@{}lrr@{}}
+\toprule
+Attribute & Qwen3-8B & Gemma 3 4B \\
+\midrule
+Badge & 0.748 [0.512, 0.969] & 0.011 [−0.206, 0.232] \\
+Color & 0.876 [0.683, 1.068] & −0.028 [−0.236, 0.208] \\
+Code & −0.570 [−0.866, −0.280] & −0.045 [−0.292, 0.217] \\
+Label & 0.200 [−0.042, 0.459] & 0.078 [−0.110, 0.264] \\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{table}
+
+\subsection{Cell-stratified bootstrap}
+
+The primary bootstrap resamples histories without regard to the 48 entity-pair $\times$ attribute $\times$ name-assignment cells. As a sensitivity check we resampled two histories with replacement within each cell on every draw (2,000 draws), which holds the cell counts fixed. Means are unchanged, intervals narrow, and every conclusion about the sign of a contrast is preserved (Table~\ref{tab:b-stratified}).
+
+\begin{table}[h]
+\caption{Superseded minus control (nats) with cell-stratified bootstrap intervals.}
+\label{tab:b-stratified}
+\begin{center}
+\small
+\begin{tabular}{@{}lrr@{}}
+\toprule
+Control & Qwen3-8B & Gemma 3 4B \\
+\midrule
+Other attribute & 0.314 [0.225, 0.403] & 0.004 [−0.079, 0.090] \\
+Entity mention & −3.504 [−3.641, −3.363] & −2.589 [−2.707, −2.475] \\
+Early unassigned & 2.011 [1.920, 2.100] & 1.575 [1.477, 1.667] \\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{table}

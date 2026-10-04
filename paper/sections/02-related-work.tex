@@ -1,0 +1,18 @@
+\section{Related work}
+\label{sec:related}
+
+\subsection{Contextual updates and knowledge conflicts}
+
+A large literature asks whether models track the current state of the world described in their context. Entity-tracking benchmarks test whether models recover an entity's state after a sequence of operations \citep{kim2023entity,tang2026entities}, and belief-revision and in-context forgetting studies test whether models revise conclusions or stop using information once new evidence or instructions arrive \citep{wilie2024belief,qian2026forget}. \citet{wang2025unable} show that earlier key--value updates interfere with retrieving the latest value as the number of updates grows, and \citet{guo2026context} characterize stale-answer failures after context updates, including whether the current value remains recoverable and how attention drifts during answer selection. More broadly, \citet{xu2024conflicts} survey knowledge conflicts and distinguish conflicts between context and parametric memory, within the context, and within memory; contradictions between earlier and later statements in a single context belong to the second type. \citet{yang2026conflicts} study such intra-context conflicts and report a consistent bias toward earlier evidence. These studies measure whether the final answer is correct. They leave open how an earlier value influences the model's scores when the answer is already right, and which properties of the earlier mention carry that influence. We address that question with matched edits to the earlier value and prompt constructions that separate assignment, association, and position.
+
+\subsection{Position in context}
+
+Where information sits in the context affects how models use it. \citet{liu2024lost} show that retrieval accuracy depends strongly on the position of the relevant passage in long inputs, and \citet{yang2026conflicts} identify a positional preference as an obstacle to resolving conflicts. Our contexts are six lines long, far from the long-context regime, yet relative position still determines which entity a never-assigned value is credited to. We manipulate the order of historical and current mentions independently, so position effects can be estimated rather than averaged away.
+
+\subsection{Entity binding}
+
+Mechanistic studies analyze how models bind entities to attributes in context and retrieve those bindings, including binding-ID representations \citep{feng2024bind}, mixtures of positional, lexical, and reflexive retrieval mechanisms \citep{gurarieh2026mixing}, and lookback mechanisms for tracking characters' beliefs \citep{prakash2026lookbacks}. These works intervene on internal activations. We work at the level of prompts and output scores, which lets us compare how different surface constructions feed whatever binding mechanism the model uses, but not identify the mechanism itself.
+
+\subsection{Persistence after knowledge editing}
+
+Knowledge-editing studies ask what remains of a fact after a model's parametric knowledge is changed: whether original facts stay linearly decodable after an edit \citep{srivastava2026suppressed} and whether they resurface after superficially successful edits \citep{xie2025deceptiveness}. In our setting both the earlier and the current value are present in the input and the model is not edited; we measure sensitivity to an earlier value that is still in view.

@@ -1,0 +1,26 @@
+\section{Experimental setup}
+\label{sec:setup}
+
+\subsection{Models and competence screen}
+\label{sec:models}
+
+We evaluate the instruction-tuned Qwen3-8B and Gemma 3 4B, loaded with int8 weights and float16 (Qwen) or bfloat16 (Gemma) computation, using each model's chat template with thinking disabled for Qwen3. Exact checkpoint revisions are listed in Appendix~\ref{app:provenance}.
+
+Sensitivity to an earlier value is only interpretable if the model answers the current question correctly, so a model enters the main experiment only after passing a competence screen on a separate set of 24 histories. In every construction, the correct current value must be strictly ranked first among the eight candidates on at least 99\% of the distinct screening prompts (ties count as errors), and in the superseded construction the mean score margin of the current over the earlier value must be positive. Both models passed. The lowest construction-level accuracies were 287/288 (99.65\%) for Qwen in live and 575/576 (99.83\%) for Gemma in entity mention; both scored 576/576 in superseded, with current-minus-earlier margins of 21.571 and 23.910 nats. Phi-4-mini was also screened and failed in the entity-mention construction (561/576, 97.40\%), so it was not run.
+
+\subsection{Analysis and prespecification}
+\label{sec:inference}
+
+All estimates are computed per history and then averaged over histories; histories are the unit of uncertainty. Intervals are percentile 95\% intervals from 2,000 bootstrap resamples of histories (seed 73021). Both models are scored on the same histories, and results are reported per model without pooling.
+
+The design, competence thresholds, and analysis of Experiment 1 were fixed in the project repository before its confirmation data were scored, and a dated amendment recorded before the results were examined specified the decision rule for the original hypothesis (Section~\ref{sec:relation}). Experiment 2 was likewise specified before scoring. Neither experiment was externally preregistered. Order-stratified estimates, paired aligned-minus-reversed differences, per-attribute strata, and analyses restricted to correctly answered histories are secondary and exploratory.
+
+\subsection{Experiment 1: constructions crossed with order}
+\label{sec:exp1}
+
+Experiment 1 uses 96 histories: each of six entity pairs (Nora/Liam, Ava/Omar, Mila/Eli, Iris/Noah, Zoe/Theo, Maya/Leo) is crossed with the four target attributes and both assignments of names to the $x$ and $z$ roles, with two histories per cell. The other-attribute construction uses \lit{team} in 48 histories and \lit{project} in 48. Each history yields $6\times2\times2\times2\times2\times2=192$ scored prompts: six constructions, two queries, two edited entities, two historical orders, two current orders, and baseline versus edited. This gives 18,432 scored prompts per model. Every baseline/edit pair was checked to differ only in the edited value span.
+
+\subsection{Experiment 2: the temporal marker}
+\label{sec:marker-protocol}
+
+In Experiment 1 the superseded and other-attribute constructions carry \lit{Previously} and the others do not. Experiment 2 crosses construction (superseded, entity mention) with marker (absent, present), where adding the marker changes nothing but the prefix \lit{Previously,} on each historical line (Table~\ref{tab:marker-templates}). Historical order, current order, edited entity, query, and baseline versus edit are crossed as in Experiment 1. It uses 24 new histories with the Nora/Liam pair and the attribute \lit{badge}, varying the values; a two-history pilot run beforehand is excluded. Each model scores 3,072 prompts (2,272 distinct). The prespecified quantities are the \emph{marker effect}, $R_{\text{present}}-R_{\text{absent}}$, within each construction, and the \emph{interaction}, the superseded marker effect minus the entity-mention marker effect. Because Experiment 2 fixes one entity pair and one attribute, its $R$ values are compared within the experiment rather than with Experiment 1's.

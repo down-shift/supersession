@@ -1,3 +1,0 @@
-## 8. Conclusion
-
-In Qwen3-8B and Gemma 3 4B, the entity-mention construction yields greater $R$ than the superseded construction. Unassigned-value effects reverse sign when historical and current mention order is reversed, while superseded effects stay positive in both groups. A separate confirmation finds that adding `Previously` reduces measured $R$ in both tested constructions for both models; the reduction is larger for entity mentions in Qwen, while Gemma's interaction remains inconclusive. The three-control prediction specified in an internal amendment before confirmation fails because superseded relevance is lower than entity-mention relevance in both models. These results concern candidate scores and do not establish changes in unrestricted answers.

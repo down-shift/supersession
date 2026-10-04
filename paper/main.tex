@@ -1,0 +1,74 @@
+\documentclass[10pt]{article} % For LaTeX2e
+\usepackage{tmlr}
+% If accepted, instead use the following line for the camera-ready submission:
+%\usepackage[accepted]{tmlr}
+% To de-anonymize and remove mentions to TMLR (for example for posting to preprint servers), instead use the following:
+%\usepackage[preprint]{tmlr}
+
+% Optional math commands from https://github.com/goodfeli/dlbook_notation.
+\input{math_commands.tex}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{graphicx}
+\usepackage{fancyvrb}
+\usepackage{seqsplit}
+\usepackage{hyperref}
+\usepackage{url}
+
+% Unicode characters used throughout the tables and text.
+\DeclareUnicodeCharacter{2212}{\ensuremath{-}}
+\DeclareUnicodeCharacter{00D7}{\ensuremath{\times}}
+
+% Literal prompt text, candidate values, and identifiers.
+\newcommand{\lit}[1]{\texttt{#1}}
+% Prompt examples.
+\DefineVerbatimEnvironment{prompt}{Verbatim}{frame=single,fontsize=\small,xleftmargin=1em,xrightmargin=1em}
+
+\title{What a Stale Value Still Does: Mention Structure and Order\\Explain Score Sensitivity After In-Context Updates}
+
+% Authors must not appear in the submitted version. They should be hidden
+% as long as the tmlr package is used without the [accepted] or [preprint] options.
+% Non-anonymous submissions will be rejected without review.
+
+\author{\name Anonymous Authors \email anonymous@example.com \\
+      \addr Anonymous Institution}
+
+\def\month{MM}  % Insert correct month for camera-ready version
+\def\year{YYYY} % Insert correct year for camera-ready version
+\def\openreview{\url{https://openreview.net/forum?id=XXXX}} % Insert correct link to OpenReview for camera-ready version
+
+
+\begin{document}
+
+\maketitle
+
+{\renewcommand{\thefootnote}{}\footnotetext{A large language model assisted with drafting and revision of this manuscript. The authors are responsible for checking the accuracy of its claims, analyses, references, and final text.}}
+
+\input{sections/00-abstract}
+\input{sections/01-introduction}
+\input{sections/02-related-work}
+\input{sections/03-task-and-estimands}
+\input{sections/04-experimental-protocol}
+\input{sections/05-initial-observation}
+\input{sections/06-results}
+\input{sections/07-discussion}
+\input{sections/08-conclusion}
+
+\bibliography{references}
+\bibliographystyle{tmlr}
+
+\appendix
+% Number appendix tables per appendix (Table B1, B2, ...).
+\counterwithin{table}{section}
+\renewcommand{\thetable}{\thesection\arabic{table}}
+
+\input{sections/A-v1-and-derived-code}
+\input{sections/B-v2-diagnostics}
+\input{sections/C-chronology-and-provenance}
+\input{sections/D-marker-construction}
+\input{sections/E-harder-task-follow-up}
+
+\end{document}
