@@ -52,7 +52,8 @@ def main():
             if not a.freeze:
                 raise ValueError('test generation requires --freeze from select-hard-difficulty')
             frozen = read_sealed(a.freeze)
-            from scripts.run_followups import _code_hash
+            from scripts.run_followups import _code_hash, validate_test_freeze
+            validate_test_freeze(frozen)
             if frozen.get('prompt_code_sha256') != _code_hash():
                 raise ValueError('test protocol freeze code hash differs from current code')
             if a.distractors != frozen.get('selected_n_distractors'):

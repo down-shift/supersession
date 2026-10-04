@@ -2,6 +2,8 @@ __pycache__/
 *.py[cod]
 .pytest_cache/
 .venv/
+.venv-qwen-followups/
+.venv-gemma-followups/
 *.egg-info/
 outputs/
 .DS_Store

@@ -4,6 +4,7 @@ import argparse
 import importlib.metadata
 import json
 import random
+import platform
 import time
 from collections import defaultdict
 from pathlib import Path
@@ -11,7 +12,8 @@ from pathlib import Path
 import numpy as np
 
 from src.cross_model.followups import (VERSION, analyze_marker, complete_answer_outcome,
-    analyze_harder, generate_harder, generate_marker, choose_difficulty)
+    analyze_harder, generate_harder, generate_marker, choose_difficulty,
+    validate_harder_dataset, validate_marker_dataset)
 from src.cross_model.protocol import VALUES, digest, sealed, write_new, read_sealed
 from src.cross_model.progress import progress
 from src.cross_model.scoring import score_prompt
@@ -24,7 +26,9 @@ from src.utils import load_config, provenance
 def _code_hash():
     paths = ('src/cross_model/followups.py', 'scripts/followups.py', 'scripts/run_followups.py',
              'src/cross_model/scoring.py', 'src/cross_model/tokens.py',
-             'src/models/loader.py', 'src/data/supersession_behavior.py')
+             'src/models/loader.py', 'src/data/supersession_behavior.py',
+             'src/cross_model/runtime.py', 'src/cross_model/protocol.py',
+             'src/data/io.py', 'src/utils.py', 'pyproject.toml', 'uv.lock')
     return digest({p: sha256_file(p) for p in paths})
 
 
@@ -44,6 +48,8 @@ def _runtime_fingerprint(config, config_path, model, tokenizer, torch):
     tokenizer_kwargs = json.loads(json.dumps(getattr(tokenizer, 'init_kwargs', {}), default=str))
     model_config = json.loads(json.dumps(model.config.to_dict(), default=str))
     return {
+        'python_version': platform.python_version(),
+        'uv_lock_sha256': sha256_file('uv.lock'),
         'configuration_sha256': sha256_file(config_path),
         'configuration_digest': digest(config),
         'model_config_digest': digest(model_config),
@@ -93,6 +99,55 @@ def _load_model(config):
     return model, tokenizer
 
 
+def validate_test_freeze(frozen):
+    if (frozen.get('protocol') != VERSION
+            or frozen.get('experiment') != 'harder'
+            or frozen.get('stage') != 'frozen_test_protocol'
+            or not frozen.get('selection_gate_passed')):
+        raise ValueError('harder test requires a qualifying sealed protocol with development accuracy in [0.65,0.90]')
+
+
+def validate_test_runtime(frozen, model_config, runtime_fingerprint):
+    if model_config['id'] == frozen['model_id']:
+        development_runtime = frozen['development_levels'][str(frozen['selected_n_distractors'])]['runtime_fingerprint']
+        if (model_config['revision'] != frozen['model_revision']
+                or runtime_fingerprint != development_runtime):
+            raise ValueError('Qwen test runtime differs from frozen development runtime')
+
+
+def dataset_lineage(dataset, rows, report_path=None):
+    """Authenticate the generation report and retain its explicit exclusions."""
+    path = Path(report_path) if report_path else Path(dataset).with_name(Path(dataset).stem + '_report.json')
+    if not path.exists():
+        if rows[0]['stage'] != 'pilot':
+            raise ValueError('nonpilot scoring requires its generation report; use --dataset-report for a custom path')
+        return {'exclusions': [], 'prior_datasets': [], 'dataset_report_sha256': None}
+    report = json.loads(path.read_text())
+    if report.get('dataset_sha256') != sha256_file(dataset) or report.get('stage') != rows[0]['stage']:
+        raise ValueError('generation report does not authenticate this dataset')
+    exclusions = set(report.get('exclusions', []))
+    ledger = set()
+    for prior in report.get('prior_datasets', []):
+        prior_path = Path(prior['path'])
+        # Stored absolute paths may refer to the original GPU host checkout.
+        if not prior_path.exists():
+            prior_path = Path(dataset).parent / prior_path.name
+        if not prior_path.exists() or sha256_file(prior_path) != prior['sha256']:
+            raise ValueError('prior dataset exclusion ledger is missing or changed')
+        for row in read_jsonl(prior_path):
+            ledger.update((row['history_signature'], row['target_history_signature']))
+    if ledger != exclusions:
+        # Test exclusions also include the sealed development history set.
+        if rows[0]['stage'] != 'test' or not ledger <= exclusions:
+            raise ValueError('generation exclusions differ from prior datasets')
+    if rows[0]['stage'] != 'pilot' and not ledger:
+        raise ValueError('nonpilot dataset has no explicit earlier-history exclusions')
+    if any(r['history_signature'] in exclusions or r['target_history_signature'] in exclusions for r in rows):
+        raise ValueError('dataset overlaps its explicit earlier-history exclusions')
+    return {'exclusions': sorted(exclusions), 'prior_datasets': report.get('prior_datasets', []),
+            'dataset_report_sha256': sha256_file(path)}
+
+
 def run(args):
     config = load_config(args.config)
     rows = read_jsonl(args.dataset)
@@ -109,10 +164,12 @@ def run(args):
         raise ValueError('harder experiment requires --mode both (answers and candidate scores)')
     if args.experiment == 'marker' and args.mode not in ('candidate', 'both'):
         raise ValueError('marker experiment requires candidate scores')
+    (validate_harder_dataset if args.experiment == 'harder' else validate_marker_dataset)(rows)
     if args.experiment == 'harder' and stage == 'test':
         if not args.freeze:
             raise ValueError('scoring test histories requires --freeze')
         frozen = read_sealed(args.freeze)
+        validate_test_freeze(frozen)
         if (frozen.get('prompt_code_sha256') != _code_hash()
                 or frozen.get('selected_n_distractors') != rows[0].get('n_distractors')
                 or frozen.get('max_new_tokens') != args.max_new_tokens
@@ -123,6 +180,7 @@ def run(args):
         test_targets = {r['target_history_signature'] for r in rows}
         if test_targets & set(frozen.get('excluded_history_signatures', [])):
             raise ValueError('test target histories overlap frozen development histories')
+    lineage = dataset_lineage(args.dataset, rows, getattr(args, 'dataset_report', None))
     out = Path(args.output)
     run_path, prov_path = Path(str(out) + '.run.json'), Path(str(out) + '.provenance.json')
     if args.resume and not run_path.exists():
@@ -141,6 +199,8 @@ def run(args):
     dataset_hash, code_hash = sha256_file(args.dataset), _code_hash()
     freeze_hash = sha256_file(args.freeze) if args.freeze else None
     runtime_fingerprint = _runtime_fingerprint(config, args.config, model, tokenizer, torch)
+    if args.experiment == 'harder' and stage == 'test':
+        validate_test_runtime(frozen, config['model'], runtime_fingerprint)
     fingerprint = {'protocol': VERSION, 'experiment': args.experiment,
         'stage': stage, 'mode': args.mode, 'model_id': config['model']['id'],
         'model_revision': config['model']['revision'],
@@ -151,6 +211,7 @@ def run(args):
         'decoding': 'greedy; do_sample=false; num_beams=1',
         'parser': 'trim whitespace and edge punctuation; exact case-insensitive candidate match',
         'runtime_fingerprint': runtime_fingerprint}
+    fingerprint['dataset_report_sha256'] = lineage['dataset_report_sha256']
     if args.resume:
         saved = json.loads(run_path.read_text())
         if saved.get('fingerprint') != fingerprint:
@@ -182,6 +243,7 @@ def run(args):
         cache[saved['rendered_prompt']] = {k: saved[k] for k in ('semantic_log_mass', 'surface_likelihoods',
             'generated_answer', 'parsed_answer', 'answer_category', 'generation_token_count') if k in saved}
     runtime_start = time.perf_counter()
+    resumed_unique_prompts = len(cache)
     with out.open('a', encoding='utf8') as handle:
         for row in progress(rows, desc=f'Scoring {args.experiment}', unit='member'):
             if row['example_id'] in done:
@@ -224,7 +286,11 @@ def run(args):
         'chat_template_sha256': digest(tokenizer.chat_template),
         'model_load_seconds': model_load_seconds,
         'elapsed_seconds': elapsed, 'unique_prompts': len(cache),
-        'seconds_per_unique_prompt': elapsed / max(1, len(cache))}
+        'runtime_scope': 'current invocation; earlier interrupted invocations excluded',
+        'resumed_unique_prompts': resumed_unique_prompts,
+        'new_unique_prompts': len(cache) - resumed_unique_prompts,
+        'seconds_per_unique_prompt': elapsed / (len(cache) - resumed_unique_prompts)
+            if len(cache) > resumed_unique_prompts else None}
     report = {'fingerprint': fingerprint, 'dataset_path': str(Path(args.dataset).resolve()),
         'dataset_sha256': dataset_hash, 'scores_sha256': sha256_file(out),
         'model_config_sha256': digest(json.loads(model.config.to_json_string())),
@@ -233,7 +299,7 @@ def run(args):
         'n_distractors': rows[0].get('n_distractors'),
         'history_signatures': sorted({r['history_signature'] for r in rows}),
         'target_history_signatures': sorted({r['target_history_signature'] for r in rows}),
-        'exclusions': [],
+        **lineage,
         'status': 'complete'}
     write_new(prov_path, sealed(report))
     run_path.write_text(json.dumps({'fingerprint': fingerprint, 'status': 'complete',
@@ -280,7 +346,9 @@ def analyze(args):
                   n_distractors=rows[0].get('n_distractors'),
                   history_signatures=sorted({r['history_signature'] for r in rows}),
                   target_history_signatures=sorted({r['target_history_signature'] for r in rows}),
-                  exclusions=[])
+                  exclusions=score_prov.get('exclusions', []),
+                  prior_datasets=score_prov.get('prior_datasets', []),
+                  dataset_report_sha256=score_prov.get('dataset_report_sha256'))
     result['inference_provenance_sha256'] = sha256_file(score_prov_path)
     result['inference_provenance'] = score_prov
     write_new(args.output, sealed(result))
@@ -317,6 +385,8 @@ def select_difficulty(args):
     models = {(x['model_id'], x['model_revision']) for x in reports.values()}
     if len(models) != 1:
         raise ValueError('all three development levels must use the same model and immutable revision')
+    if next(iter(models))[0] != 'Qwen/Qwen3-8B':
+        raise ValueError('difficulty selection requires Qwen development reports')
     max_tokens = {x['max_new_tokens'] for x in reports.values()}
     scoring_seeds = {x['scoring_seed'] for x in reports.values()}
     if len(max_tokens) != 1 or len(scoring_seeds) != 1:
@@ -329,13 +399,18 @@ def select_difficulty(args):
         raise ValueError('development report difficulty does not match its declared level')
     if len({v['n_histories'] for v in reports.values()}) != 1:
         raise ValueError('development levels must use the same history count')
+    if any(v['n_histories'] != 12 for v in reports.values()):
+        raise ValueError('difficulty selection requires 12 histories per development level')
     signature_sets = [set(v['target_history_signatures']) for v in reports.values()]
     if not signature_sets[0] or any(s != signature_sets[0] for s in signature_sets[1:]):
         raise ValueError('development difficulty levels must share exactly matched physical histories')
+    if all(v['accuracy'] > .90 for v in reports.values()):
+        raise ValueError('amended stopping rule: all Qwen development levels exceed 90%; stop without selecting a fallback level or sealing a test protocol')
     selected = choose_difficulty(reports)
     frozen = {'protocol': VERSION, 'experiment': 'harder', 'stage': 'frozen_test_protocol',
         'selected_n_distractors': selected,
         'selection_rule': 'hardest development accuracy in [0.65,0.90]; otherwise nearest 0.775, ties smaller level',
+        'stopping_rule_amendment': 'post-pilot, pre-development: stop if all Qwen levels exceed 0.90; test requires a level in [0.65,0.90]',
         'development_levels': reports, 'model_id': next(iter(models))[0],
         'model_revision': next(iter(models))[1], 'difficulty_levels': [2,4,6],
         'prompt_code_sha256': _code_hash(), 'candidate_values': VALUES,
@@ -343,7 +418,7 @@ def select_difficulty(args):
             'entity_mention': '{entity} mentioned {value} in an unrelated note.',
             'unassigned': 'The unassigned {attribute} value was {value}.',
             'current_assignment': 'Currently, {entity}\'s {attribute} is {value}.',
-        'distractor': 'Previously, {entity} badge was {old}. Currently, {entity} badge is {current}.',
+        'distractor': "Previously, {entity}'s badge was {old}.\nCurrently, {entity}'s badge is {current}.",
             'query': 'What is {entity}\'s current {attribute}?',
             'instruction': 'Respond with only the value, with no explanation.'},
         'decoding': 'greedy; do_sample=false; num_beams=1',
@@ -372,6 +447,7 @@ def main():
     score.add_argument('--experiment', choices=('marker', 'harder'), required=True)
     score.add_argument('--mode', choices=('candidate', 'both'), default='both')
     score.add_argument('--config', required=True); score.add_argument('--dataset', required=True)
+    score.add_argument('--dataset-report', help='generation report; defaults to DATASET_STEM_report.json')
     score.add_argument('--output', required=True); score.add_argument('--seed', type=int, default=20261006)
     score.add_argument('--max-new-tokens', type=int, default=32); score.add_argument('--resume', action='store_true')
     score.add_argument('--freeze')

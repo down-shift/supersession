@@ -1,6 +1,7 @@
 from argparse import Namespace
 from collections import defaultdict
 import json
+from pathlib import Path
 
 import pytest
 
@@ -9,7 +10,8 @@ from src.cross_model.followups import (DIFFICULTIES, analyze_harder, analyze_mar
     validate_marker_templates)
 from src.cross_model.protocol import VALUES, sealed, read_sealed
 from scripts.followups import main as generate_cli
-from scripts.run_followups import _code_hash, select_difficulty
+from scripts.run_followups import (_code_hash, select_difficulty, run as score_cli,
+                                  dataset_lineage, validate_test_runtime)
 
 
 def test_marker_marker_prefixes_both_history_lines_and_stages_are_fresh():
@@ -143,13 +145,14 @@ def test_stage_labels_reject_invalid_experiment_combinations(monkeypatch, tmp_pa
 def test_difficulty_rule_freeze_binds_matched_development_histories(tmp_path):
     assert choose_difficulty({'2': {'accuracy': .8}, '4': {'accuracy': .7}, '6': {'accuracy': .4}}) == 4
     paths = []
+    targets = [f'h{i:02d}' for i in range(12)]
     runtime_fp = {'configuration_sha256': 'cfg', 'parameter_dtypes': ['torch.float16'],
                   'packages': {'torch': '2.14.0'}, 'gpu_name': 'test-gpu'}
     for level, accuracy in zip((2, 4, 6), (.95, .70, .45)):
         report = sealed({'protocol': 'relational_followups_v1', 'experiment': 'harder',
             'stage': 'development', 'overall_complete_answer_accuracy': accuracy,
             'n_distractors': level, 'history_signatures': [f'full{level}'],
-            'target_history_signatures': ['h1', 'h2'],
+            'target_history_signatures': targets,
             'dataset_sha256': f'data{level}', 'scores_sha256': f'score{level}',
             'code_sha256': _code_hash(),
                 'dataset_seeds': [20261005], 'inference_provenance': {'fingerprint': {
@@ -163,12 +166,12 @@ def test_difficulty_rule_freeze_binds_matched_development_histories(tmp_path):
     select_difficulty(Namespace(development_reports=paths, output=str(output)))
     frozen = read_sealed(output)
     assert frozen['selected_n_distractors'] == 4
-    assert frozen['excluded_history_signatures'] == ['h1', 'h2']
+    assert frozen['excluded_history_signatures'] == targets
     assert frozen['test_histories'] == 24
     runtime_fp['gpu_name'] = 'different-gpu'
     report = sealed({'protocol': 'relational_followups_v1', 'experiment': 'harder',
         'stage': 'development', 'overall_complete_answer_accuracy': .45,
-        'n_distractors': 6, 'history_signatures': ['full6'], 'target_history_signatures': ['h1', 'h2'],
+        'n_distractors': 6, 'history_signatures': ['full6'], 'target_history_signatures': targets,
         'dataset_sha256': 'data6', 'scores_sha256': 'score6', 'code_sha256': _code_hash(),
         'dataset_seeds': [20261005], 'inference_provenance': {'fingerprint': {
             'experiment': 'harder', 'model_id': 'Qwen/Qwen3-8B', 'model_revision': 'abc',
@@ -178,3 +181,86 @@ def test_difficulty_rule_freeze_binds_matched_development_histories(tmp_path):
     (tmp_path / 'different_runtime.json').write_text(json.dumps(report))
     with pytest.raises(ValueError, match='incompatible configurations or runtimes'):
         select_difficulty(Namespace(development_reports=paths, output=str(tmp_path/'bad_freeze.json')))
+    for level, accuracy in zip((2, 4, 6), (.91, .95, 1.0)):
+        report_path = tmp_path / f'n{level}.json'
+        report = read_sealed(report_path)
+        report['overall_complete_answer_accuracy'] = accuracy
+        report_path.write_text(json.dumps(sealed(report)))
+    paths[-1] = str(tmp_path / 'n6.json')
+    stopped_freeze = tmp_path / 'stopped_freeze.json'
+    with pytest.raises(ValueError, match='amended stopping rule'):
+        select_difficulty(Namespace(development_reports=paths, output=str(stopped_freeze)))
+    assert not stopped_freeze.exists()
+    for model, history_count, error in (
+            ('google/gemma-3-4b-it', 12, 'requires Qwen'),
+            ('Qwen/Qwen3-8B', 2, 'requires 12 histories')):
+        for path in paths:
+            report = read_sealed(path)
+            report['overall_complete_answer_accuracy'] = .8
+            report['target_history_signatures'] = targets[:history_count]
+            report['inference_provenance']['fingerprint']['model_id'] = model
+            Path(path).write_text(json.dumps(sealed(report)))
+        with pytest.raises(ValueError, match=error):
+            select_difficulty(Namespace(development_reports=paths, output=str(stopped_freeze)))
+        assert not stopped_freeze.exists()
+
+
+def test_failed_difficulty_gate_cannot_generate_or_score_test_data(monkeypatch, tmp_path):
+    freeze_path = tmp_path / 'fallback.json'
+    freeze_path.write_text(json.dumps(sealed({'protocol': 'relational_followups_v1',
+        'experiment': 'harder', 'stage': 'frozen_test_protocol',
+        'selection_gate_passed': False, 'selected_n_distractors': 2})))
+    prior = tmp_path / 'pilot.jsonl'
+    prior.write_text('\n'.join(json.dumps(r) for r in generate_harder('pilot', 1)))
+    output = tmp_path / 'test.jsonl'
+    monkeypatch.setattr('sys.argv', ['followups.py', 'harder', '--stage', 'test',
+        '--freeze', str(freeze_path), '--prior-dataset', str(prior), '--output', str(output)])
+    with pytest.raises(ValueError, match='qualifying sealed protocol'):
+        generate_cli()
+    assert not output.exists()
+    rows = generate_harder('test', 1, excluded_signatures=set())
+    output.write_text('\n'.join(json.dumps(r) for r in rows))
+    scores = tmp_path / 'scores.jsonl'
+    with pytest.raises(ValueError, match='qualifying sealed protocol'):
+        score_cli(Namespace(config='configs/cross_model_relational_v2/qwen3_8b.yaml',
+            dataset=str(output), experiment='harder', mode='both', freeze=str(freeze_path),
+            output=str(scores)))
+    assert not scores.exists()
+
+
+def test_generation_exclusions_survive_scoring_lineage_and_detect_changed_prior(monkeypatch, tmp_path):
+    pilot = tmp_path / 'pilot.jsonl'
+    prior_rows = generate_harder('pilot', 1)
+    pilot.write_text('\n'.join(json.dumps(r) for r in prior_rows))
+    dataset = tmp_path / 'development.jsonl'
+    report = tmp_path / 'development_report.json'
+    monkeypatch.setattr('sys.argv', ['followups.py', 'harder', '--stage', 'development',
+        '--histories', '1', '--prior-dataset', str(pilot),
+        '--output', str(dataset), '--report', str(report)])
+    generate_cli()
+    rows = [json.loads(line) for line in dataset.read_text().splitlines()]
+    lineage = dataset_lineage(str(dataset), rows)
+    assert set(lineage['exclusions']) == {r[k] for r in prior_rows
+        for k in ('history_signature', 'target_history_signature')}
+    assert lineage['prior_datasets'][0]['sha256']
+    assert lineage['dataset_report_sha256']
+    pilot.write_text(pilot.read_text() + '\n')
+    with pytest.raises(ValueError, match='exclusion ledger is missing or changed'):
+        dataset_lineage(str(dataset), rows)
+
+
+def test_qwen_test_requires_frozen_runtime_but_gemma_can_use_its_own():
+    runtime = {'python_version': '3.13.5', 'uv_lock_sha256': 'lock', 'gpu_name': 'gpu'}
+    frozen = {'model_id': 'Qwen/Qwen3-8B', 'model_revision': 'qwen-revision',
+        'selected_n_distractors': 4, 'development_levels': {'4': {'runtime_fingerprint': runtime}}}
+    config = {'id': 'Qwen/Qwen3-8B', 'revision': 'qwen-revision'}
+    validate_test_runtime(frozen, config, runtime)
+    for changed in ({**runtime, 'uv_lock_sha256': 'different'},
+                    {**runtime, 'python_version': '3.14.0'},
+                    {**runtime, 'gpu_name': 'different'}):
+        with pytest.raises(ValueError, match='runtime differs'):
+            validate_test_runtime(frozen, config, changed)
+    with pytest.raises(ValueError, match='runtime differs'):
+        validate_test_runtime(frozen, {**config, 'revision': 'different'}, runtime)
+    validate_test_runtime(frozen, {'id': 'google/gemma-3-4b-it', 'revision': 'gemma-revision'},
+                          {'gpu_name': 'gemma-gpu'})
