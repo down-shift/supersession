@@ -1,0 +1,14 @@
+# docs/models_v2.md — scored with scripts/score_exp1_model.py. Revision pinned 2026-10-05.
+seed: 20261031
+model:
+  id: google/gemma-3-12b-it
+  revision: 96b6f1eccf38110c56df3a15bffe176da04bfd80
+  tokenizer_id: google/gemma-3-12b-it
+  tokenizer_revision: 96b6f1eccf38110c56df3a15bffe176da04bfd80
+  device: cuda
+  dtype: bfloat16
+  quantization: nf4
+  device_map: 0
+  require_full_gpu: true
+  chat_template: true
+  attn_implementation: eager

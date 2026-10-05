@@ -1,0 +1,229 @@
+{
+  "bootstrap": "history; 2,000 draws; seed 73021",
+  "inputs": {
+    "outputs/cross_model_relational_v2/factorial_relation_counterbalanced_runtimefix_20261004/extended_analysis_v6/qwen3_8b/per_history.csv": "eef2c32106eedd2953c9a7192f38645b6214fe0a2e35aaac3609d376b5669402",
+    "outputs/followups/marker96/qwen_marker_analysis.json": "0ee531924d08c645b94e33d4211bc9f7ef28f4709243270849bcdff13986cdd8",
+    "outputs/cross_model_relational_v2/factorial_relation_counterbalanced_runtimefix_20261004/extended_analysis_v6/gemma3_4b/per_history.csv": "ef02035c10170a4a130984a80ed7a6ea8a8b5bfdc56ec8707a514f7afc20ec37",
+    "outputs/followups/marker96/gemma_marker_analysis.json": "0dbc4d61e05fb9647a39bbd6944175ad995de6d628cba058e776fdf38e012245"
+  },
+  "models": {
+    "Qwen3-8B": [
+      {
+        "group": "Relation status",
+        "label": "superseded $-$ other attribute",
+        "experiment": 1,
+        "n_histories": 96,
+        "mean": 0.31359423189008934,
+        "ci95": [
+          0.1473343789851099,
+          0.4816749083633341
+        ]
+      },
+      {
+        "group": "Construction",
+        "label": "entity mention $-$ superseded",
+        "experiment": 1,
+        "n_histories": 96,
+        "mean": 3.5041742138450047,
+        "ci95": [
+          3.19838365947937,
+          3.8062076027089025
+        ]
+      },
+      {
+        "group": "Position (aligned $-$ reversed)",
+        "label": "early unassigned",
+        "experiment": 1,
+        "n_histories": 96,
+        "mean": 6.5784995129625585,
+        "ci95": [
+          6.356419991941141,
+          6.788667718998373
+        ]
+      },
+      {
+        "group": "Position (aligned $-$ reversed)",
+        "label": "superseded",
+        "experiment": 1,
+        "n_histories": 96,
+        "mean": 0.3402026126957338,
+        "ci95": [
+          0.217883300138417,
+          0.46975747841713966
+        ]
+      },
+      {
+        "group": "Position (aligned $-$ reversed)",
+        "label": "entity mention",
+        "experiment": 1,
+        "n_histories": 96,
+        "mean": -1.9690523544628349,
+        "ci95": [
+          -2.3439629401928035,
+          -1.6040218088911389
+        ]
+      },
+      {
+        "group": "Temporal marker (with $-$ without)",
+        "label": "superseded",
+        "experiment": 2,
+        "n_histories": 96,
+        "mean": -0.6520048174491792,
+        "ci95": [
+          -0.7483831220474693,
+          -0.5598768853175303
+        ]
+      },
+      {
+        "group": "Temporal marker (with $-$ without)",
+        "label": "entity mention",
+        "experiment": 2,
+        "n_histories": 96,
+        "mean": -1.7344294365525876,
+        "ci95": [
+          -1.934498450455303,
+          -1.5355439467950522
+        ]
+      }
+    ],
+    "Gemma 3 4B": [
+      {
+        "group": "Relation status",
+        "label": "superseded $-$ other attribute",
+        "experiment": 1,
+        "n_histories": 96,
+        "mean": 0.004386654537089678,
+        "ci95": [
+          -0.10365589548289407,
+          0.1177403391496955
+        ]
+      },
+      {
+        "group": "Construction",
+        "label": "entity mention $-$ superseded",
+        "experiment": 1,
+        "n_histories": 96,
+        "mean": 2.5889969921698195,
+        "ci95": [
+          2.361407104365454,
+          2.8287119164955024
+        ]
+      },
+      {
+        "group": "Position (aligned $-$ reversed)",
+        "label": "early unassigned",
+        "experiment": 1,
+        "n_histories": 96,
+        "mean": 4.970069267165605,
+        "ci95": [
+          4.700319777554933,
+          5.256522284230903
+        ]
+      },
+      {
+        "group": "Position (aligned $-$ reversed)",
+        "label": "superseded",
+        "experiment": 1,
+        "n_histories": 96,
+        "mean": 0.03150708032331997,
+        "ci95": [
+          -0.10148647996368954,
+          0.16835106874890038
+        ]
+      },
+      {
+        "group": "Position (aligned $-$ reversed)",
+        "label": "entity mention",
+        "experiment": 1,
+        "n_histories": 96,
+        "mean": 1.8096411434468063,
+        "ci95": [
+          1.580059740788609,
+          2.05824583447848
+        ]
+      },
+      {
+        "group": "Temporal marker (with $-$ without)",
+        "label": "superseded",
+        "experiment": 2,
+        "n_histories": 96,
+        "mean": -0.9497669423384435,
+        "ci95": [
+          -1.0618281888547065,
+          -0.8406321834043852
+        ]
+      },
+      {
+        "group": "Temporal marker (with $-$ without)",
+        "label": "entity mention",
+        "experiment": 2,
+        "n_histories": 96,
+        "mean": -1.0750044293985093,
+        "ci95": [
+          -1.1658196617509748,
+          -0.9863833686352028
+        ]
+      }
+    ]
+  },
+  "paired_order_effects": {
+    "Qwen3-8B": {
+      "superseded": {
+        "mean": 0.3402026126957338,
+        "ci95": [
+          0.217883300138417,
+          0.46975747841713966
+        ],
+        "fraction_positive": 0.6875,
+        "n_histories": 96
+      },
+      "early_unassigned": {
+        "mean": 6.5784995129625585,
+        "ci95": [
+          6.356419991941141,
+          6.788667718998373
+        ],
+        "fraction_positive": 1.0,
+        "n_histories": 96
+      },
+      "late_unassigned": {
+        "mean": 6.37115346515811,
+        "ci95": [
+          6.113001118608851,
+          6.645990339147159
+        ],
+        "fraction_positive": 1.0,
+        "n_histories": 96
+      }
+    },
+    "Gemma 3 4B": {
+      "superseded": {
+        "mean": 0.03150708032331997,
+        "ci95": [
+          -0.10148647996368954,
+          0.16835106874890038
+        ],
+        "fraction_positive": 0.53125,
+        "n_histories": 96
+      },
+      "early_unassigned": {
+        "mean": 4.970069267165605,
+        "ci95": [
+          4.700319777554933,
+          5.256522284230903
+        ],
+        "fraction_positive": 1.0,
+        "n_histories": 96
+      },
+      "late_unassigned": {
+        "mean": 6.638607165605016,
+        "ci95": [
+          6.307645986444839,
+          6.967388177238074
+        ],
+        "fraction_positive": 1.0,
+        "n_histories": 96
+      }
+    }
+  }
+}

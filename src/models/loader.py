@@ -110,8 +110,13 @@ def load_model(config):
         except ImportError as e:
             raise RuntimeError("8-bit loading requires bitsandbytes; install with `uv sync --extra model --extra dev`.") from e
         load_kwargs["quantization_config"] = BitsAndBytesConfig(load_in_8bit=True)
+    elif quantization == "nf4":
+        from transformers import BitsAndBytesConfig
+        import bitsandbytes  # noqa: F401
+        load_kwargs["quantization_config"] = BitsAndBytesConfig(
+            load_in_4bit=True, bnb_4bit_quant_type="nf4", bnb_4bit_compute_dtype=dtype)
     elif quantization != "none":
-        raise ValueError(f"unsupported quantization {quantization!r}; supported values: none, int8")
+        raise ValueError(f"unsupported quantization {quantization!r}; supported values: none, int8, nf4")
     _prepare_remote_model_compat(config)
     logger.info("Loading model %s revision=%s dtype=%s quantization=%s device_map=%s",
                 model_id, m.get("revision"), m.get("dtype", "float16"), quantization,

@@ -44,12 +44,13 @@ def test_reserve_split_is_deterministic_exact_cover_and_immutable(tmp_path):
     from scripts.freeze_head_reserve import main
 
 def test_gqa_query_to_kv_mapping():
+    pytest.importorskip("torch")  # the module imports torch at load time
     from src.experiments.qkv_interventions import query_to_kv_head
     assert [query_to_kv_head(h,8,2) for h in range(8)]==[0,0,0,0,1,1,1,1]
     with pytest.raises(ValueError): query_to_kv_head(8,8,2)
 
 def test_identity_transfer_and_current_stale_margin_orientation():
-    import torch
+    torch = pytest.importorskip("torch")
     from src.experiments.patching import identity_transfer_effect,version_selection_diagnostics
     ids={'amber':0,'birch':1,'coral':2}; base=torch.tensor([4.,0.,0.]); edit=torch.tensor([1.,0.,5.])
     assert identity_transfer_effect(base,edit,'amber','coral',ids)['identity_transfer_E']==pytest.approx(8.)

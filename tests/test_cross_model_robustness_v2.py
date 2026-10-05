@@ -269,6 +269,9 @@ def test_gate_unique_condition_accuracy_and_failed_development_not_a_veto(develo
 
 
 def test_config_continuity_including_actual_gemma_provenance():
+    from pathlib import Path
+    if not Path('outputs/qwen3_8b_review2').exists():
+        pytest.skip('needs the git-ignored v1 outputs/ artifacts (experiment machine)')
     for slug in design.MODEL_SETTINGS:
         config = load_config(f'configs/cross_model_relational_v2_geometryfix_exclusions/{slug}.yaml')
         design.validate_config(config)

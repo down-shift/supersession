@@ -1,0 +1,14 @@
+# docs/models_v2.md — scored with scripts/score_exp1_model.py. Revision pinned 2026-10-05.
+seed: 20261031
+model:
+  id: Qwen/Qwen3-14B
+  revision: 40c069824f4251a91eefaf281ebe4c544efd3e18
+  tokenizer_id: Qwen/Qwen3-14B
+  tokenizer_revision: 40c069824f4251a91eefaf281ebe4c544efd3e18
+  device: cuda
+  dtype: float16
+  quantization: nf4
+  device_map: 0
+  require_full_gpu: true
+  chat_template: true
+  attn_implementation: eager

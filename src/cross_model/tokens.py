@@ -18,10 +18,11 @@ def encode(tokenizer, text):
     return list(tokenizer(text, add_special_tokens=False)['input_ids'])
 
 
-def continuations(tokenizer, prompt):
+def continuations(tokenizer, prompt, values=None):
+    """Disjoint surface events for each candidate value (default: the frozen eight-value vocabulary)."""
     prefix = encode(tokenizer, prompt)
     events, owners = {}, {}
-    for value in VALUES:
+    for value in (VALUES if values is None else values):
         events[value] = []
         seen = set()
         for text in surfaces(value):

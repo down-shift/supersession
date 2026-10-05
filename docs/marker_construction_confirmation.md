@@ -29,6 +29,8 @@ Marker effect = R with `Previously` minus R without it. Interaction = superseded
 
 For Qwen, the interaction is positive in both order strata, and every marker-effect interval is below zero. For Gemma, every within-construction marker-effect interval is below zero, while the overall and both order-stratum interaction intervals include zero. A zero-crossing interaction interval is inconclusive about a construction difference and does not establish equivalence. R remains positive with the marker in every model/construction/order cell.
 
+The paired order-averaged entity-mention-minus-superseded construction gap, bootstrapped directly within history, is 3.565 nats (95% CI [2.806, 4.286]) for Qwen without the marker and 2.228 [1.727, 2.769] with it. For Gemma the corresponding gaps are 0.683 [0.435, 0.951] and 0.807 [0.547, 1.075]. These average gaps do not hold uniformly across order cells: for Gemma without the marker, reversed-order entity-mention R is 2.275 versus 2.445 for superseded. Per-history differences and the bootstrap inputs are preserved in `paper/data/exp2_marker_history_estimates.csv`.
+
 The Qwen interaction agrees in direction with its exploratory pilot. Gemma's inconclusive overall pilot interaction remains inconclusive in confirmation; its pilot aligned-stratum interaction does not persist as a clear difference in the 24-history confirmation. Pilot histories are not pooled with confirmation.
 
 ## R and its source/replacement decomposition

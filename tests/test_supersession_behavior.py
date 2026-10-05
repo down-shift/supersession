@@ -39,7 +39,7 @@ class WordTokenizer:
 
 
 def scoring_stub():
-    import torch
+    torch = pytest.importorskip("torch")
     class ScoringStub:
         def __init__(self):
             self.calls = 0

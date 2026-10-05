@@ -133,6 +133,156 @@ def generate_marker(stage='pilot', n_histories=2, seed=20261004, excluded_signat
     return rows
 
 
+# --- Name-value distance experiment (docs/distance_v1.md) -----------------------------------------
+DISTANCE_VERSION = 'relational_followups_distance_v1'
+DISTANCES = ('near', 'far')
+DISTANCE_PAIRS = (('Nora', 'Liam'), ('Ava', 'Omar'), ('Mila', 'Eli'), ('Iris', 'Noah'), ('Zoe', 'Theo'), ('Maya', 'Leo'))
+DISTANCE_ATTRIBUTES = ('badge', 'color', 'code', 'label')
+DISTANCE_TEMPLATES = {
+    ('superseded', 'far'): "Previously, {entity}'s {attribute} was {value}.",
+    ('entity_mention', 'near'): 'Previously, {entity} mentioned {value} in an unrelated note.',
+    ('entity_mention', 'far'): 'Previously, {entity}, in an unrelated note, mentioned {value}.',
+}
+# Candidate near superseded templates, in preference order; one is chosen by the recorded
+# tokenizer-audit rule before scoring (scripts/followups.py distance-audit).
+SUPERSEDED_NEAR_CANDIDATES = (
+    "Previously, {entity}'s {attribute}: {value}.",
+    "Previously, {entity}'s {attribute} = {value}.",
+    "Previously, {entity}'s {attribute}, {value}.",
+    # Amendment 1 (docs/distance_v1.md), recorded before generation: the three above leave the
+    # measured name-value distance unchanged; this one moves the name next to the value.
+    "Previously, the {attribute} of {entity} was {value}.",
+)
+
+
+def distance_templates(superseded_near):
+    if superseded_near not in SUPERSEDED_NEAR_CANDIDATES:
+        raise ValueError('near superseded template must be one of the recorded candidates')
+    return {**DISTANCE_TEMPLATES, ('superseded', 'near'): superseded_near}
+
+
+def distance_allocation(n_histories):
+    """v2 allocation: entity pair x attribute x name orientation, equal counts per cell."""
+    cells = list(product(range(len(DISTANCE_PAIRS)), range(len(DISTANCE_ATTRIBUTES)), (0, 1)))
+    if n_histories % len(cells):
+        raise ValueError(f'distance histories must be a multiple of {len(cells)}')
+    return [cells[i % len(cells)] for i in range(n_histories)]
+
+
+def generate_distance(stage='confirmatory', n_histories=96, seed=20261105, superseded_near=None,
+                      excluded_signatures=None):
+    if stage not in ('pilot', 'confirmatory'):
+        raise ValueError('invalid distance stage')
+    templates = distance_templates(superseded_near)
+    used = set(excluded_signatures or ())
+    rows = []
+    for index, (pair, attribute_index, orientation) in enumerate(distance_allocation(n_histories)):
+        entities = list(DISTANCE_PAIRS[pair])[::(-1 if orientation else 1)]
+        attribute = DISTANCE_ATTRIBUTES[attribute_index]
+        stage_seed = seed + STAGE_OFFSETS[stage]
+        for attempt in range(10000):
+            rng = random.Random(stage_seed + index * 7919 + attempt * 104729)
+            values = rng.sample(VALUES, 6)
+            current = dict(zip(entities, values[:2]))
+            historical = dict(zip(entities, values[2:4]))
+            signature = physical_history_signature(entities, attribute, current, historical)
+            if signature not in used:
+                used.add(signature)
+                break
+        else:
+            raise ValueError(f'could not draw a fresh distance history {index}')
+        h = {'history_id': f'{DISTANCE_VERSION}:{stage}:{index:04d}', 'history_index': index, 'seed': stage_seed,
+             'stage': stage, 'entities': entities, 'attribute': attribute, 'entity_pair': pair,
+             'orientation': orientation, 'current_values': current, 'historical_values': historical,
+             'replacement_values': dict(zip(entities, values[4:6])), 'distractor_assignments': {},
+             'n_distractors': 0, 'history_signature': signature, 'target_history_signature': signature,
+             'history_attempt': attempt, 'superseded_near_template': superseded_near}
+        for historical_order, current_order, construction, distance, edited_variable, query_variable, edited in product(
+                (0, 1), (0, 1), ('superseded', 'entity_mention'), DISTANCES, ('x', 'z'), ('x', 'z'), (0, 1)):
+            old_order = entities if historical_order == 0 else entities[::-1]
+            now_order = entities if current_order == 0 else entities[::-1]
+            template = templates[(construction, distance)]
+            history_lines = [template.format(entity=e, attribute=attribute, value=historical[e]) for e in old_order]
+            current_lines = [f"Currently, {e}'s {attribute} is {current[e]}." for e in now_order]
+            query_entity = entities[('x', 'z').index(query_variable)]
+            body = '\n'.join([*history_lines, *current_lines,
+                f"What is {query_entity}'s current {attribute}?",
+                'Respond with only the value, with no explanation.'])
+            edited_entity = entities[('x', 'z').index(edited_variable)]
+            source, replacement = historical[edited_entity], h['replacement_values'][edited_entity]
+            rendered = body.replace(source, replacement, 1) if edited else body
+            rows.append({**h, 'condition': construction, 'distance': distance, 'marker': 1,
+                'historical_order': historical_order, 'current_order': current_order,
+                'edited_variable': edited_variable, 'query_variable': query_variable,
+                'edited': edited, 'source_value': source, 'replacement_value': replacement,
+                'query_entity': query_entity, 'answer': current[query_entity],
+                'stale_value': (replacement if edited and edited_variable == query_variable else
+                    historical[query_entity]) if construction == 'superseded' else None,
+                'candidate_values': list(VALUES), 'prompt': rendered,
+                'example_id': f"{h['history_id']}:{construction}:{distance}:h{historical_order}:c{current_order}:v{edited_variable}:q{query_variable}:e{edited}"})
+    validate_distance_dataset(rows)
+    return rows
+
+
+def distance_required_cells():
+    return set(product(('superseded', 'entity_mention'), DISTANCES, (0, 1), (0, 1), ('x', 'z'), ('x', 'z'), (0, 1)))
+
+
+def validate_distance_dataset(rows):
+    if not rows:
+        raise ValueError('empty distance dataset')
+    if len({r.get('stage') for r in rows}) != 1:
+        raise ValueError('distance dataset has mixed stage labels')
+    if len({r.get('superseded_near_template') for r in rows}) != 1:
+        raise ValueError('distance dataset mixes near superseded templates')
+    templates = distance_templates(rows[0]['superseded_near_template'])
+    cells, ids, signatures, histories = defaultdict(set), set(), set(), {}
+    pairs = defaultdict(dict)
+    for row in rows:
+        hid = row['history_id']
+        signature = physical_history_signature(row['entities'], row['attribute'], row['current_values'],
+                                               row['historical_values'])
+        if signature != row['history_signature'] or row.get('candidate_values') != VALUES:
+            raise ValueError('distance history signature or candidate set mismatch')
+        if hid not in histories:
+            if signature in signatures:
+                raise ValueError('duplicate physical distance history')
+            histories[hid] = signature
+            signatures.add(signature)
+        cell = (row['condition'], row['distance'], row['historical_order'], row['current_order'],
+                row['edited_variable'], row['query_variable'], row['edited'])
+        if cell not in distance_required_cells() or cell in cells[hid] or row['example_id'] in ids:
+            raise ValueError('duplicate or unexpected distance factorial cell')
+        cells[hid].add(cell); ids.add(row['example_id'])
+        lines = row['prompt'].split('\n')
+        if any(not line.startswith('Previously, ') for line in lines[:2]):
+            raise ValueError('every distance historical line carries the marker')
+        if not row['edited']:
+            order = row['entities'] if row['historical_order'] == 0 else row['entities'][::-1]
+            template = templates[(row['condition'], row['distance'])]
+            expected = [template.format(entity=e, attribute=row['attribute'], value=row['historical_values'][e])
+                        for e in order]
+            if lines[:2] != expected:
+                raise ValueError('distance historical line differs from its template')
+        pairs[(hid,) + cell[:-1]][row['edited']] = row
+    if any(c != distance_required_cells() for c in cells.values()):
+        raise ValueError('incomplete distance factorial')
+    for members in pairs.values():
+        if set(members) != {0, 1}:
+            raise ValueError('distance pair missing a baseline or edited member')
+        base, edit = members[0], members[1]
+        source, donor = base['source_value'], base['replacement_value']
+        if base['answer'] != edit['answer'] or source == donor:
+            raise ValueError('distance edit changed the answer or reused the source')
+        b, e = base['prompt'], edit['prompt']
+        if b.count(source) != 1 or e.count(donor) != 1:
+            raise ValueError('distance edit value must occur exactly once in its paired prompt')
+        bi, ei = b.index(source), e.index(donor)
+        if b[:bi] != e[:ei] or b[bi+len(source):] != e[ei+len(donor):]:
+            raise ValueError('distance paired histories differ beyond the edited value')
+    return {'n_histories': len(histories), 'n_members': len(rows), 'status': 'passed'}
+
+
 def marker_required_cells():
     return set(product(('superseded', 'entity_mention'), (0, 1), (0, 1), (0, 1),
                        ('x', 'z'), ('x', 'z'), (0, 1)))
@@ -387,39 +537,41 @@ def _bootstrap(values):
             'ci95_history_bootstrap': [float(v) for v in np.quantile(draws, [.025, .975])]}
 
 
-def analyze_marker(rows, scores):
-    """Compute v2-style E/R plus marker factorial contrasts from saved masses."""
-    validate_marker_dataset(rows)
+def _factorial_history_rows(rows, scores, factor, levels, tag):
+    """v2-style E/R per history for a construction x two-level factor design.
+
+    `factor` names the row field crossed with construction; `tag(level)` gives its key fragment.
+    Returns (edit_effect_rows, history_rows) with R, R_replacement_component and
+    R_source_component for every construction, factor level and order group.
+    """
     expected = {r['example_id']: r for r in rows}
     actual = {r['example_id']: r for r in scores}
     if len(expected) != len(rows) or len(actual) != len(scores) or expected.keys() != actual.keys():
-        raise ValueError('marker dataset/score IDs are duplicated or incomplete')
+        raise ValueError(f'{factor} dataset/score IDs are duplicated or incomplete')
     effects = defaultdict(dict)
+    pair_rows = {}
     for eid, row in expected.items():
         score = actual[eid]
         if any(score.get(k) != v for k, v in row.items()):
-            raise ValueError(f'marker score metadata mismatch at {eid}')
+            raise ValueError(f'{factor} score metadata mismatch at {eid}')
         masses = score.get('semantic_log_mass')
         if (not isinstance(masses, dict) or set(masses) != set(VALUES)
                 or not np.isfinite(list(masses.values())).all()):
             raise ValueError('complete v2 semantic candidate masses required')
-        cell = (row['history_id'], row['condition'], row['marker'], row['historical_order'], row['current_order'],
+        cell = (row['history_id'], row['condition'], row[factor], row['historical_order'], row['current_order'],
                 row['edited_variable'], row['query_variable'])
         direction = row['edited']
         if direction in effects[cell]:
-            raise ValueError('duplicate marker edit direction')
+            raise ValueError(f'duplicate {factor} edit direction')
         effects[cell][direction] = masses
+        pair_rows.setdefault(cell, {})[direction] = row
     e_rows = {}
     for cell, directions in effects.items():
         if set(directions) != {0, 1}:
-            raise ValueError('incomplete marker baseline/edit pair')
-        hid, cond, marker, ho, co, variable, query = cell
-        source = expected[next(r['example_id'] for r in rows if
-            (r['history_id'], r['condition'], r['marker'], r['historical_order'], r['current_order'],
-             r['edited_variable'], r['query_variable']) == cell and r['edited'] == 0)]['source_value']
-        replacement = next(r['replacement_value'] for r in rows if
-            (r['history_id'], r['condition'], r['marker'], r['historical_order'], r['current_order'],
-             r['edited_variable'], r['query_variable']) == cell)
+            raise ValueError(f'incomplete {factor} baseline/edit pair')
+        hid = cell[0]
+        source = pair_rows[cell][0]['source_value']
+        replacement = pair_rows[cell][0]['replacement_value']
         before, after = directions[0], directions[1]
         # E = delta(replacement) - delta(source), retaining both components.
         replacement_component = after[replacement] - before[replacement]
@@ -430,9 +582,9 @@ def analyze_marker(rows, scores):
             'E_replacement_component': replacement_component,
             'E_source_component': source_component}
     by_history = defaultdict(dict)
-    for (hid, cond, marker, ho, co, variable, query), e in e_rows.items():
+    for (hid, cond, level, ho, co, variable, query), e in e_rows.items():
         order = 'aligned' if ho == co else 'reversed'
-        key = (cond, marker, order, variable, query)
+        key = (cond, level, order, variable, query)
         if key in by_history[hid]:
             prior = by_history[hid][key]
             for metric in ('E', 'E_replacement_component', 'E_source_component'):
@@ -442,34 +594,62 @@ def analyze_marker(rows, scores):
     history_rows = []
     for hid, cells in sorted(by_history.items()):
         out = {'history_id': hid}
-        for cond, marker, order in product(('superseded', 'entity_mention'), (0, 1), ('all', 'aligned', 'reversed')):
+        for cond, level, order in product(('superseded', 'entity_mention'), levels, ('all', 'aligned', 'reversed')):
             def cell_value(variable, query, metric):
                 selected = [values[metric] for (c, m, o, v, q), values in cells.items()
-                            if c == cond and m == marker and v == variable and q == query and (order == 'all' or o == order)]
+                            if c == cond and m == level and v == variable and q == query and (order == 'all' or o == order)]
                 if not selected:
-                    raise ValueError(f'missing marker query/edit cell: {cond}/{marker}/{order}/{variable}/{query}')
+                    raise ValueError(f'missing {factor} query/edit cell: {cond}/{level}/{order}/{variable}/{query}')
                 return float(np.mean([np.mean(v) for v in selected]))
             for metric in ('E', 'E_replacement_component', 'E_source_component'):
                 r_x = cell_value('x', 'x', metric) - cell_value('x', 'z', metric)
                 r_z = cell_value('z', 'z', metric) - cell_value('z', 'x', metric)
                 r_metric = metric.replace('E', 'R', 1)
-                out[f'{cond}_m{marker}_{order}_{r_metric}'] = .5 * (r_x + r_z)
+                out[f'{cond}_{tag(level)}_{order}_{r_metric}'] = .5 * (r_x + r_z)
+        history_rows.append(out)
+    edit_effect_rows = [{'history_id': hid, 'condition': cond, factor: level,
+        'historical_order': ho, 'current_order': co, 'edited_variable': variable,
+        'query_variable': query, **{metric: float(row[metric]) for metric in
+        ('E', 'E_replacement_component', 'E_source_component')}}
+        for (hid, cond, level, ho, co, variable, query), row in sorted(e_rows.items())]
+    return edit_effect_rows, history_rows
+
+
+def _factorial_result(edit_effect_rows, history_rows):
+    metric_names = [k for k in history_rows[0] if k != 'history_id']
+    return {'edit_effect_rows': edit_effect_rows, 'history_rows': history_rows,
+            'summary': {k: _bootstrap([r[k] for r in history_rows]) for k in metric_names},
+            'bootstrap': BOOTSTRAP,
+            'estimand': 'v2 bounded surface-class continuation mass; history-level E then symmetric query-specific R'}
+
+
+def analyze_marker(rows, scores):
+    """Compute v2-style E/R plus marker factorial contrasts from saved masses."""
+    validate_marker_dataset(rows)
+    edit_effect_rows, history_rows = _factorial_history_rows(rows, scores, 'marker', (0, 1), lambda m: f'm{m}')
+    for out in history_rows:
         for order in ('all', 'aligned', 'reversed'):
             for cond in ('superseded', 'entity_mention'):
                 out[f'{cond}_marker_effect_{order}'] = out[f'{cond}_m1_{order}_R'] - out[f'{cond}_m0_{order}_R']
             out[f'marker_by_construction_interaction_{order}'] = (
                 out[f'superseded_marker_effect_{order}'] - out[f'entity_mention_marker_effect_{order}'])
-        history_rows.append(out)
-    metric_names = [k for k in history_rows[0] if k != 'history_id']
-    edit_effect_rows = [{'history_id': hid, 'condition': cond, 'marker': marker,
-        'historical_order': ho, 'current_order': co, 'edited_variable': variable,
-        'query_variable': query, **{metric: float(row[metric]) for metric in
-        ('E', 'E_replacement_component', 'E_source_component')}}
-        for (hid, cond, marker, ho, co, variable, query), row in sorted(e_rows.items())]
-    return {'edit_effect_rows': edit_effect_rows, 'history_rows': history_rows,
-            'summary': {k: _bootstrap([r[k] for r in history_rows]) for k in metric_names},
-            'bootstrap': BOOTSTRAP,
-            'estimand': 'v2 bounded surface-class continuation mass; history-level E then symmetric query-specific R'}
+    return _factorial_result(edit_effect_rows, history_rows)
+
+
+def analyze_distance(rows, scores):
+    """E/R for the name-value distance experiment; contrasts as prespecified in docs/distance_v1.md."""
+    validate_distance_dataset(rows)
+    edit_effect_rows, history_rows = _factorial_history_rows(rows, scores, 'distance', DISTANCES, lambda d: d)
+    for out in history_rows:
+        for order in ('all', 'aligned', 'reversed'):
+            for cond in ('superseded', 'entity_mention'):
+                out[f'{cond}_distance_effect_{order}'] = out[f'{cond}_near_{order}_R'] - out[f'{cond}_far_{order}_R']
+            out[f'distance_by_construction_interaction_{order}'] = (
+                out[f'superseded_distance_effect_{order}'] - out[f'entity_mention_distance_effect_{order}'])
+            for distance in DISTANCES:
+                out[f'construction_gap_{distance}_{order}'] = (
+                    out[f'entity_mention_{distance}_{order}_R'] - out[f'superseded_{distance}_{order}_R'])
+    return _factorial_result(edit_effect_rows, history_rows)
 
 
 def analyze_harder(rows, scores):

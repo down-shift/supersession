@@ -1,10 +1,10 @@
 # Paper claims and evidence limits
 
-This document fixes the intended claim hierarchy for *Supersession Without Erasure*. Results are model- and protocol-specific; a competence-gate pass alone is not causal evidence.
+This document records claim boundaries across the project's distinct protocols. The current LaTeX manuscript is *What a Stale Value Still Does: Mention Structure and Order Explain Score Sensitivity After In-Context Updates* (`paper/main.tex`); its primary story is the relational/order v2 comparison and the separate marker confirmation. Earlier v1 and mechanistic results remain protocol-specific context and are not pooled with v2.
 
 ## Primary claim
 
-In the tested `cross_model_v1` construction, Qwen3-8B shows query-specific causal sensitivity to an obsolete value occurrence, exceeding the particular counterbalanced unassigned-value control. That evidence does not isolate an obsolete entity–attribute relation from entity association and position-by-query interactions. The completed relational/order v2 follow-up does not support relation-selective supersession under its prespecified three-control rule: in both Qwen3-8B and Gemma 3 4B, the entity-mention control has greater relevance than the superseded condition. The supported claim remains sensitivity to obsolete value occurrences in the tested constructions, with relational specificity unestablished.
+In relational/order v2, matched edits causally change bounded candidate scores, and query-specific score sensitivity varies across the tested prompt constructions and orders. The prespecified three-control relation-selective hypothesis failed because entity-mention relevance exceeds superseded relevance in both Qwen3-8B and Gemma 3 4B. Unassigned-value relevance reverses sign across order groups in both models, while the entity-mention order effect has opposite directions across models. The order-averaged superseded-minus-other-attribute contrast is small relative to the entity-mention contrast, but Qwen's attribute-specific relation contrasts vary in sign. These results show that the score measure is construction- and order-sensitive; they do not decompose independent contributions or identify an internal obsolete-binding mechanism. The separate marker confirmation supports an effect of adding the explicit `Previously` prefix on measured query-specific score sensitivity, not active suppression.
 
 The newer Qwen `cross_model_v1` run estimates `R_superseded - R_irrelevant_counterbalanced = 3.50` nats (95% history-bootstrap CI `[3.20, 3.80]`), positive in 94/96 histories. Gemma's corresponding estimate is 1.76 nats (CI `[1.51, 2.03]`; 88/96 positive), and Phi's is 5.53 nats (CI `[5.27, 5.79]`; 96/96 positive). These model-specific results support the narrow value-occurrence claim above. The older 4.52-logit result is discussed only as provenance-limited historical context below; single-token logits and bounded continuation mass are different estimands and must not be combined or treated as numerically interchangeable.
 
@@ -56,3 +56,79 @@ Gemma 3 4B failed its frozen downstream-transfer competence gate at 45/48 (93.75
 - The downstream-transfer result is one Qwen3-8B task/protocol result. Candidate-sequence preference is not the same measure as unrestricted answer generation.
 - Do not infer a dedicated circuit, suppression mechanism, or homologous heads from behavioral effects or qualitative patching localization.
 - The original exact-token Mistral and Phi gates remain failed; the later `cross_model_v1` Phi pass and Mistral failure have their own protocol status and do not rewrite those records.
+
+## Amendment 2026-10-04: thesis of the TMLR revision
+
+Appended, not rewritten; the sections above stay as recorded. Approved by the human with the P0
+sign-off on 2026-10-04. This amendment sets the claim the revised paper (`paper/`) is organized
+around. It narrows the reading of the primary claim above: the query-specific sensitivity measured
+for superseded values is real, but it is **not specific to obsolete assignments**.
+
+**Thesis.** Query-specific score sensitivity to a historical value is governed by surface
+association — mention construction, relative position, and temporal marking — and only weakly by
+whether the value was ever assigned to the queried attribute.
+
+**Evidence** (relational/order v2 confirmation, 96 histories, and the 24-history marker × construction
+confirmation; means with 95% history-bootstrap intervals, nats, per model, never pooled):
+
+| Component | Comparison | Qwen3-8B | Gemma 3 4B |
+|---|---|---:|---:|
+| Relation status | R superseded − R other attribute | 0.314 [0.147, 0.482] | 0.004 [−0.104, 0.118] |
+| Construction | R superseded − R entity mention | −3.504 [−3.806, −3.198] | −2.589 [−2.829, −2.361] |
+| Position | R early unassigned, aligned / reversed | 3.252 [3.046, 3.455] / −3.327 [−3.518, −3.150] | 2.598 [2.395, 2.798] / −2.372 [−2.567, −2.178] |
+| Temporal marker | R present − R absent, superseded / entity mention | −0.750 [−0.917, −0.590] / −2.087 [−2.410, −1.772] | −1.085 [−1.308, −0.864] / −0.960 [−1.183, −0.727] |
+
+**Limits on how the thesis may be stated.**
+
+- Say "only weakly", not "not by": Qwen's relation-status interval excludes zero, and its
+  per-attribute estimates range from −0.570 (code) to 0.876 (color).
+- The relation-status contrast combines two properties: the value was the queried attribute, and
+  it is contradicted by the current state. Other-attribute values are never updated. The contrast
+  does not separate the two.
+- The marker result rests on 24 histories with one entity pair (Nora/Liam) and one attribute
+  (badge); state that scope wherever the marker claim appears.
+- The construction gap persists without the marker (marker-absent R: entity mention 7.304 vs
+  superseded 3.738 in Qwen; 3.313 vs 2.631 in Gemma). Name–value proximity is a hypothesis, not a
+  finding.
+- All of this concerns bounded candidate-prefix scores at ceiling competence. In the distractor
+  development runs, no superseded prompt (1,152 per model) was answered with the earlier value.
+  Effects on generated answers below ceiling are untested.
+- Behavioral evidence only: no binding mechanism, suppression, or internal representation is
+  claimed. The "positional association" reading describes prompt-level behavior.
+
+### Addendum 2026-10-05: paired order effects
+
+Computed from the sealed v2 confirmation scores (`extended_analysis_v6/*/per_history.csv`, rebuilt
+read-only and hash-verified) with the frozen history bootstrap; secondary and exploratory, like all
+paired aligned-minus-reversed estimates. Values and input hashes: `paper/figures/decomposition_estimates.json`.
+
+| R aligned − R reversed | Qwen3-8B | Gemma 3 4B |
+|---|---:|---:|
+| Early unassigned | 6.578 [6.356, 6.789] | 4.970 [4.700, 5.257] |
+| Late unassigned | 6.371 [6.113, 6.646] | 6.639 [6.308, 6.967] |
+| Superseded | 0.340 [0.218, 0.470] | 0.032 [−0.101, 0.168] |
+
+Position governs never-assigned values; explicit assignment nearly removes the order effect.
+
+## Amendment 2026-10-05: calibrated thesis (human decision)
+
+Appended. After the overnight follow-ups and the collaborator's `dev`-branch revision (which withdrew
+the 2026-10-04 thesis), the human chose a **calibrated thesis** for the paper:
+
+> Query-specific score sensitivity to a historical value depends far more on how and where the value
+> is mentioned than on whether it was ever assigned to the queried attribute; the directions of the
+> finer order and marker effects differ between models.
+
+It supersedes the wording of the 2026-10-04 amendment ("governed by surface association … only
+weakly by …"). Limits, in addition to those listed there:
+
+- Shared across models: relation status small on average; entity mention > superseded on average;
+  never-assigned values credited by position. Model-specific: entity-mention order effect (Qwen
+  −1.969, Gemma +1.810), marker × construction interaction (Qwen 1.082 [0.850, 1.308], Gemma
+  0.125 [−0.012, 0.265] at 96 histories; Phi −1.500 exploratory), Gemma's reversed-order
+  marker-absent construction gap (−0.175 [−0.357, 0.011]).
+- Name–value proximity does **not** explain the construction gap (docs/distance_v1.md); do not
+  present it as an explanation.
+- Ceiling: neither distractors nor update chains (docs/chain_v1.md) lowered answer accuracy; no
+  generated-answer claim. OLMo-2-7B is below ceiling but failed the screen; Phi-4-mini results are
+  descriptive or exploratory only.

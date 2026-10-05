@@ -1,0 +1,247 @@
+{
+  "bootstrap": "history; 2,000 draws; seed 73021",
+  "sources": {
+    "exp2_marker96_history_estimates.csv": "7b9c33f37e7665889bcdb9af1cd00585136e44dbb90db234717701fba84642ea",
+    "chain_history_estimates.csv": "5ae8d3a58bff661fa98fa12d57b502208ca8e1e75bcc0ebad4d9508d39bf7798"
+  },
+  "estimates": {
+    "exp2_marker96_history_estimates.csv": {
+      "Gemma 3 4B": {
+        "entity_minus_superseded_marker0_all": {
+          "mean": 0.9076315458610787,
+          "ci95": [
+            0.7826382153495808,
+            1.0342198801597584
+          ],
+          "n_histories": 96
+        },
+        "entity_minus_superseded_marker1_all": {
+          "mean": 0.782394058801013,
+          "ci95": [
+            0.6733411875276216,
+            0.8936336341470363
+          ],
+          "n_histories": 96
+        },
+        "entity_minus_superseded_marker0_aligned": {
+          "mean": 1.9899282300873171,
+          "ci95": [
+            1.8258821604013153,
+            2.145250048238147
+          ],
+          "n_histories": 96
+        },
+        "entity_minus_superseded_marker0_reversed": {
+          "mean": -0.17466513836515932,
+          "ci95": [
+            -0.3571872166080689,
+            0.010744791096924508
+          ],
+          "n_histories": 96
+        },
+        "R_superseded_marker0_reversed": {
+          "mean": 2.3661725694141507,
+          "ci95": [
+            2.1681731719330886,
+            2.5768894310096844
+          ],
+          "n_histories": 96
+        },
+        "R_entity_mention_marker0_reversed": {
+          "mean": 2.1915074310489913,
+          "ci95": [
+            2.018829480658179,
+            2.3774608759136355
+          ],
+          "n_histories": 96
+        },
+        "marker_interaction_all": {
+          "mean": 0.1252374870600658,
+          "ci95": [
+            -0.012476133417786557,
+            0.2649290611551323
+          ],
+          "n_histories": 96
+        }
+      },
+      "Qwen3-8B": {
+        "entity_minus_superseded_marker0_all": {
+          "mean": 3.058780228838881,
+          "ci95": [
+            2.758382586203519,
+            3.370401651053338
+          ],
+          "n_histories": 96
+        },
+        "entity_minus_superseded_marker1_all": {
+          "mean": 1.9763556097354726,
+          "ci95": [
+            1.7952587884756663,
+            2.169190246110675
+          ],
+          "n_histories": 96
+        },
+        "entity_minus_superseded_marker0_aligned": {
+          "mean": 1.78759913745526,
+          "ci95": [
+            1.5291773765833057,
+            2.0500056236712636
+          ],
+          "n_histories": 96
+        },
+        "entity_minus_superseded_marker0_reversed": {
+          "mean": 4.329961320222503,
+          "ci95": [
+            3.9314279271738495,
+            4.747512519022796
+          ],
+          "n_histories": 96
+        },
+        "R_superseded_marker0_reversed": {
+          "mean": 3.5886772147149437,
+          "ci95": [
+            3.4257704471398505,
+            3.759654977864122
+          ],
+          "n_histories": 96
+        },
+        "R_entity_mention_marker0_reversed": {
+          "mean": 7.918638534937446,
+          "ci95": [
+            7.547866259330976,
+            8.32755983602615
+          ],
+          "n_histories": 96
+        },
+        "marker_interaction_all": {
+          "mean": 1.0824246191034086,
+          "ci95": [
+            0.8503595750921056,
+            1.3083821364760901
+          ],
+          "n_histories": 96
+        }
+      }
+    },
+    "chain_depth": {
+      "Gemma 3 4B": {
+        "R_depth3": {
+          "mean": 3.4498555419168646,
+          "ci95": [
+            3.228569884487492,
+            3.675717675969273
+          ],
+          "n_histories": 96
+        },
+        "R_depth4": {
+          "mean": 3.462162383922946,
+          "ci95": [
+            3.2582751384507045,
+            3.667018237179833
+          ],
+          "n_histories": 96
+        },
+        "R_depth5": {
+          "mean": 3.7080750957091255,
+          "ci95": [
+            3.4787316029291215,
+            3.9361993434819222
+          ],
+          "n_histories": 96
+        },
+        "R_depth5_minus_depth3": {
+          "mean": 0.2582195537922609,
+          "ci95": [
+            -0.06290214039564875,
+            0.5566796576644643
+          ],
+          "n_histories": [
+            96,
+            96
+          ]
+        },
+        "R_depth4_minus_depth3": {
+          "mean": 0.012306842006081453,
+          "ci95": [
+            -0.2968708589848522,
+            0.3049922243744623
+          ],
+          "n_histories": [
+            96,
+            96
+          ]
+        },
+        "R_depth5_minus_depth4": {
+          "mean": 0.24591271178617946,
+          "ci95": [
+            -0.04959913868552047,
+            0.5520443004550001
+          ],
+          "n_histories": [
+            96,
+            96
+          ]
+        }
+      },
+      "Qwen3-8B": {
+        "R_depth3": {
+          "mean": 7.352706428359329,
+          "ci95": [
+            6.972114844868132,
+            7.724635983371414
+          ],
+          "n_histories": 96
+        },
+        "R_depth4": {
+          "mean": 10.76241895474442,
+          "ci95": [
+            10.302752016748029,
+            11.219906499158869
+          ],
+          "n_histories": 96
+        },
+        "R_depth5": {
+          "mean": 11.834636282763432,
+          "ci95": [
+            11.423516582397939,
+            12.286291234071864
+          ],
+          "n_histories": 96
+        },
+        "R_depth5_minus_depth3": {
+          "mean": 4.481929854404103,
+          "ci95": [
+            3.9151835228456373,
+            5.0468143305912365
+          ],
+          "n_histories": [
+            96,
+            96
+          ]
+        },
+        "R_depth4_minus_depth3": {
+          "mean": 3.409712526385092,
+          "ci95": [
+            2.8346767271929405,
+            3.9685459168647865
+          ],
+          "n_histories": [
+            96,
+            96
+          ]
+        },
+        "R_depth5_minus_depth4": {
+          "mean": 1.0722173280190113,
+          "ci95": [
+            0.4685799247023595,
+            1.6796896537421304
+          ],
+          "n_histories": [
+            96,
+            96
+          ]
+        }
+      }
+    }
+  }
+}

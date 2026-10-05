@@ -1,0 +1,577 @@
+model,depth,history_id,R
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0000,9.785551449161613
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0001,9.26267742210783
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0002,7.506821027116328
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0003,5.319504444349242
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0004,5.920905944630926
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0005,8.722314017584953
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0006,8.710117083924159
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0007,8.668921462634039
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0008,10.623232049592763
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0009,8.004779137653975
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0010,4.4624650981583
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0011,9.184276849103103
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0012,5.374379131996178
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0013,7.95415803609039
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0014,8.24104834346502
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0015,9.581383986168426
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0016,9.842740179120185
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0017,9.839703879382352
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0018,4.481374666512552
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0019,5.11135713785641
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0020,6.007024025131884
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0021,5.043730764112126
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0022,7.297358796678908
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0023,7.0225450630258175
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0024,6.479302882793565
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0025,8.577551832653878
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0026,7.055931035495531
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0027,6.108324229460697
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0028,5.083181199669441
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0029,6.981102698360775
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0030,5.031313423305596
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0031,8.353474242042019
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0032,6.46066903436313
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0033,8.178830445218354
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0034,4.632994047503202
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0035,4.6386979418606025
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0036,5.052631162159129
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0037,4.518869128044337
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0038,5.877951998403349
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0039,6.696066985620389
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0040,12.764373676044286
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0041,10.0518282172996
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0042,7.242849173273486
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0043,6.116832581771891
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0044,5.314484251231809
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0045,6.381632450979508
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0046,7.945373464481985
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0047,10.263945084301753
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0048,8.79560747578515
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0049,7.830204189524619
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0050,6.741097547423311
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0051,7.852429448014303
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0052,8.077811510178186
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0053,6.987986192770187
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0054,10.143154430891165
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0055,9.996477286650087
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0056,8.381905055887685
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0057,6.938608577536454
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0058,6.975681653073916
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0059,6.1446399172601085
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0060,5.145983564264056
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0061,9.317264171860728
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0062,10.40987644725131
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0063,8.22428201391449
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0064,8.727380493434955
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0065,7.9412811520682585
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0066,5.657212300316033
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0067,5.864316410037404
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0068,5.181826409050338
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0069,6.9832651051679955
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0070,6.055583521597799
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0071,7.077645489282263
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0072,11.615983152264787
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0073,9.150406374142271
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0074,5.830238160420164
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0075,8.437214948305364
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0076,6.203240056395552
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0077,5.628163977802803
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0078,6.754128473645579
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0079,7.962532271422284
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0080,7.841330733346156
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0081,7.966809236599227
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0082,3.632092513494161
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0083,6.993332996074029
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0084,5.527691256994385
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0085,4.62839329765376
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0086,9.471243956047921
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0087,8.3693829193857
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0088,9.74152902866319
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0089,9.851195128954348
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0090,5.772479277324038
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0091,6.206864740487683
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0092,4.684399372823955
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0093,7.617324882428571
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0094,8.349201343414702
+Qwen3-8B,3,relational_followups_chain_v1:confirmatory:d3:0095,8.396537479268236
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0000,13.890510869463215
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0001,10.49689690026629
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0002,10.284197845353683
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0003,9.488251356964104
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0004,12.313412025704338
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0005,7.861085945798653
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0006,9.997539154233447
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0007,10.868643464763764
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0008,15.092296145649199
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0009,16.323233540311676
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0010,8.552643290667147
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0011,7.990065058320371
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0012,12.466921612153676
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0013,10.220588265296264
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0014,11.302707385625295
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0015,9.953912913604622
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0016,8.520082236842363
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0017,10.807857889066483
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0018,8.258416696797735
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0019,9.014422569457096
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0020,8.240145294619351
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0021,11.84867087541354
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0022,8.763773240732974
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0023,8.385783313086513
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0024,11.91438697174994
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0025,10.553059273118274
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0026,11.575938848618106
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0027,10.796652075630849
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0028,13.411573304895366
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0029,8.298054536204333
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0030,12.520282848242248
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0031,9.046923106881813
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0032,10.6377404922264
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0033,12.318833338315141
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0034,10.548894875265148
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0035,7.733117137773529
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0036,7.116137363515211
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0037,10.824826032157958
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0038,11.30510111615078
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0039,12.478251573376713
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0040,10.610313814915163
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0041,10.877337037317687
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0042,6.349566741226296
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0043,9.685024924899327
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0044,9.740345754609391
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0045,9.355057204555363
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0046,11.205774178718409
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0047,11.149375233800553
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0048,12.397466266340507
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0049,15.869184086639546
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0050,10.156380689145042
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0051,8.404691383745117
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0052,14.757536855172118
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0053,8.800376233753287
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0054,10.245650548769714
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0055,10.913823072449421
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0056,12.27086310066981
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0057,15.214863330219938
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0058,11.227941558755688
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0059,10.015766453489363
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0060,15.471897699436187
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0061,10.147234998843938
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0062,8.730509740007788
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0063,13.373279669831827
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0064,7.543776980847339
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0065,7.590260290172151
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0066,9.390328193580107
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0067,7.500125256507752
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0068,8.221738844950636
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0069,9.82898623316003
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0070,14.07708388594306
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0071,9.24768342635328
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0072,14.033110693709668
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0073,15.034329474188619
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0074,7.8887388439357675
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0075,10.607426334860666
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0076,10.571239825104719
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0077,11.49282990975186
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0078,10.492990878661066
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0079,13.360304044956052
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0080,8.21807204594228
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0081,10.931891907132007
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0082,6.180814343286328
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0083,11.078258481744907
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0084,9.543304990203659
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0085,10.566407390472765
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0086,13.740612817024232
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0087,9.478694561043003
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0088,10.273418351860524
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0089,11.505465569018758
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0090,8.110372878481384
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0091,11.05175126132562
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0092,12.453813393779814
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0093,15.08186482654563
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0094,14.69324461780035
+Qwen3-8B,4,relational_followups_chain_v1:confirmatory:d4:0095,14.411187741495254
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0000,9.99905060539929
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0001,10.161124983647634
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0002,10.876915355349947
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0003,9.606365262249597
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0004,12.293965284592826
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0005,9.128699286285098
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0006,12.358952667775174
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0007,10.888735463593674
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0008,18.228442028034195
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0009,9.981540931781556
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0010,12.937234665661151
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0011,9.963808204435367
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0012,11.671711074948718
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0013,11.773395164596575
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0014,13.787436210644044
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0015,14.357990311167011
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0016,12.220196625758085
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0017,10.490064937582327
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0018,9.18241076629916
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0019,9.091482079804782
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0020,8.909043385609756
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0021,10.08252750094774
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0022,11.081762676363217
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0023,14.003600574357051
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0024,10.054781411154202
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0025,12.638723237683262
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0026,15.982524976794469
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0027,12.86029918197557
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0028,16.458252763954384
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0029,13.056770426357211
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0030,10.799149261805916
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0031,11.44151855341687
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0032,12.03566755965286
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0033,9.210855218871279
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0034,9.01225389092593
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0035,8.308660830957127
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0036,9.100093687711748
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0037,11.704201446166593
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0038,10.359378501597915
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0039,13.367200806547604
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0040,12.808154827295368
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0041,13.062522476797781
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0042,13.15530583090872
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0043,10.428324921479888
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0044,12.520427529901372
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0045,12.50857640684938
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0046,9.719727519077042
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0047,12.45606480978302
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0048,11.204019758783012
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0049,11.647365039787493
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0050,8.800429406022205
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0051,14.826052642681677
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0052,8.92922512238579
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0053,13.194813872847117
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0054,11.339621256006385
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0055,10.903326883214815
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0056,13.930544694162528
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0057,15.095808674286236
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0058,13.901131796198245
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0059,14.9052964070635
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0060,12.618922457637305
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0061,10.161600631379965
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0062,10.220688380950183
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0063,16.434036466684354
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0064,11.071897587992954
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0065,12.672747572470012
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0066,12.464230647403706
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0067,11.30467021261845
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0068,9.260135453952483
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0069,10.073939612208337
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0070,10.351087548099773
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0071,12.225666574682208
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0072,16.072855103837412
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0073,12.371764495760136
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0074,13.898321573194028
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0075,13.678171591058792
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0076,11.521802251758025
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0077,10.575752302083176
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0078,12.487369731392146
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0079,11.390063560609304
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0080,12.681927425510185
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0081,12.723878236115526
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0082,13.631854314601188
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0083,12.834650831873121
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0084,8.123079890209821
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0085,8.781236160109568
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0086,10.824932633631263
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0087,12.958631434307806
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0088,11.680802067745823
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0089,11.934188781540154
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0090,9.314645740645204
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0091,14.183594194260532
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0092,12.306471040769138
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0093,14.49520047529429
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0094,8.482121303333408
+Qwen3-8B,5,relational_followups_chain_v1:confirmatory:d5:0095,15.50861718158127
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0000,5.498341005533115
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0001,2.888342678122432
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0002,2.68861460165089
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0003,2.7704185506676975
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0004,4.089928598187488
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0005,4.809960087411074
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0006,3.96198770346241
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0007,2.754230277431062
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0008,3.4404295068973805
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0009,1.6184478715590844
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0010,1.863572703210673
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0011,3.8719249987166586
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0012,2.2429080143571936
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0013,4.309990435733482
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0014,3.595606531107907
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0015,3.5482654710870154
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0016,2.2759886399660365
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0017,3.3576811477735045
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0018,3.825044862097627
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0019,3.410216649963525
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0020,3.9369537290530983
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0021,2.3268747517400636
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0022,4.158022398152861
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0023,4.157725656556563
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0024,1.8891441743678508
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0025,2.0027635915385393
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0026,3.0851902089041054
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0027,2.0368501548210656
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0028,5.38333933161221
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0029,4.790386442370815
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0030,4.0849743548660875
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0031,2.8995849316614866
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0032,1.9016483907040707
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0033,2.8223314377004103
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0034,2.2649495161008177
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0035,3.6295323034381086
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0036,3.5593181724939367
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0037,5.102899746173629
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0038,3.585486236368133
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0039,3.7339936893292913
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0040,3.7436220853295823
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0041,1.4873297254778586
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0042,2.8439719439515168
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0043,1.7085376432659385
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0044,4.691624361790485
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0045,3.2292964687170445
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0046,1.6235920675352151
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0047,4.38746077767059
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0048,3.2691652670760902
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0049,3.2225166519101345
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0050,3.7743882537943696
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0051,3.9722604954057252
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0052,5.110760669842199
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0053,6.303723525380028
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0054,5.563916615251392
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0055,4.120280259863236
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0056,4.1730165332905855
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0057,1.8099096625839282
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0058,3.9476496292577252
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0059,3.5269559714087837
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0060,5.18107135833203
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0061,3.872643937798694
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0062,3.690549894524282
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0063,1.988404942816603
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0064,2.5436612881253664
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0065,3.7362299538584383
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0066,2.0878126791911242
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0067,3.5722929222167945
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0068,4.312269797362983
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0069,4.533381745378058
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0070,5.236189609304777
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0071,4.167425264085768
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0072,2.550925158056647
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0073,3.854826243967068
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0074,2.3255420096799186
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0075,4.458754141217648
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0076,5.266669636345879
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0077,4.9536171490685685
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0078,5.201324887273824
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0079,3.6617357399803803
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0080,3.0130710573182515
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0081,4.7069722728704715
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0082,2.718027773633316
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0083,3.4202460616094776
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0084,2.7532781000866375
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0085,3.558425955798198
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0086,1.8406924716319626
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0087,3.780140049745469
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0088,2.5951810052171846
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0089,3.3297040416504173
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0090,2.719532892455473
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0091,0.7784986706129118
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0092,2.5427698663318177
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0093,3.2187649443364363
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0094,2.7780038376376135
+Gemma 3 4B,3,relational_followups_chain_v1:confirmatory:d3:0095,3.5536465028066626
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0000,6.140453235284232
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0001,4.0034680603157184
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0002,3.5235486760728025
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0003,4.37955412509381
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0004,4.2220394819535425
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0005,3.0268370237765896
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0006,4.57652917993524
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0007,4.165566940952633
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0008,2.753313444397962
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0009,1.4202365808453266
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0010,3.8021159720325843
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0011,3.667056092538786
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0012,4.344685516267065
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0013,1.7157469024730299
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0014,3.9163976601542956
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0015,4.055868664877808
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0016,2.528557697576746
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0017,3.6878013064893507
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0018,2.5841384184391525
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0019,1.8485122793758562
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0020,4.893515501642801
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0021,3.528371651978522
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0022,3.1379726417542035
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0023,4.128995892847104
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0024,3.7469138400725592
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0025,2.505404560118567
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0026,4.4954707753284815
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0027,3.863165993502997
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0028,4.225791731968182
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0029,2.800569336375596
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0030,4.364954783637108
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0031,2.659253461010927
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0032,2.8763887406775916
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0033,2.2971062256215786
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0034,4.683059519860867
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0035,3.347215353216399
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0036,3.6268491351784213
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0037,4.111622033541661
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0038,4.147113447353446
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0039,3.5776209922491895
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0040,2.9595499341616045
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0041,1.851030153347832
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0042,3.4605256234578547
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0043,3.4903181015059035
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0044,1.543333116095995
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0045,3.066870858509847
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0046,3.6102160047013316
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0047,2.100052676927581
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0048,3.8477275984581536
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0049,2.895308558357752
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0050,1.7960993443309685
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0051,2.0176039453834616
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0052,5.254183002267964
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0053,2.918351137166366
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0054,3.9743967873395483
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0055,3.4875510626521162
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0056,4.020020012703563
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0057,3.315064822138787
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0058,3.93632638275875
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0059,2.0816836720688756
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0060,3.0905268995558925
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0061,4.010318846697366
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0062,3.7045119857402105
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0063,4.243633302633736
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0064,1.4794562593792069
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0065,3.454948112523192
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0066,2.8122944671893286
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0067,3.1937571105513225
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0068,3.784751387208329
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0069,2.91270024777004
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0070,6.472056036234585
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0071,2.96240393507371
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0072,3.3195645814393613
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0073,2.589062956503063
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0074,2.94755444713509
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0075,4.668925321546438
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0076,4.44755616088301
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0077,4.161295496103742
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0078,3.7054873478927597
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0079,3.7815245154080204
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0080,2.8439385871353404
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0081,2.0104185430936603
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0082,2.1933487270323715
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0083,3.943483890725447
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0084,3.071238439565282
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0085,4.426527250181481
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0086,7.007073601469106
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0087,4.758508714771416
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0088,1.279705161893475
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0089,2.344925404447224
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0090,3.0916597263952004
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0091,4.117010290729018
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0092,4.6468402180941535
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0093,3.5587527641767287
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0094,2.7742849385958883
+Gemma 3 4B,4,relational_followups_chain_v1:confirmatory:d4:0095,3.551547509705635
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0000,2.3240189846020307
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0001,2.5608180867654617
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0002,3.6132387638034067
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0003,6.45327282006407
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0004,5.5766844268904325
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0005,6.104631403597012
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0006,3.873129386433142
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0007,5.929458845597624
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0008,4.134458681004521
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0009,3.570565615522172
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0010,5.393792124360336
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0011,3.102565671675434
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0012,2.0273563601277935
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0013,2.9167108568987
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0014,4.93917020104074
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0015,3.9590471178214672
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0016,2.9632540570996437
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0017,1.3899596977852742
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0018,2.8707210117703355
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0019,2.3637205630053666
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0020,2.7989158764324205
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0021,3.804322568819269
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0022,4.764666349504985
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0023,4.709357321499148
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0024,2.8718309829033117
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0025,2.8394527994986523
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0026,6.171114578013081
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0027,3.7103203160692764
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0028,3.58353324308245
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0029,2.360816323502622
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0030,2.9875176105634917
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0031,5.294188809768206
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0032,4.186322621926029
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0033,3.775828062852395
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0034,4.5765171292188604
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0035,4.337556200339019
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0036,3.0393719840174995
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0037,4.362869063575399
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0038,4.306522338684075
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0039,6.727929120830867
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0040,4.507424094639444
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0041,2.1882472552267354
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0042,2.240005838919806
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0043,4.947975715205474
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0044,2.6600111667456012
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0045,3.661013100096583
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0046,3.6113907374083225
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0047,2.8716728306436226
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0048,3.8011051305860395
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0049,5.4072911289461
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0050,5.454882557076751
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0051,3.5073832693003553
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0052,4.320174508745614
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0053,3.046924793754245
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0054,4.564823586455772
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0055,2.6971934614935336
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0056,4.714549275455381
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0057,2.4027724132281967
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0058,3.516047540277637
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0059,4.843597411931949
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0060,3.6315879152055413
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0061,5.263853976441117
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0062,3.6758999779169153
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0063,3.9162953217858942
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0064,3.339355549314314
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0065,1.9687816338823891
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0066,4.467538011647047
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0067,1.9222911886930598
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0068,2.3111918591404423
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0069,2.399452882370006
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0070,4.097670096261602
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0071,4.458634620519075
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0072,3.10373565904873
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0073,1.5836696430409396
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0074,3.3769811603300686
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0075,3.0899479858796504
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0076,4.103580847565196
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0077,4.219385951929938
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0078,3.651788024722027
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0079,3.28781822484394
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0080,3.964500366273795
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0081,3.20554020240667
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0082,3.0016026502071864
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0083,2.1663483119912152
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0084,4.474951752398837
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0085,3.217054339930372
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0086,3.6706121104762186
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0087,5.841073048036147
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0088,3.2558348479247186
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0089,3.4790037333643795
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0090,2.236955674251252
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0091,1.4367316565241848
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0092,4.237746450532148
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0093,4.6672970140068415
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0094,3.383046077499798
+Gemma 3 4B,5,relational_followups_chain_v1:confirmatory:d5:0095,3.627436628611179

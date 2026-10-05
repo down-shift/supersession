@@ -1,0 +1,14 @@
+# docs/models_v2.md — scored with scripts/score_exp1_model.py. Revision pinned 2026-10-05.
+seed: 20261031
+model:
+  id: ibm-granite/granite-3.1-8b-instruct
+  revision: 4009206d5fc95d2e65a7b7633e159d6e97e25d35
+  tokenizer_id: ibm-granite/granite-3.1-8b-instruct
+  tokenizer_revision: 4009206d5fc95d2e65a7b7633e159d6e97e25d35
+  device: cuda
+  dtype: bfloat16
+  quantization: int8
+  device_map: 0
+  require_full_gpu: true
+  chat_template: true
+  attn_implementation: eager

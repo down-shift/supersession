@@ -12,8 +12,20 @@ from pathlib import Path
 import numpy as np
 
 from src.cross_model.followups import (VERSION, analyze_marker, complete_answer_outcome,
-    analyze_harder, generate_harder, generate_marker, choose_difficulty,
-    validate_harder_dataset, validate_marker_dataset)
+    analyze_distance, analyze_harder, generate_harder, generate_marker, choose_difficulty,
+    validate_distance_dataset, validate_harder_dataset, validate_marker_dataset)
+
+from src.cross_model.chains import analyze_chain, validate_chain_dataset
+from src.cross_model.update_control import analyze_update, validate_update_dataset
+
+VALIDATORS = {'marker': validate_marker_dataset, 'harder': validate_harder_dataset,
+              'distance': validate_distance_dataset, 'chain': validate_chain_dataset,
+              'update': validate_update_dataset}
+ANALYSES = {'marker': analyze_marker, 'harder': analyze_harder, 'distance': analyze_distance,
+            'chain': analyze_chain, 'update': analyze_update}
+VALID_STAGES = {'marker': {'pilot', 'confirmatory'}, 'harder': {'pilot', 'development', 'test'},
+                'distance': {'pilot', 'confirmatory'}, 'chain': {'development', 'confirmatory'},
+                'update': {'pilot', 'confirmatory'}}
 from src.cross_model.protocol import VALUES, digest, sealed, write_new, read_sealed
 from src.cross_model.progress import progress
 from src.cross_model.scoring import score_prompt
@@ -140,7 +152,9 @@ def dataset_lineage(dataset, rows, report_path=None):
         # Test exclusions also include the sealed development history set.
         if rows[0]['stage'] != 'test' or not ledger <= exclusions:
             raise ValueError('generation exclusions differ from prior datasets')
-    if rows[0]['stage'] != 'pilot' and not ledger:
+    first_stage_of_new_design = ((rows[0].get('condition') == 'superseded_chain' and rows[0]['stage'] == 'development')
+                                 or rows[0]['history_id'].startswith('relational_followups_update_v1:'))
+    if rows[0]['stage'] != 'pilot' and not ledger and not first_stage_of_new_design:
         raise ValueError('nonpilot dataset has no explicit earlier-history exclusions')
     if any(r['history_signature'] in exclusions or r['target_history_signature'] in exclusions for r in rows):
         raise ValueError('dataset overlaps its explicit earlier-history exclusions')
@@ -157,14 +171,13 @@ def run(args):
     if len(stages) != 1:
         raise ValueError('dataset contains mixed or missing stage labels')
     stage = next(iter(stages))
-    valid_stages = {'marker': {'pilot', 'confirmatory'}, 'harder': {'pilot', 'development', 'test'}}
-    if stage not in valid_stages[args.experiment]:
+    if stage not in VALID_STAGES[args.experiment]:
         raise ValueError(f'{args.experiment} does not define stage {stage!r}')
     if args.experiment == 'harder' and args.mode != 'both':
         raise ValueError('harder experiment requires --mode both (answers and candidate scores)')
-    if args.experiment == 'marker' and args.mode not in ('candidate', 'both'):
-        raise ValueError('marker experiment requires candidate scores')
-    (validate_harder_dataset if args.experiment == 'harder' else validate_marker_dataset)(rows)
+    if args.experiment in ('marker', 'distance', 'update', 'chain') and args.mode not in ('candidate', 'both'):
+        raise ValueError(f'{args.experiment} experiment requires candidate scores')
+    VALIDATORS[args.experiment](rows)
     if args.experiment == 'harder' and stage == 'test':
         if not args.freeze:
             raise ValueError('scoring test histories requires --freeze')
@@ -251,14 +264,16 @@ def run(args):
             prompt = prompts[row['example_id']]
             core = cache.get(prompt)
             if core is None:
-                events = continuations(tokenizer, prompt)
-                if set(events) != set(VALUES):
-                    raise ValueError('candidate continuation map must cover the fixed eight-value vocabulary')
+                candidates = row.get('candidate_values', VALUES)
+                events = continuations(tokenizer, prompt, candidates)
+                if set(events) != set(candidates):
+                    raise ValueError('candidate continuation map must cover the row candidate vocabulary')
                 masses, surfaces, _, _ = score_prompt(model, tokenizer, prompt, events)
                 core = {'semantic_log_mass': masses, 'surface_likelihoods': surfaces}
                 if args.mode == 'both':
                     answer, token_count = _generate(model, tokenizer, prompt, args.max_new_tokens)
-                    outcome = complete_answer_outcome(answer, row['answer'], row.get('stale_value'))
+                    outcome = complete_answer_outcome(answer, row['answer'], row.get('stale_value'),
+                                                      row.get('candidate_values', VALUES))
                     core.update(generated_answer=answer, parsed_answer=outcome['parsed_answer'],
                                 answer_category=outcome['category'], generation_token_count=token_count)
                 cache[prompt] = core
@@ -324,8 +339,7 @@ def analyze(args):
     stages = {r.get('stage') for r in rows}
     if len(stages) != 1 or stages != {args.stage}:
         raise ValueError(f'analysis stage {args.stage!r} does not match dataset stage(s) {sorted(stages)}')
-    valid_stages = {'marker': {'pilot', 'confirmatory'}, 'harder': {'pilot', 'development', 'test'}}
-    if args.stage not in valid_stages[args.experiment]:
+    if args.stage not in VALID_STAGES[args.experiment]:
         raise ValueError(f'{args.experiment} does not define stage {args.stage!r}')
     score_prov_path = Path(args.scores + '.provenance.json')
     if not score_prov_path.exists():
@@ -339,7 +353,7 @@ def analyze(args):
             or fingerprint.get('experiment') != args.experiment
             or fingerprint.get('dataset_sha256') != expected_dataset_hash):
         raise ValueError('score provenance does not authenticate this dataset and score file')
-    result = analyze_marker(rows, scores) if args.experiment == 'marker' else analyze_harder(rows, scores)
+    result = ANALYSES[args.experiment](rows, scores)
     result.update(protocol=VERSION, experiment=args.experiment, stage=args.stage,
                   dataset_sha256=sha256_file(args.dataset), scores_sha256=sha256_file(args.scores),
                   code_sha256=_code_hash(), dataset_seeds=sorted({r['seed'] for r in rows}),
@@ -444,7 +458,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest='command', required=True)
     score = sub.add_parser('score')
-    score.add_argument('--experiment', choices=('marker', 'harder'), required=True)
+    score.add_argument('--experiment', choices=('marker', 'harder', 'distance', 'chain', 'update'), required=True)
     score.add_argument('--mode', choices=('candidate', 'both'), default='both')
     score.add_argument('--config', required=True); score.add_argument('--dataset', required=True)
     score.add_argument('--dataset-report', help='generation report; defaults to DATASET_STEM_report.json')
@@ -452,7 +466,7 @@ def main():
     score.add_argument('--max-new-tokens', type=int, default=32); score.add_argument('--resume', action='store_true')
     score.add_argument('--freeze')
     analysis = sub.add_parser('analyze')
-    analysis.add_argument('--experiment', choices=('marker','harder'), required=True)
+    analysis.add_argument('--experiment', choices=('marker', 'harder', 'distance', 'chain', 'update'), required=True)
     analysis.add_argument('--stage', choices=('pilot','development','test','confirmatory'), required=True)
     analysis.add_argument('--dataset', required=True); analysis.add_argument('--scores', required=True)
     analysis.add_argument('--output', required=True)

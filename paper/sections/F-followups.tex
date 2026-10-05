@@ -1,0 +1,117 @@
+\section{Follow-up experiment details}
+\label{app:followups}
+
+The follow-ups of Section~\ref{sec:followup-design} were run on the RTX 5080 used for the main experiments, with the same pinned checkpoints, int8 configurations, and scoring code. Each design document was hash-stamped on the experiment machine before its data were generated (not committed to version control; Section~\ref{sec:inference}). Artifact hashes are listed in the supplementary material.
+
+\subsection{Name--value distance}
+
+\paragraph{Choice of the near superseded template.} The design listed three near superseded wordings (\lit{Nora's badge: amber}, \lit{Nora's badge = amber}, \lit{Nora's badge, amber}) and a rule choosing the first whose baseline/edit pairs differ only in the edited value's tokens for both tokenizers. A tokenizer audit run before data generation found that all three pass that check but leave the measured name--value gap unchanged (three tokens in Qwen, four in Gemma, as for the far template), so the superseded arm would not have varied distance. Before any data were generated, an amendment added a fourth candidate, \lit{Previously, the badge of Nora was amber.}, and required the chosen template to be measurably nearer than the far template in both tokenizers; the re-run audit chose it, with a gap of one token in both. The amendment was hash-stamped separately.
+
+\paragraph{Data.} 96 histories (Experiment 1's allocation of entity pairs, attributes, and name orientations), excluding all histories of the marker pilot and the 24-history marker run; 12,288 scored prompts per model (9,152 distinct); scoring took 6,472 s (Qwen) and 2,656 s (Gemma). Results are in Table~\ref{tab:distance}; the distance-by-construction interaction (superseded near-minus-far minus entity-mention near-minus-far) was 0.871 [0.703, 1.040] in Qwen and 0.420 [0.291, 0.542] in Gemma.
+
+\subsection{Update chains}
+
+\paragraph{Vocabulary.} Disjoint chains of up to five values per entity plus two donors need twelve values. The design extended the eight-value vocabulary by walking a recorded candidate list in order and keeping each value that is not a substring of another and keeps the candidate continuations valid for both tokenizers; the audit kept the first four candidates, \lit{olive}, \lit{plum}, \lit{navy}, and \lit{rust}.
+
+\paragraph{Development.} 12 histories per depth (32 prompts per history: historical order $\times$ current order $\times$ edited entity $\times$ query $\times$ baseline/edit), greedy decoding with at most 32 new tokens, and the exact-answer parser of Appendix~\ref{app:harder}. Table~\ref{tab:f-chains} reports accuracy, the share of answers naming any earlier value, and $R$ from candidate masses over the twelve values. Every answer was correct for both models at every depth, so the recorded selection rule chose no depth and the confirmation was not generated.
+
+\begin{table}[h]
+\caption{Update-chain development runs (12 histories, 384 generated answers per depth and model). Accuracy is exact-match accuracy of generated answers; ``earlier value'' is the share of answers naming any superseded value; $R$ is mean query relevance from candidate masses.}
+\label{tab:f-chains}
+\begin{center}
+\small
+\begin{tabular}{@{}llrrr@{}}
+\toprule
+Model & Depth & Accuracy & Earlier value & $R$ (nats) \\
+\midrule
+Qwen3-8B & 3 & 384/384 & 0 & 7.940 \\
+Qwen3-8B & 4 & 384/384 & 0 & 10.612 \\
+Qwen3-8B & 5 & 384/384 & 0 & 12.040 \\
+\midrule
+Gemma 3 4B & 3 & 384/384 & 0 & 3.345 \\
+Gemma 3 4B & 4 & 384/384 & 0 & 3.289 \\
+Gemma 3 4B & 5 & 384/384 & 0 & 3.674 \\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{table}
+
+\paragraph{Candidate-score run.} Because no depth qualified for a generation confirmation, a second run scored candidate masses only on 96 fresh histories per depth (dataset seed 20261110; development histories excluded). Table~\ref{tab:f-chains96} gives $R$ by depth and the depth differences, compared across independent history sets by resampling each set separately.
+
+\begin{table}[h]
+\caption{Update chains, candidate-score run (96 histories per depth). $R$ in nats with 95\% history-bootstrap intervals; depth differences use independent-set bootstrap intervals.}
+\label{tab:f-chains96}
+\begin{center}
+\small
+\begin{tabular}{@{}lrr@{}}
+\toprule
+ & Qwen3-8B & Gemma 3 4B \\
+\midrule
+$R$, depth 3 & 7.353 [6.972, 7.725] & 3.450 [3.229, 3.676] \\
+$R$, depth 4 & 10.762 [10.303, 11.220] & 3.462 [3.258, 3.667] \\
+$R$, depth 5 & 11.835 [11.424, 12.286] & 3.708 [3.479, 3.936] \\
+\midrule
+Depth 4 $-$ depth 3 & 3.410 [2.835, 3.969] & 0.012 [−0.297, 0.305] \\
+Depth 5 $-$ depth 4 & 1.072 [0.469, 1.680] & 0.246 [−0.050, 0.552] \\
+Depth 5 $-$ depth 3 & 4.482 [3.915, 5.047] & 0.258 [−0.063, 0.557] \\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{table}
+
+\subsection{Updated other attribute}
+
+The 96 histories follow Experiment 1's allocation; the other attribute and the filler attribute are \lit{team} and \lit{project}, swapped between the two halves of the histories, and each history uses all eight vocabulary values (two historical, two extra current, two current for the queried attribute, two donors). Historical order, current order, edited entity, query, and baseline/edit are crossed as in Experiment 1, with the extra current block in the current order; 9,216 prompts per model (6,912 distinct). By order group, the queried-attribute effect was 0.801 [0.691, 0.919] (aligned) and 0.679 [0.579, 0.780] (reversed) in Qwen and 0.362 [0.205, 0.528] and −0.066 [−0.198, 0.064] in Gemma; the update effect was −0.225 [−0.334, −0.117] and −0.354 [−0.452, −0.249] in Qwen and −0.036 [−0.186, 0.099] and −0.019 [−0.150, 0.118] in Gemma.
+
+\subsection{Additional models}
+
+\paragraph{Procedure.} Each additional model was scored on Experiment 1's sealed screening dataset (24 histories) and, if it passed, on the sealed confirmation dataset (96 histories), with the same renderer, candidate validation, scorer, competence rule, and analysis code as Qwen and Gemma. Llama-3.1-8B-Instruct, the planned model from a third family, could not be used because access to its gated weights was declined. Qwen3-14B ran out of memory while loading with int8 weights on the 16 GB GPU and produced no scores.
+
+\paragraph{Screens.} Table~\ref{tab:f-screens} gives strict rank-one accuracy on distinct screening prompts. OLMo-2-7B-Instruct (revision \lit{470b1fba1ae01581f270116362ee4aa1b97f4c84}, int8 weights, bfloat16 computation) failed in four constructions. Phi-4-mini, re-scored with this procedure, reproduced its original screening result exactly.
+
+\begin{table}[h]
+\caption{Competence screens of the additional models: correct current value strictly ranked first, over distinct screening prompts (requirement: 99\% in every construction).}
+\label{tab:f-screens}
+\begin{center}
+\small
+\begin{tabular}{@{}lrr@{}}
+\toprule
+Construction & OLMo-2-7B-Instruct & Phi-4-mini \\
+\midrule
+Live & 287/288 & 288/288 \\
+Superseded & 563/576 & 576/576 \\
+Other attribute & 575/576 & 573/576 \\
+Entity mention & 426/576 & 561/576 \\
+Early unassigned & 452/576 & 576/576 \\
+Late unassigned & 448/576 & 576/576 \\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{table}
+
+\paragraph{Phi-4-mini, descriptive confirmation.} Outside the screen, Phi-4-mini was scored on all 18,432 confirmation prompts. Table~\ref{tab:f-phi} reports its condition-level relevance and the three planned contrasts; they are descriptive.
+
+\begin{table}[h]
+\caption{Phi-4-mini on the Experiment 1 confirmation set (descriptive; the model failed the competence screen). Means with 95\% history-bootstrap intervals over 96 histories, in nats.}
+\label{tab:f-phi}
+\begin{center}
+\small
+\begin{tabular}{@{}lr@{}}
+\toprule
+Quantity & Phi-4-mini \\
+\midrule
+$R$ live & 17.593 [17.223, 17.941] \\
+$R$ superseded & 3.110 [2.998, 3.221] \\
+$R$ other attribute & 3.262 [3.141, 3.393] \\
+$R$ entity mention & 4.982 [4.780, 5.179] \\
+$R$ early unassigned & 0.027 [−0.069, 0.130] \\
+$R$ late unassigned & −0.000 [−0.117, 0.115] \\
+\midrule
+Superseded $-$ other attribute & −0.152 [−0.266, −0.040] \\
+Superseded $-$ entity mention & −1.872 [−2.091, −1.664] \\
+Superseded $-$ early unassigned & 3.082 [2.961, 3.197] \\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{table}
+

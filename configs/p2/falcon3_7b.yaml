@@ -1,0 +1,14 @@
+# docs/models_v2.md — scored with scripts/score_exp1_model.py. Revision pinned 2026-10-05.
+seed: 20261031
+model:
+  id: tiiuae/Falcon3-7B-Instruct
+  revision: 1e57a0ecd176c7c139f289c60a74e57f887c3dfb
+  tokenizer_id: tiiuae/Falcon3-7B-Instruct
+  tokenizer_revision: 1e57a0ecd176c7c139f289c60a74e57f887c3dfb
+  device: cuda
+  dtype: bfloat16
+  quantization: int8
+  device_map: 0
+  require_full_gpu: true
+  chat_template: true
+  attn_implementation: eager

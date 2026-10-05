@@ -1,5 +1,7 @@
-import torch
-from torch import nn
+import pytest
+
+torch = pytest.importorskip("torch")
+nn = torch.nn
 
 from src.models.loader import _materialize_phi4_rope_buffers
 

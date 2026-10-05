@@ -1,0 +1,16 @@
+# Plan P2.1 (Llama-3.1-8B replaced: Meta rejected gated access for this account on 2026-10-05):
+# OLMo-2-7B-Instruct on Experiment 1's sealed screening/confirmation datasets
+# (scripts/score_exp1_model.py). Revision pinned 2026-10-05 from the Hugging Face hub.
+seed: 20261031
+model:
+  id: allenai/OLMo-2-1124-7B-Instruct
+  revision: 470b1fba1ae01581f270116362ee4aa1b97f4c84
+  tokenizer_id: allenai/OLMo-2-1124-7B-Instruct
+  tokenizer_revision: 470b1fba1ae01581f270116362ee4aa1b97f4c84
+  device: cuda
+  dtype: bfloat16
+  quantization: int8
+  device_map: 0
+  require_full_gpu: true
+  chat_template: true
+  attn_implementation: eager

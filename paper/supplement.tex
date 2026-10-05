@@ -1,0 +1,123 @@
+\documentclass[10pt]{article}
+\usepackage{tmlr}
+\usepackage{booktabs}
+\usepackage{seqsplit}
+\usepackage{hyperref}
+\DeclareUnicodeCharacter{2212}{\ensuremath{-}}
+\newcommand{\lit}[1]{\texttt{#1}}
+\title{Supplementary material: artifact hashes}
+\begin{document}
+\maketitle
+SHA-256 hashes of the datasets, design records, score files, and analyses referenced in the main paper. The artifacts themselves are distributed with the code release.
+
+\begin{table}[h!]
+\caption{SHA-256 hashes of the Experiment 1 artifacts.}
+\label{tab:c-hashes}
+\begin{center}
+\footnotesize
+\begin{tabular}{@{}ll@{}}
+\toprule
+Artifact & SHA-256 \\
+\midrule
+Implementation snapshot & \lit{f2981fa0f05a5e29e9478f8a94987e7578b2ce3667d1c941e8ce31cf8cdfef9a} \\
+Confirmation dataset & \lit{27c1e9b80e62a0cb0266d393fd6120dff2bcf637d8e9468491748e740287c08d} \\
+Qwen prompt geometry audit & \lit{7366bab33eff134e775bdb67e4764d10b350c2c9c535d505b62355af8cb535cf} \\
+Gemma prompt geometry audit & \lit{c64f548a2002e66cb36f05e780fd3ff28d5469bb31150d168c9f49ce9e7d7db5} \\
+Decision-rule amendment & \lit{0371b4e1c9a363bbcb8dfdc0a0ccc6a3c39c08f49843b59eea9bcbde27ccd2b9} \\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{table}
+
+\begin{table}[h!]
+\caption{SHA-256 hashes of the Experiment 2 artifacts.}
+\label{tab:d-hashes}
+\begin{center}
+\footnotesize
+\begin{tabular}{@{}ll@{}}
+\toprule
+Artifact & SHA-256 \\
+\midrule
+\multicolumn{2}{@{}l}{\emph{96-history run}} \\
+Dataset & \lit{00186455e3752b48980e38304354bab3ab6cd26bd42ce9d0b9126f87ac3b0245} \\
+Design record & \lit{c3cee7a49cf01a79f13d36f76868886b2fbb52a514d8d31686963fd4dd34653f} \\
+Qwen scores & \lit{09781b51ce380b3872c7467e09cbd94dedb7a6ec66433bcc5f24a8450e16bbb5} \\
+Gemma scores & \lit{31a89baace9bef888a24e11149c61607645d39eae6536fbeaa081726ddcf7ea4} \\
+Qwen analysis & \lit{0ee531924d08c645b94e33d4211bc9f7ef28f4709243270849bcdff13986cdd8} \\
+Gemma analysis & \lit{0dbc4d61e05fb9647a39bbd6944175ad995de6d628cba058e776fdf38e012245} \\
+\multicolumn{2}{@{}l}{\emph{24-history run}} \\
+Dataset & \lit{af1b33a73e4235a4e1bc0550ea2bea008a652972f299be0e5da21e8e880b299b} \\
+Generation report & \lit{3aae4c6419e2301c44c84410208a137cece6f278a5fda07e1218db51d34dba71} \\
+Excluded pilot dataset & \lit{f42cc115be1715b46d70587fd5a8e311eed33c8868e34d516e1454774aa4fec4} \\
+Qwen scores & \lit{ddf600c12b6d58b84779ffa48571f29dd9f2e64ecc99dbd77b81aceb2461c866} \\
+Qwen score provenance & \lit{2627828f16bdf08ffe538883d609f59e72d552593e601744f185046ce94b002e} \\
+Gemma scores & \lit{a329720a535ae7ad60db8727d1112173ddedb51b1f1ca2882624df1302914bb1} \\
+Gemma score provenance & \lit{3842e40ffd4f42b284692e73d00cb00104360b3da63b396b545cf20e05ca2822} \\
+Qwen analysis & \lit{60383f56fe6f29cbe04d7c1c1c75f661d7bd15be6a42b836461d4b160988e9bf} \\
+Gemma analysis & \lit{5d2c0fc95c74f080e32fa7cc191d00383132440b830e1ca0dec96d0693648019} \\
+Dependency lock file & \lit{55c8fc8089a4258c33ee2c6ee054abf210ff2006dcdca956b83aebc72cfa14e4} \\
+Scoring and analysis code & \lit{1ec47a290a3ceb2a31e0f8d622d8328aa23096f92bd08670bb7aa42956473bc8} \\
+\multicolumn{2}{@{}l}{\emph{Exploratory Phi-4-mini run (24-history dataset)}} \\
+Phi-4-mini scores & \lit{744a1864ec1fa0db8fffb314b81e01c34eaa3c5cb898071215040b849e452954} \\
+Phi-4-mini analysis & \lit{97bbeca29adc553584e911d9a9926a35b4cad6ed9bb4aefa3307b1edf9eb5c35} \\
+Phi-4-mini score provenance & \lit{7e4e2258b1a923c7b2656d6862f41c9b4d4ea890d62162308af0da34fed5a908} \\
+Phi-4-mini run record & \lit{a9a66bd9396622a5b6fee2ddbb070e41c8fd41b7d028712f66227961241b3e9f} \\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{table}
+
+\begin{table}[h!]
+\caption{SHA-256 hashes of the follow-up artifacts.}
+\label{tab:f-hashes}
+\begin{center}
+\footnotesize
+\begin{tabular}{@{}ll@{}}
+\toprule
+Artifact & SHA-256 \\
+\midrule
+\multicolumn{2}{@{}l}{\emph{Name--value distance}} \\
+Dataset & \lit{637f55267cbcbd1ab2c130898e55dabe5bfd5604444e32fc8709fdf8684d8f9a} \\
+Design record & \lit{cec3e5cbd289ce98f54275e10525bb4fea8e4548bf8aac1605579d7aab23f32a} \\
+Amendment record & \lit{bd15c62c07ace1d33c49afcb29da8a43ce1fce91f5ad9fbbc276b4fd2359730a} \\
+Tokenizer audit (amended) & \lit{23da621c5816fcb0e1eea5b5446d51218b72951ae9aa0598b98290816e8b068a} \\
+Qwen scores & \lit{7215cf53e140033f1b3d74881a54fbac23ce61ab1048940c5ff3e5dc400bff26} \\
+Gemma scores & \lit{6eada0834f4304c62eb2b663fff81bdc52b89de2b6056e5b1c2bf4fc00283882} \\
+Qwen analysis & \lit{351be4887f3749cff55a4e7621d0a8e352bcb2f359eeffc144004dc9af284bcb} \\
+Gemma analysis & \lit{d1adea1a46ff3179e40a9bc266197e80e50a089289ce4727af9fe2096fee1f1d} \\
+\multicolumn{2}{@{}l}{\emph{Update chains}} \\
+Design record & \lit{bc6417a985949daa40bef6fbd84edb918723b85a68d2ea8837d92bbd6b5f1abb} \\
+Vocabulary audit & \lit{fae3ab186004ded943912ac2485fbd1bf76290c834efa274516bf9e78169fa0a} \\
+Depth selection & \lit{b09a7d9504cd0d2fe980a7295514c385d321733d349028c5add393ca92691997} \\
+Development dataset, depth 3 & \lit{0b5e2f883e2ee31675e3caf4d0957909f17fe92bd98fdf24c148904f215527b8} \\
+Development dataset, depth 4 & \lit{7845c76b7a099c7a3efee5db7f2f2e7a4f154925363aff8d2046dbae4ace9759} \\
+Development dataset, depth 5 & \lit{319aaab495684d43f79767d039197849a84593092e27347617e68927d94dd215} \\
+\multicolumn{2}{@{}l}{\emph{Additional models}} \\
+OLMo-2-7B screen report & \lit{3d6420a202ccc98efcad395347a8fcf919968084ce0e3d9027ccd346381156d2} \\
+Phi-4-mini screen report & \lit{e8855d11f080d2e309c282bdeb511023a8af8753ded81c38dddbc6693f780093} \\
+Phi-4-mini confirmation analysis & \lit{0f65fd09ee48dd66b107ad81a9146c5df429a06c312518bfcca7ce2a2860661b} \\
+\multicolumn{2}{@{}l}{\emph{Updated other attribute}} \\
+Dataset & \lit{4f424f86d5f209d002997d7c30fa7be409236c4a8b8e8ec140b1b6617c5a85a2} \\
+Design record & \lit{34792d838cf87cd342bc313656568c9f22bbfde47dfe71d4e80e049c6edc2b63} \\
+Qwen analysis & \lit{f376e68ebbf554b7d21c8d685bab549b06d3981c2540ef18db6157c8cb495543} \\
+Gemma analysis & \lit{a17aa45880a8a0bd27615205f770054b809feb241aa85c7ed053415ad3c28259} \\
+\multicolumn{2}{@{}l}{\emph{Update chains, candidate-score run}} \\
+Design record & \lit{ef801eeb574009fcdbce75f59c823c76cbb795d3fe6e4e8acb2ea42b9656e211} \\
+Dataset, depth 3 & \lit{c706e6c88885fa682cad5c702a374bc6f68b8441a5f016b131355cc27778919c} \\
+Qwen analysis, depth 3 & \lit{9dd7bf436e58f23dc9343337ac4b57b85840573ba03dcc39bf7ac3e4331f073e} \\
+Gemma analysis, depth 3 & \lit{37413b63a16d1c6e5cdb1ec2e3985dfa78f69dabfdc73fc58f30f46e6396775e} \\
+Dataset, depth 4 & \lit{ffc0b45d70004b30ef93491b045c60e1b858f5057ba95decf8a0061d9f6d6827} \\
+Qwen analysis, depth 4 & \lit{2353a36b554baa98e6ae046763ff4f16bd85fc08d25b3979fc8a4026668f7479} \\
+Gemma analysis, depth 4 & \lit{418fb7efd7728a168c3708c0b888160ad500a96661b28915271d5ae6f5315836} \\
+Dataset, depth 5 & \lit{323c69c2d52fb8dbf04c3ca7dc51e9674a7feb770fe912082eebc4ad03542218} \\
+Qwen analysis, depth 5 & \lit{800a6d25f33fccd791cb6704c5ded903c3a72c4294c8aa1f360945af6081c745} \\
+Gemma analysis, depth 5 & \lit{eb76f9985a2c7c982d7a5ac368e8414fa39f30c3ad332125956a49489b17ecf6} \\
+\multicolumn{2}{@{}l}{\emph{OLMo-2 generation study (exploratory)}} \\
+Design record & \lit{5111994953458df6bb04615350edffa85614c7980ae487ce229ad5d80b801ae5} \\
+Generation analysis & \lit{96e9a3401d06d30112828833ea5448f5f2a32486919c02a8901360ccc2b489bf} \\
+Order-stratified donor following & \lit{588d7c481d329508b1a553ee0d4a4d4e727fef168fa070e9c1d7bde9734f4f6a} \\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{table}
+\end{document}
