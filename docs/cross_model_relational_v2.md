@@ -1,5 +1,7 @@
 # Relational/order v2 protocol
 
+This document records the core two-model relational/order experiment, not the full scope of the current manuscript. The seven-model thesis and other studies are mapped in the [paper results index](../paper/RESULTS_INDEX.md); this protocol remains the detailed record for the Qwen/Gemma v2 experiment.
+
 ## Geometry validation implementation migration (2026-10-03)
 
 The first Gemma confirmation dataset contained 96 histories / 18,432 members, but scoring stopped in `dataset_info()` before model loading. The saved geometry deduplicated identical rendered prompts while incorrectly reusing abstract `x`/`z` span labels across opposite orientations. That dataset and all earlier artifacts remain preserved under `factorial_relation_counterbalanced_20261003`.

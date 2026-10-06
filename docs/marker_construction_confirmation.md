@@ -1,6 +1,6 @@
-# Marker × construction confirmation
+# Earlier 24-history marker × construction run
 
-Verified against saved artifacts on 2026-10-04. This is the prespecified 24-history confirmation, separate from the two-history marker pilot and relational v2.
+Verified against saved artifacts on 2026-10-04. This is the earlier 24-history marker × construction run, separate from the two-history pilot and the 96-history main marker experiment now reported in the manuscript. Its Qwen/Gemma estimates remain supplementary; Phi-4-mini was scored as an exploratory extension on the same dataset.
 
 Adding `Previously` reduces the v2 R sensitivity measure within both constructions for both models. Qwen shows a positive marker × construction interaction: the reduction is larger in entity-mention controls. Gemma shows reductions of similar magnitude; its interaction interval includes zero, so the construction difference is unresolved for Gemma. This is evidence that marker presence affects measured sensitivity. It does not establish active suppression, a stale-answer effect, or a construction contrast that isolates conflict from syntax.
 
@@ -28,6 +28,14 @@ Marker effect = R with `Previously` minus R without it. Interaction = superseded
 | Gemma | Reversed | −1.069 [−1.372, −0.785] | −0.765 [−1.123, −0.387] | −0.304 [−0.753, 0.116] |
 
 For Qwen, the interaction is positive in both order strata, and every marker-effect interval is below zero. For Gemma, every within-construction marker-effect interval is below zero, while the overall and both order-stratum interaction intervals include zero. A zero-crossing interaction interval is inconclusive about a construction difference and does not establish equivalence. R remains positive with the marker in every model/construction/order cell.
+
+### Exploratory Phi-4-mini extension
+
+Phi-4-mini's analysis was recomputed from all 3,072 saved score rows and exactly matched the stored history estimates and bootstrap summaries. Adding `Previously` reduced superseded $R$ by 1.355 nats (95% CI [-1.561, -1.138]), from 5.146 [4.947, 5.362] without the prefix to 3.791 [3.592, 4.004] with it. In entity mentions, the change was 0.145 [-0.018, 0.310], unresolved; its $R$ changed from 4.808 [4.557, 5.107] to 4.953 [4.677, 5.269]. The paired marker-by-construction interaction was -1.500 [-1.734, -1.264].
+
+By order, superseded marker effects were -1.227 [-1.412, -1.026] aligned and -1.483 [-1.758, -1.194] reversed. Entity-mention effects were -0.253 [-0.450, -0.059] aligned and +0.544 [+0.384, +0.703] reversed; the corresponding interactions were -0.973 [-1.221, -0.714] and -2.027 [-2.330, -1.725]. This exploratory pattern is model- and construction-specific. It concerns candidate scores from adding the literal prefix, not generated-answer accuracy, temporal meaning in isolation, or active suppression.
+
+Phi-4-mini artifact hashes: scores `744a1864ec1fa0db8fffb314b81e01c34eaa3c5cb898071215040b849e452954`; analysis `97bbeca29adc553584e911d9a9926a35b4cad6ed9bb4aefa3307b1edf9eb5c35`; score provenance `7e4e2258b1a923c7b2656d6862f41c9b4d4ea890d62162308af0da34fed5a908`; run record `a9a66bd9396622a5b6fee2ddbb070e41c8fd41b7d028712f66227961241b3e9f`.
 
 The paired order-averaged entity-mention-minus-superseded construction gap, bootstrapped directly within history, is 3.565 nats (95% CI [2.806, 4.286]) for Qwen without the marker and 2.228 [1.727, 2.769] with it. For Gemma the corresponding gaps are 0.683 [0.435, 0.951] and 0.807 [0.547, 1.075]. These average gaps do not hold uniformly across order cells: for Gemma without the marker, reversed-order entity-mention R is 2.275 versus 2.445 for superseded. Per-history differences and the bootstrap inputs are preserved in `paper/data/exp2_marker_history_estimates.csv`.
 
@@ -166,4 +174,4 @@ Full artifacts: [dataset](../outputs/followups/marker_confirmatory.jsonl), [gene
 
 ## Remaining work
 
-The marker × construction confirmation is complete for both models. Separately, harder-task development at n=2, n=4, and n=6 is complete for Qwen and Gemma; Qwen exceeds 90% accuracy at all three levels, triggering the prespecified stop rule. No harder-task selection freeze or test was generated, and the nearest-level fallback must not be used. The development results and stopping decision are documented in [Time-limited relational follow-ups](followup_experiments.md). These follow-up results do not change the marker-confirmation estimates or relational v2 results.
+The 24-history run is complete for Qwen, Gemma, and exploratory Phi-4-mini. The manuscript's main Qwen/Gemma marker study uses 96 histories and is documented in its Results, Appendix D, and [results index](../paper/RESULTS_INDEX.md); do not substitute these earlier estimates for it. Separately, harder-task development at n=2, n=4, and n=6 is complete for Qwen and Gemma; Qwen exceeds 90% accuracy at all three levels, triggering the prespecified stop rule. No harder-task selection freeze or test was generated, and the nearest-level fallback must not be used. Development results and the stopping decision are documented in [Time-limited relational follow-ups](followup_experiments.md).

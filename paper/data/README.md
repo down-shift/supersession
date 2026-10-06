@@ -2,7 +2,7 @@
 
 These compact derived tables preserve the history-level estimates needed to regenerate the manuscript's main figures and recompute their percentile history-bootstrap intervals (2,000 draws; seed 73021). They contain no prompts or token scores and do not replace the sealed analyses. `phi_followup_output_diagnostic.csv` records the strict exact-answer counts and a separate post hoc candidate-prefix count for the Phi-4-mini development runs; its prefix diagnostic does not redefine correctness.
 
-`exp1_history_estimates.csv` contains 96 histories per model, the target attribute and orientation, the five non-live construction-specific aligned/reversed $R$ estimates, their paired order differences, and the overall and order-stratified superseded-minus-control contrasts. `exp2_marker_history_estimates.csv` contains 24 histories per model, construction- and marker-specific $R$ estimates by order, paired marker effects/interactions, and entity-mention-minus-superseded gaps by marker and order.
+`exp1_history_estimates.csv` contains 96 histories per model for the core Qwen/Gemma experiment: target attribute and orientation, five non-live construction-specific aligned/reversed $R$ estimates, paired order differences, and superseded-minus-control contrasts. `exp2_marker_history_estimates.csv` contains the earlier 24-history Qwen/Gemma marker experiment; `exp2_marker96_history_estimates.csv` contains the 96-history main marker experiment. Both preserve construction- and marker-specific $R$ estimates by order, paired marker effects/interactions, and entity-mention-minus-superseded gaps by marker and order. The seven-model comparison and additional follow-ups use the separate derived JSON/CSV sources listed in `paper/RESULTS_INDEX.md`.
 
 The Experiment 1 and marker tables were exported by `export_history_estimates.py` from these local analysis JSONs:
 
@@ -17,9 +17,8 @@ CSV SHA-256: `exp1_history_estimates.csv` = `938332f6d1ddf9087a55bebbd14e9138652
 
 `export_phi_followup_diagnostic.py` creates `phi_followup_output_diagnostic.csv` from `outputs/followups/phi4_mini_development_n{2,4,6}_scores.jsonl`; those source score hashes are recorded in `docs/followup_experiments.md`. The CSV SHA-256 is `8b8921ca53ab88ab65db2fb2c5a52da9cb3991ee754ac559ff4e614718a5e58b`.
 
-The upstream source analysis JSONs and raw prompt/score artifacts are excluded from Git. These derived files make the estimates and intervals used in the manuscript inspectable and reproducible, but they do not permit independent reconstruction of scoring or all raw-data checks.
+The upstream source analysis JSONs and raw prompt/score artifacts are excluded from Git, and some referenced sources are not present in this checkout. These derived files make the manuscript estimates and intervals inspectable and allow displayed summaries to be reproduced, but do not permit independent reconstruction of scoring or all raw-data checks.
 
 Added 2026-10-05 by the same export script: `exp2_marker96_history_estimates.csv` (96-history marker run; from `outputs/followups/marker96/{qwen,gemma}_marker_analysis.json`, SHA-256 `0ee53192…` and `0dbc4d61…`) and `distance_history_estimates.csv` (from `outputs/followups/distance_v1/{qwen,gemma}_distance_analysis.json`, `351be488…` and `d1adea1a…`). Re-running the script reproduces the two earlier CSVs byte for byte. `derived_estimates.py` bootstraps contrasts quoted in the text but not stored in the sealed analyses (marker-absent construction gaps) into `derived_estimates.json`, and also reproduces the sealed marker interaction as a check.
 
 CSV SHA-256: `exp2_marker96_history_estimates.csv` = `7b9c33f37e7665889bcdb9af1cd00585136e44dbb90db234717701fba84642ea`; `distance_history_estimates.csv` = `8e07569a6ccc9768850564bee77c85f554f46274065b92a0eb60288579f909e9`.
-

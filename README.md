@@ -1,12 +1,12 @@
-# Supersession Without Erasure
+# What a Stale Value Still Does: Mention Structure and Order Shape Score Sensitivity After In-Context Updates
 
-Infrastructure for testing how causal decoder-only Transformers make overwritten bindings less accessible or less influential. The old assignment token cannot receive information from later overwrite tokens under a causal mask. This pipeline measures query-position accessibility and downstream effects; it does not assume deletion.
+This repository contains the experiments, analysis code, and TMLR manuscript for studying how edits to historical values affect language models' candidate scores after an in-context update. Across seven screened models from five families, mention order produces larger changes in query-specific score sensitivity than relation status. Results also vary with mention construction and model; they do not identify an internal obsolete-binding mechanism or imply that score changes alter generated answers.
 
-The separately versioned [corrected relational/order robustness protocol](docs/cross_model_relational_v2.md) records completed Qwen and Gemma confirmation runs and their analyses. Initial previews and early reanalysis reports remain archived as superseded; existing v2 results are preserved unchanged. Completed [cross_model_v1 experiments](docs/cross_model_v1.md) retain their original status and outputs. Separate, currently unscored [time-limited follow-up designs](docs/followup_experiments.md) are documented independently.
+The current paper and evidence map are in [`paper/`](paper/) and [`paper/RESULTS_INDEX.md`](paper/RESULTS_INDEX.md). The primary relational/order experiment covers Qwen3-8B and Gemma 3 4B; a seven-model extension, a 96-history marker experiment, and controlled follow-ups broaden the comparisons. Some follow-ups are score-only or development-only, as detailed in the manuscript and result ledger. Earlier `cross_model_v1` and mechanistic experiments retain their separate protocols and estimands.
 
 ## Paper and workflow
 
-The TMLR manuscript is in [`paper/`](paper/) (one `.tex` file per section). Work on it advances through the autonomous `/continue` loop: see [`CLAUDE.md`](CLAUDE.md), [`docs/AUTONOMY.md`](docs/AUTONOMY.md), and the step ledger [`docs/PLAN.md`](docs/PLAN.md). The gate is `bash scripts/check.sh`.
+The manuscript uses the TMLR LaTeX template, with one `.tex` file per section. See [`paper/README.md`](paper/README.md) for build and figure reproduction instructions, and [`docs/paper_claims.md`](docs/paper_claims.md) for claim boundaries across the repository's distinct protocols. The project check is `bash scripts/check.sh`.
 
 ## Environment
 
@@ -234,9 +234,9 @@ bash scripts/run_four_query_288_ubuntu.sh
 
 This behavior runner does not launch probes or patching. The separate mechanistic runner above reuses the frozen artifacts. The four-query generation path always uses centralized canonical rendering; legacy syntax/template factors remain limited to older experiment paths.
 
-## Supersession-specific extensions (infrastructure; not yet run)
+## Separate four-query supersession extensions
 
-The established Stage 1–4 results above are unchanged. The next experiments distinguish **ordinary binding retrieval** (a live assignment), **stale binding retrieval** (an obsolete value remains causally retrievable), and **semantic supersession/version selection** (the current accepted version wins over that stale value). No outputs from these extensions are empirical results yet. They use fresh histories and separate output paths; they do not consume prompt-development, gate, or mechanistic held-out histories.
+The studies summarized in the paper use the relational/order protocol described above. This separate four-query pipeline develops follow-up tests of **ordinary binding retrieval** (a live assignment), **stale binding retrieval** (an obsolete value remains causally retrievable), and **semantic supersession/version selection** (the current accepted version wins over that stale value). The controls/status runs below have not been scored; treat them as infrastructure, not empirical results. They use fresh histories and separate output paths and do not consume prompt-development, gate, or mechanistic held-out histories.
 
 Generate fresh matched live/superseded/irrelevant controls, accepted/rejected update cases, or version chains (provide a JSON array of values):
 

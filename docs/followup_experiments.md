@@ -2,6 +2,10 @@
 
 These are separate from relational v2. Do not edit, relabel, or pool these records with v2 results. Any follow-up datasets generated before the freshness and factorial-validation fixes are archival design artifacts; do not score them or use them for development or confirmation.
 
+## Current status (2026-10-06)
+
+The main LaTeX manuscript now reports the 96-history marker experiment, three 96-history controlled follow-ups, a seven-model extension of Experiment 1, and an exploratory OLMo-2 generated-answer analysis; see [the result index](../paper/RESULTS_INDEX.md) and [the follow-up appendix](../paper/sections/F-followups.tex). The sections below preserve the separate time-limited protocol and its completed n=2/4/6 development results. The 24-history marker analysis is an earlier supplementary run, not the main 96-history marker result. Phi-4-mini's exploratory marker scores on that 24-history dataset are summarized in [the earlier marker-run record](marker_construction_confirmation.md). No harder-task test was generated under the stop rule.
+
 ## Existing infrastructure and protocol decisions
 
 ### Reproducible uv environments
@@ -131,7 +135,9 @@ Each history includes superseded, entity-mention, early-unassigned, and late-una
 
 Use deterministic greedy decoding and the parser above. No ≥99% competence gate applies. No test-only error selection or difficulty tuning is allowed. Record model/revision, runtime, seed, dataset/code hashes, exclusions, and every failed development rule. Qwen remains the difficulty-selection model; Gemma is the planned paired model. Phi-4 Mini is an additional exploratory model and cannot select a level or authorize a harder-task test.
 
-## Running the follow-ups
+## Historical run commands
+
+The commands below document how these artifacts were produced; they are not outstanding work. Existing completed outputs should be reused rather than overwritten.
 
 Run these commands from the repository checkout on the CUDA host after copying the updated code and `uv.lock`. The scripts create separate frozen uv environments per model and keep the pilot artifacts untouched.
 
