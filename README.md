@@ -236,7 +236,7 @@ This behavior runner does not launch probes or patching. The separate mechanisti
 
 ## Separate four-query supersession extensions
 
-The studies summarized in the paper use the relational/order protocol described above. This separate four-query pipeline develops follow-up tests of **ordinary binding retrieval** (a live assignment), **stale binding retrieval** (an obsolete value remains causally retrievable), and **semantic supersession/version selection** (the current accepted version wins over that stale value). The controls/status runs below have not been scored; treat them as infrastructure, not empirical results. They use fresh histories and separate output paths and do not consume prompt-development, gate, or mechanistic held-out histories.
+The studies summarized in the paper use the relational/order protocol described above. This is a separate four-query research line on **ordinary binding retrieval** (a live assignment), **stale binding retrieval** (an obsolete value remains causally retrievable), and **semantic supersession/version selection** (the current accepted version wins over that stale value). The original 96-history controls and status studies and the counterbalanced-controls study have been scored and analyzed; they are separate exploratory results, not part of the TMLR manuscript's primary evidence. The independent status 2×2 competence gate failed, and no confirmatory status 2×2 run was produced. The command blocks below document the original runs and gated follow-ups; preserve their output artifacts and use fresh paths for any authorized new work.
 
 Generate fresh matched live/superseded/irrelevant controls, accepted/rejected update cases, or version chains (provide a JSON array of values):
 
@@ -248,7 +248,7 @@ uv run python scripts/generate_supersession_experiments.py --kind chains --value
 
 Controls/status generation writes the `supersession_behavior_v1` paired schema: 24 scored members per matched control history and 32 per matched status history. Each value edit is crossed with both current queries and baseline/edit directions. Conditions share explicit `history_id`, original values, replacement targets, variable names, and orientation; literal x/z names swap on alternate histories. `--token-ids` selects the intersection of the proposal pool and validated values, recording excluded proposals in the generation provenance. The scorer never silently drops unmapped values. The earlier history-only controls/status format lacks the necessary pair/z/matching metadata and must be regenerated into a fresh file; prompt strings are never parsed to recover missing semantic fields.
 
-Score and analyze the two behavioral experiments on the model host (none has been run yet):
+The original scoring and analysis commands are recorded below for provenance; those runs are complete:
 
 ```bash
 uv run python scripts/run_supersession_behavior.py --config configs/four_query_288.yaml --dataset outputs/supersession/controls.jsonl --token-ids outputs/four_query_288/frozen_token_ids.json --output outputs/supersession/controls_behavior.jsonl
@@ -299,7 +299,7 @@ uv run python scripts/run_supersession_behavior.py --config configs/four_query_2
 uv run python scripts/analyze_supersession_behavior.py --dataset outputs/supersession/status_2x2.jsonl --behavior outputs/supersession/status_2x2_behavior.jsonl --kind status_2x2 --output-dir outputs/supersession/status_2x2_analysis
 ```
 
-The counterbalanced condition presents the same unassigned x/z identities in both first/second slot orders for every history. The analyzer averages each edit/query effect over slot order before forming its x/z relevance contrast; the original fixed-order irrelevant condition remains a comparison. In `status_2x2`, the code gives x status then z status (`YY`, `YN`, `NY`, `NN`). For x, the history-paired acceptance contrast averages `YY−NY` and `YN−NN`; z averages `YY−YN` and `NY−NN`. Only the focal variable's status changes within each comparison. These new datasets require model scoring before they support behavioral conclusions.
+The counterbalanced condition presents the same unassigned x/z identities in both first/second slot orders for every history. Its 96-history run has been scored and analyzed; the analyzer averages each edit/query effect over slot order before forming its x/z relevance contrast, with the original fixed-order irrelevant condition retained as a comparison. In `status_2x2`, the code gives x status then z status (`YY`, `YN`, `NY`, `NN`). For x, the history-paired acceptance contrast averages `YY−NY` and `YN−NN`; z averages `YY−YN` and `NY−NN`. Only the focal variable's status changes within each comparison. The saved `status_2x2` dataset is pre-gate and its independent competence gate failed; no behavioral confirmation should be inferred from it.
 
 Audit the already-scored original status data without loading a model. This categorizes every incorrect NO prediction and reports the secondary subset with all NO members correct; it does not replace the all-trials analysis:
 
