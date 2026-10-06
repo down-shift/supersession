@@ -5,10 +5,13 @@ Reads only saved artifacts (no model is loaded, nothing under outputs/ is modifi
   - Experiment 1: extended_analysis_v6/{qwen3_8b,gemma3_4b}/per_history.csv, produced by
     scripts/analyze_relational_confirmation_v2.py from the sealed confirmation scores;
   - Experiment 2: outputs/followups/marker96/{qwen,gemma}_marker_analysis.json (96 histories; the
-    earlier 24-history confirmation is reported in Appendix D).
+    earlier 24-history confirmation is reported in Appendix D);
+  - updated-other-attribute follow-up: outputs/followups/update_v1/update_confirmatory_*_analysis.json;
+  - distance follow-up: outputs/followups/distance_v1/*_distance_analysis.json.
 Experiment 1 rows are history-level differences summarized with the frozen history bootstrap
-(src.cross_model.robustness_analysis.summary: 2,000 draws, seed 73021). Experiment 2 rows are
-the sealed marker effects as saved.
+(src.cross_model.robustness_analysis.summary: 2,000 draws, seed 73021). The other rows are the
+sealed summaries as saved. Rows are grouped by the question they answer; a grey tag names the
+source of each row.
 
 Writes paper/figures/decomposition.pdf and paper/figures/decomposition_estimates.json (the
 plotted numbers plus SHA-256 hashes of every input).
@@ -44,11 +47,21 @@ EXP1_ROWS = [
     ("Position (aligned $-$ reversed)", "entity mention",
      lambda r: r["R_entity_mention_aligned_minus_reversed"]),
 ]
-# Experiment 2 rows: (group, label, key in the sealed marker analysis summary).
-EXP2_ROWS = [
-    ("Temporal marker (with $-$ without)", "superseded", "superseded_marker_effect_all"),
-    ("Temporal marker (with $-$ without)", "entity mention", "entity_mention_marker_effect_all"),
+# Rows from sealed follow-up analyses: (group, label, source tag, file pattern, summary key).
+SEALED_ROWS = [
+    ("Relation status", "having been the queried attribute", "update",
+     "update_v1/update_confirmatory_{slug}_analysis.json", "superseded_minus_other_updated_all"),
+    ("Relation status", "having been updated", "update",
+     "update_v1/update_confirmatory_{slug}_analysis.json", "other_updated_minus_other_static_all"),
+    ("Construction", "same, marker and distance matched", "distance",
+     "distance_v1/{slug}_distance_analysis.json", "construction_gap_near_all"),
+    ("Temporal marker (with $-$ without)", "superseded", "Exp. 2",
+     "marker96/{slug}_marker_analysis.json", "superseded_marker_effect_all"),
+    ("Temporal marker (with $-$ without)", "entity mention", "Exp. 2",
+     "marker96/{slug}_marker_analysis.json", "entity_mention_marker_effect_all"),
 ]
+GROUP_ORDER = ("Relation status", "Construction", "Position (aligned $-$ reversed)",
+               "Temporal marker (with $-$ without)")
 
 
 def read_history_rows(path: Path) -> list[dict[str, float]]:
@@ -62,18 +75,26 @@ def exp1_estimates(history_rows: list[dict[str, float]], summary) -> list[dict]:
     for group, label, fn in EXP1_ROWS:
         s = summary([fn(r) for r in history_rows])
         lo, hi = s["ci95_cluster_bootstrap"]
-        out.append({"group": group, "label": label, "experiment": 1, "n_histories": s["n_histories"],
+        out.append({"group": group, "label": label, "source": "Exp. 1", "n_histories": s["n_histories"],
                     "mean": s["mean"], "ci95": [lo, hi]})
     return out
 
 
-def exp2_estimates(analysis: dict) -> list[dict]:
+def sealed_estimates(slug: str, inputs: dict) -> list[dict]:
+    from src.data.io import sha256_file
     out = []
-    for group, label, key in EXP2_ROWS:
-        s = analysis["summary"][key]
-        out.append({"group": group, "label": label, "experiment": 2, "n_histories": s["n_histories"],
-                    "mean": s["mean"], "ci95": list(s["ci95_history_bootstrap"])})
+    for group, label, source, pattern, key in SEALED_ROWS:
+        path = EXP2 / pattern.format(slug=slug)
+        inputs[str(path.relative_to(ROOT))] = sha256_file(path)
+        est = json.loads(path.read_text())["summary"][key]
+        out.append({"group": group, "label": label, "source": source, "n_histories": est["n_histories"],
+                    "mean": est["mean"], "ci95": list(est["ci95_history_bootstrap"])})
     return out
+
+
+def ordered(rows: list[dict]) -> list[dict]:
+    """Rows grouped by question, keeping Experiment 1 first within a group."""
+    return sorted(rows, key=lambda r: GROUP_ORDER.index(r["group"]))
 
 
 def compute() -> dict:
@@ -83,12 +104,12 @@ def compute() -> dict:
     result = {"bootstrap": "history; 2,000 draws; seed 73021", "inputs": {}, "models": {}}
     for model, (exp1_slug, exp2_slug) in MODELS.items():
         per_history = EXP1 / exp1_slug / "per_history.csv"
-        marker = EXP2 / "marker96" / f"{exp2_slug}_marker_analysis.json"
-        analysis = json.loads(marker.read_text())
         result["inputs"][str(per_history.relative_to(ROOT))] = sha256_file(per_history)
-        result["inputs"][str(marker.relative_to(ROOT))] = sha256_file(marker)
         history_rows = read_history_rows(per_history)
-        result["models"][model] = exp1_estimates(history_rows, summary) + exp2_estimates(analysis)
+        rows = exp1_estimates(history_rows, summary) + sealed_estimates(exp2_slug, result["inputs"])
+        if any(r["n_histories"] != 96 for r in rows):
+            raise ValueError("every row of Figure 1 is expected to use 96 histories")
+        result["models"][model] = ordered(rows)
         result.setdefault("paired_order_effects", {})[model] = paired_order_effects(history_rows, summary)
     return result
 
@@ -116,13 +137,11 @@ def plot(result: dict, path: Path) -> None:
         groups[-1][1].append(i)
 
     header, row_h = 0.6, 1.0  # vertical space for a group title and for one row
-    fig, ax = plt.subplots(figsize=(4.3, 3.05))
-    y, ticks, labels, exp2_top = 0.0, [], [], None
+    fig, ax = plt.subplots(figsize=(4.5, 4.1))
+    y, ticks, labels = 0.0, [], []
+    trans = ax.get_yaxis_transform()
     for k, (name, idx) in enumerate(groups):
         top = y
-        if rows[idx[0]]["experiment"] == 2 and exp2_top is None:
-            exp2_top = top
-            ax.axhline(top, color="0.35", lw=0.6, zorder=2)  # Experiment 1 above, 2 below
         ax.text(0.01, top + 0.08, name, transform=ax.get_yaxis_transform(), ha="left", va="top",
                 fontname="cmb10", fontsize=7.5)
         y += header
@@ -131,22 +150,21 @@ def plot(result: dict, path: Path) -> None:
             for model in ORDER:
                 est = result["models"][model][i]
                 errorbar(ax, centre + OFFSETS[model], (est["mean"], *est["ci95"]), model)
+            ax.text(0.99, centre, rows[i]["source"], transform=trans, ha="right", va="center",
+                    fontsize=6, color="0.45", style="italic")
             ticks.append(centre)
             labels.append(rows[i]["label"])
             y += row_h
         if k % 2 == 1:
             ax.axhspan(top, y, color="0.965", zorder=0, lw=0)
     ax.set_ylim(y, 0)
+    lo = min(min(e["ci95"][0] for e in result["models"][m]) for m in ORDER)
+    hi = max(max(e["ci95"][1] for e in result["models"][m]) for m in ORDER)
+    ax.set_xlim(lo - 0.4, hi + 1.6)  # room on the right for the source tags
     zero_line(ax)
     ax.set_yticks(ticks, labels)
     light_grid(ax)
     ax.set_xlabel("Difference in $R$ (nats)")
-    trans = ax.get_yaxis_transform()
-    n1 = rows[0]["n_histories"]
-    n2 = next(r["n_histories"] for r in rows if r["experiment"] == 2)
-    for yy, text in ((0.08, f"Exp. 1, $n={n1}$"), (exp2_top + 0.08, f"Exp. 2, $n={n2}$")):
-        ax.text(0.99, yy, text, transform=trans, ha="right", va="top", fontsize=6.5,
-                color="0.4", style="italic")
     legend_above(ax)
     fig.tight_layout(pad=0.3)
     fig.savefig(path)

@@ -7,6 +7,55 @@ Experiment 2 was run twice with the same design, generator, and scoring code. An
 
 Phi-4-mini was scored separately on the same 24-history dataset as an exploratory model extension, not as part of the prespecified Qwen/Gemma confirmation. Its pinned revision was \lit{cfbefacb99257ffa30c83adab238a50856ac3083}; it used the RTX 5080 with CUDA 13.0, int8 weights, and float16 activations. Its saved analysis recomputes exactly from all 3,072 score rows. As for the primary models, these are candidate-score results only and do not measure generated-answer accuracy.
 
+\subsection{Templates and marker effects}
+
+Table~\ref{tab:marker-templates} gives the four historical-line templates, Table~\ref{tab:marker} the marker effects and their interaction by order group, and Figure~\ref{fig:marker-effects} the underlying relevance.
+
+\begin{table}[t]
+\caption{The four historical-line templates of Experiment 2, shown for Nora. Each prompt has two such lines, one per entity, followed by the current-state block and query of Experiment 1.}
+\label{tab:marker-templates}
+\begin{center}
+\small
+\begin{tabular}{@{}l>{\raggedright\arraybackslash}p{0.33\linewidth}>{\raggedright\arraybackslash}p{0.40\linewidth}@{}}
+\toprule
+Construction & Marker absent & Marker present \\
+\midrule
+Superseded & \lit{Nora's badge was amber.} & \lit{Previously, Nora's badge was amber.} \\
+Entity mention & \lit{Nora mentioned amber in an unrelated note.} & \lit{Previously, Nora mentioned amber in an unrelated note.} \\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{table}
+
+\begin{table}[t]
+\caption{Marker effects, $R_{\text{present}}-R_{\text{absent}}$, and the marker-by-construction interaction (superseded minus entity-mention marker effect) in Experiment 2, in nats, with 95\% history-bootstrap intervals over 96 histories. The underlying $R$ values, their source/donor components, and the earlier 24-history run are in Appendix~\ref{app:marker}.}
+\label{tab:marker}
+\begin{center}
+\small
+\begin{tabular}{@{}llrrr@{}}
+\toprule
+Model & Order & Superseded & Entity mention & Interaction \\
+\midrule
+Qwen3-8B & All & −0.652 [−0.748, −0.560] & −1.734 [−1.934, −1.536] & 1.082 [0.850, 1.308] \\
+Qwen3-8B & Aligned & −0.366 [−0.484, −0.243] & −1.000 [−1.164, −0.834] & 0.635 [0.427, 0.841] \\
+Qwen3-8B & Reversed & −0.938 [−1.071, −0.804] & −2.469 [−2.746, −2.189] & 1.530 [1.208, 1.847] \\
+\midrule
+Gemma 3 4B & All & −0.950 [−1.062, −0.841] & −1.075 [−1.166, −0.986] & 0.125 [−0.012, 0.265] \\
+Gemma 3 4B & Aligned & −0.963 [−1.100, −0.834] & −1.445 [−1.566, −1.326] & 0.482 [0.307, 0.655] \\
+Gemma 3 4B & Reversed & −0.937 [−1.112, −0.767] & −0.705 [−0.833, −0.580] & −0.232 [−0.436, −0.027] \\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{table}
+
+\begin{figure}[t]
+\begin{center}
+\includegraphics[width=0.78\linewidth]{figures/marker_by_construction.pdf}
+\end{center}
+\caption{Query relevance in Experiment 2 by marker and construction, averaged over orders. Points are means over 96 histories; intervals are marginal 95\% history-bootstrap intervals. Paired marker effects and the interaction, rather than overlap of marginal intervals, are in Table~\ref{tab:marker}.}
+\label{fig:marker-effects}
+\end{figure}
+
 \subsection{Query relevance and its components}
 
 $E$ can be split into the change in the donor's score minus the change in the source's score. Applying the $R$ transformation to each part gives $R=R_{\text{donor}}-R_{\text{source}}$. Table~\ref{tab:d-decomposition} reports $R$ and both components in the 96-history run. With the marker, the donor component is smaller and the source component less negative, at the mean level, in both constructions and both models.

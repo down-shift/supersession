@@ -36,31 +36,49 @@ def test_exp1_rows_have_the_documented_sign_conventions():
     means = [e["mean"] for e in est]
     # superseded - other attribute; entity mention - superseded; paired order differences as saved.
     assert means == pytest.approx([0.25, 3.0, 6.5, 0.2, -2.0])
-    assert all(e["experiment"] == 1 and e["n_histories"] == 2 for e in est)
+    assert all(e["source"] == "Exp. 1" and e["n_histories"] == 2 for e in est)
     for e in est:
         lo, hi = e["ci95"]
         assert lo <= e["mean"] <= hi
     assert np.isfinite([v for e in est for v in e["ci95"]]).all()
 
 
-def test_exp2_rows_are_read_verbatim_from_the_sealed_summary():
+def test_sealed_rows_are_read_verbatim_from_the_saved_summaries(tmp_path, monkeypatch):
     fig = _load()
-    analysis = {"summary": {
-        "superseded_marker_effect_all": {"n_histories": 24, "mean": -0.75, "ci95_history_bootstrap": [-0.9, -0.6]},
-        "entity_mention_marker_effect_all": {"n_histories": 24, "mean": -2.0, "ci95_history_bootstrap": [-2.4, -1.7]},
-    }}
-    est = fig.exp2_estimates(analysis)
-    assert [(e["label"], e["mean"], e["ci95"]) for e in est] == [
-        ("superseded", -0.75, [-0.9, -0.6]), ("entity mention", -2.0, [-2.4, -1.7])]
-    assert all(e["experiment"] == 2 for e in est)
+    import json
+    monkeypatch.setattr(fig, "EXP2", tmp_path)
+    monkeypatch.setattr(fig, "ROOT", tmp_path)
+    keys = {pattern: [] for _, _, _, pattern, _ in fig.SEALED_ROWS}
+    for _, _, _, pattern, key in fig.SEALED_ROWS:
+        keys[pattern].append(key)
+    for k, (pattern, names) in enumerate(keys.items()):
+        path = tmp_path / pattern.format(slug="m")
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps({"summary": {
+            n: {"n_histories": 96, "mean": k + j / 10, "ci95_history_bootstrap": [k - 1, k + 1]}
+            for j, n in enumerate(names)}}))
+    inputs = {}
+    est = fig.sealed_estimates("m", inputs)
+    assert len(est) == len(fig.SEALED_ROWS) and len(inputs) == len(keys)
+    for e, (group, label, source, pattern, key) in zip(est, fig.SEALED_ROWS):
+        k = list(keys).index(pattern)
+        assert (e["group"], e["label"], e["source"]) == (group, label, source)
+        assert e["mean"] == k + keys[pattern].index(key) / 10 and e["ci95"] == [k - 1, k + 1]
 
 
-def test_rows_from_both_experiments_share_one_group_order():
+def test_rows_are_grouped_by_question():
     fig = _load()
-    groups = [g for g, _, _ in fig.EXP1_ROWS] + [g for g, _, _ in fig.EXP2_ROWS]
-    # Each group is contiguous, so the plot's group headers are well defined.
+    rows = ([{"group": g, "label": l} for g, l, _ in fig.EXP1_ROWS]
+            + [{"group": g, "label": l} for g, l, *_ in fig.SEALED_ROWS])
+    groups = [r["group"] for r in fig.ordered(rows)]
+    assert set(groups) == set(fig.GROUP_ORDER)
+    # Each group is contiguous and in the declared order, so the plot's group headers are well defined.
     seen = []
     for g in groups:
         if not seen or seen[-1] != g:
             assert g not in seen
             seen.append(g)
+    assert seen == list(fig.GROUP_ORDER)
+    # Experiment 1 rows come first within their group.
+    first = {g: next(r["label"] for r in fig.ordered(rows) if r["group"] == g) for g in seen}
+    assert first["Relation status"] == "superseded $-$ other attribute"

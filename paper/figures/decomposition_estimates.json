@@ -2,8 +2,12 @@
   "bootstrap": "history; 2,000 draws; seed 73021",
   "inputs": {
     "outputs/cross_model_relational_v2/factorial_relation_counterbalanced_runtimefix_20261004/extended_analysis_v6/qwen3_8b/per_history.csv": "eef2c32106eedd2953c9a7192f38645b6214fe0a2e35aaac3609d376b5669402",
+    "outputs/followups/update_v1/update_confirmatory_qwen_analysis.json": "f376e68ebbf554b7d21c8d685bab549b06d3981c2540ef18db6157c8cb495543",
+    "outputs/followups/distance_v1/qwen_distance_analysis.json": "351be4887f3749cff55a4e7621d0a8e352bcb2f359eeffc144004dc9af284bcb",
     "outputs/followups/marker96/qwen_marker_analysis.json": "0ee531924d08c645b94e33d4211bc9f7ef28f4709243270849bcdff13986cdd8",
     "outputs/cross_model_relational_v2/factorial_relation_counterbalanced_runtimefix_20261004/extended_analysis_v6/gemma3_4b/per_history.csv": "ef02035c10170a4a130984a80ed7a6ea8a8b5bfdc56ec8707a514f7afc20ec37",
+    "outputs/followups/update_v1/update_confirmatory_gemma_analysis.json": "a17aa45880a8a0bd27615205f770054b809feb241aa85c7ed053415ad3c28259",
+    "outputs/followups/distance_v1/gemma_distance_analysis.json": "d1adea1a46ff3179e40a9bc266197e80e50a089289ce4727af9fe2096fee1f1d",
     "outputs/followups/marker96/gemma_marker_analysis.json": "0dbc4d61e05fb9647a39bbd6944175ad995de6d628cba058e776fdf38e012245"
   },
   "models": {
@@ -11,7 +15,7 @@
       {
         "group": "Relation status",
         "label": "superseded $-$ other attribute",
-        "experiment": 1,
+        "source": "Exp. 1",
         "n_histories": 96,
         "mean": 0.31359423189008934,
         "ci95": [
@@ -20,9 +24,31 @@
         ]
       },
       {
+        "group": "Relation status",
+        "label": "having been the queried attribute",
+        "source": "update",
+        "n_histories": 96,
+        "mean": 0.7400799753077899,
+        "ci95": [
+          0.6608600993943714,
+          0.818122692206865
+        ]
+      },
+      {
+        "group": "Relation status",
+        "label": "having been updated",
+        "source": "update",
+        "n_histories": 96,
+        "mean": -0.2894351361835752,
+        "ci95": [
+          -0.3629469888043635,
+          -0.21489899667531095
+        ]
+      },
+      {
         "group": "Construction",
         "label": "entity mention $-$ superseded",
-        "experiment": 1,
+        "source": "Exp. 1",
         "n_histories": 96,
         "mean": 3.5041742138450047,
         "ci95": [
@@ -31,9 +57,20 @@
         ]
       },
       {
+        "group": "Construction",
+        "label": "same, marker and distance matched",
+        "source": "distance",
+        "n_histories": 96,
+        "mean": 1.2925171003625977,
+        "ci95": [
+          1.0186155607235186,
+          1.570795299177663
+        ]
+      },
+      {
         "group": "Position (aligned $-$ reversed)",
         "label": "early unassigned",
-        "experiment": 1,
+        "source": "Exp. 1",
         "n_histories": 96,
         "mean": 6.5784995129625585,
         "ci95": [
@@ -44,7 +81,7 @@
       {
         "group": "Position (aligned $-$ reversed)",
         "label": "superseded",
-        "experiment": 1,
+        "source": "Exp. 1",
         "n_histories": 96,
         "mean": 0.3402026126957338,
         "ci95": [
@@ -55,7 +92,7 @@
       {
         "group": "Position (aligned $-$ reversed)",
         "label": "entity mention",
-        "experiment": 1,
+        "source": "Exp. 1",
         "n_histories": 96,
         "mean": -1.9690523544628349,
         "ci95": [
@@ -66,7 +103,7 @@
       {
         "group": "Temporal marker (with $-$ without)",
         "label": "superseded",
-        "experiment": 2,
+        "source": "Exp. 2",
         "n_histories": 96,
         "mean": -0.6520048174491792,
         "ci95": [
@@ -77,7 +114,7 @@
       {
         "group": "Temporal marker (with $-$ without)",
         "label": "entity mention",
-        "experiment": 2,
+        "source": "Exp. 2",
         "n_histories": 96,
         "mean": -1.7344294365525876,
         "ci95": [
@@ -90,7 +127,7 @@
       {
         "group": "Relation status",
         "label": "superseded $-$ other attribute",
-        "experiment": 1,
+        "source": "Exp. 1",
         "n_histories": 96,
         "mean": 0.004386654537089678,
         "ci95": [
@@ -99,9 +136,31 @@
         ]
       },
       {
+        "group": "Relation status",
+        "label": "having been the queried attribute",
+        "source": "update",
+        "n_histories": 96,
+        "mean": 0.14799034822664006,
+        "ci95": [
+          0.037603381546368865,
+          0.2614088690481
+        ]
+      },
+      {
+        "group": "Relation status",
+        "label": "having been updated",
+        "source": "update",
+        "n_histories": 96,
+        "mean": -0.027713523224608346,
+        "ci95": [
+          -0.1365914720387077,
+          0.0760290987594294
+        ]
+      },
+      {
         "group": "Construction",
         "label": "entity mention $-$ superseded",
-        "experiment": 1,
+        "source": "Exp. 1",
         "n_histories": 96,
         "mean": 2.5889969921698195,
         "ci95": [
@@ -110,9 +169,20 @@
         ]
       },
       {
+        "group": "Construction",
+        "label": "same, marker and distance matched",
+        "source": "distance",
+        "n_histories": 96,
+        "mean": 0.36744983187185093,
+        "ci95": [
+          0.23410960873939546,
+          0.5142831392940747
+        ]
+      },
+      {
         "group": "Position (aligned $-$ reversed)",
         "label": "early unassigned",
-        "experiment": 1,
+        "source": "Exp. 1",
         "n_histories": 96,
         "mean": 4.970069267165605,
         "ci95": [
@@ -123,7 +193,7 @@
       {
         "group": "Position (aligned $-$ reversed)",
         "label": "superseded",
-        "experiment": 1,
+        "source": "Exp. 1",
         "n_histories": 96,
         "mean": 0.03150708032331997,
         "ci95": [
@@ -134,7 +204,7 @@
       {
         "group": "Position (aligned $-$ reversed)",
         "label": "entity mention",
-        "experiment": 1,
+        "source": "Exp. 1",
         "n_histories": 96,
         "mean": 1.8096411434468063,
         "ci95": [
@@ -145,7 +215,7 @@
       {
         "group": "Temporal marker (with $-$ without)",
         "label": "superseded",
-        "experiment": 2,
+        "source": "Exp. 2",
         "n_histories": 96,
         "mean": -0.9497669423384435,
         "ci95": [
@@ -156,7 +226,7 @@
       {
         "group": "Temporal marker (with $-$ without)",
         "label": "entity mention",
-        "experiment": 2,
+        "source": "Exp. 2",
         "n_histories": 96,
         "mean": -1.0750044293985093,
         "ci95": [

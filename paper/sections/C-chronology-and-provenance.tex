@@ -1,7 +1,7 @@
 \section{Provenance of Experiment 1}
 \label{app:provenance}
 
-\paragraph{Models and runtime.} Qwen3-8B used checkpoint revision \lit{\seqsplit{b968826d9c46dd6066d109eabc6255188de91218}} and Gemma 3 4B (\lit{gemma-3-4b-it}) used \lit{\seqsplit{093f9f388b31de276ce2de164bdc2081324b9767}}, both with int8 weights, CUDA inference, and Python 3.12.13; computation was float16 for Qwen and bfloat16 for Gemma.
+\paragraph{Models and runtime.} Qwen3-8B used checkpoint revision \lit{\seqsplit{b968826d9c46dd6066d109eabc6255188de91218}} and Gemma 3 4B (\lit{gemma-3-4b-it}) used \lit{\seqsplit{093f9f388b31de276ce2de164bdc2081324b9767}}, both with int8 weights, CUDA inference, and Python 3.12.13; computation was float16 for Qwen and bfloat16 for Gemma. All scoring used PyTorch 2.14.0 \citep{paszke2019pytorch} with CUDA 13.0, Hugging Face Transformers 5.17.0 \citep{wolf2020transformers}, and bitsandbytes 0.50.2 for LLM.int8() weight quantization \citep{dettmers2022llmint8}; the additional models of Appendix~\ref{app:followups} were scored with the same library versions under Python 3.13.5.
 
 \paragraph{Scoring formats.} An earlier version of the competence screen scored only the first token of each candidate. It exposed a casing and tokenization problem for Phi-4-mini and ranking errors for Mistral-7B. All results in this paper use the complete-continuation score of Section~\ref{sec:score} and screens run under it; results from the earlier format are not mixed in.
 

@@ -5,11 +5,39 @@ The follow-ups of Section~\ref{sec:followup-design} were run on the RTX 5080 use
 
 \subsection{Name--value distance}
 
+\paragraph{Design.} Entity mentions place the value one word after the name (\lit{Nora mentioned amber}), superseded assignments several tokens later (\lit{Nora's badge was amber}). We crossed construction (superseded, entity mention) with name--value distance (near, far), all lines marked with \lit{Previously}: superseded far \lit{Previously, Nora's badge was amber.}, superseded near \lit{Previously, the badge of Nora was amber.}, entity-mention near \lit{Previously, Nora mentioned amber in an unrelated note.}, and entity-mention far \lit{Previously, Nora, in an unrelated note, mentioned amber.} A tokenizer audit, run before data generation, measured the token gap between name and value: one token in both near conditions for both models, three (Qwen) or four (Gemma) for superseded far, and seven for entity-mention far. The first near superseded wordings we considered (\lit{Nora's badge: amber} and two variants) did not shorten the measured gap and were replaced before any data were generated (Appendix~\ref{app:followups}). The study uses 96 histories with Experiment 1's allocation and 12,288 scored prompts per model. The recorded prediction was that near exceeds far within each construction, with lower 95\% bounds above zero in both constructions.
+
+\begin{table}[t]
+\caption{Name--value distance follow-up: $R$ (nats) by construction and distance, near-minus-far differences, and the entity-minus-superseded gap at each distance, with 95\% history-bootstrap intervals over 96 histories. Measured name--value gaps: one token in both near conditions; three (Qwen) or four (Gemma) tokens for superseded far; seven for entity-mention far.}
+\label{tab:distance}
+\begin{center}
+\small
+\begin{tabular}{@{}lrr@{}}
+\toprule
+ & Qwen3-8B & Gemma 3 4B \\
+\midrule
+Superseded, near & 2.685 [2.516, 2.861] & 2.005 [1.858, 2.135] \\
+Superseded, far & 2.184 [2.030, 2.335] & 1.612 [1.492, 1.735] \\
+Entity mention, near & 3.977 [3.684, 4.264] & 2.372 [2.245, 2.505] \\
+Entity mention, far & 4.347 [4.043, 4.662] & 2.399 [2.261, 2.545] \\
+\midrule
+Superseded, near $-$ far & 0.500 [0.400, 0.599] & 0.393 [0.288, 0.496] \\
+Entity mention, near $-$ far & −0.370 [−0.498, −0.249] & −0.027 [−0.110, 0.058] \\
+\midrule
+Entity $-$ superseded, near & 1.293 [1.019, 1.571] & 0.367 [0.234, 0.514] \\
+Entity $-$ superseded, far & 2.163 [1.866, 2.459] & 0.788 [0.657, 0.922] \\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{table}
+
 \paragraph{Choice of the near superseded template.} The design listed three near superseded wordings (\lit{Nora's badge: amber}, \lit{Nora's badge = amber}, \lit{Nora's badge, amber}) and a rule choosing the first whose baseline/edit pairs differ only in the edited value's tokens for both tokenizers. A tokenizer audit run before data generation found that all three pass that check but leave the measured name--value gap unchanged (three tokens in Qwen, four in Gemma, as for the far template), so the superseded arm would not have varied distance. Before any data were generated, an amendment added a fourth candidate, \lit{Previously, the badge of Nora was amber.}, and required the chosen template to be measurably nearer than the far template in both tokenizers; the re-run audit chose it, with a gap of one token in both. The amendment was hash-stamped separately.
 
 \paragraph{Data.} 96 histories (Experiment 1's allocation of entity pairs, attributes, and name orientations), excluding all histories of the marker pilot and the 24-history marker run; 12,288 scored prompts per model (9,152 distinct); scoring took 6,472 s (Qwen) and 2,656 s (Gemma). Results are in Table~\ref{tab:distance}; the distance-by-construction interaction (superseded near-minus-far minus entity-mention near-minus-far) was 0.871 [0.703, 1.040] in Qwen and 0.420 [0.291, 0.542] in Gemma.
 
 \subsection{Update chains}
+
+\paragraph{Design.} To test generated answers below ceiling, each entity received a chain of three, four, or five values revealed in rounds (\lit{Initially, \ldots was v.}, \lit{Then, \ldots changed to v.}, \lit{Currently, \ldots is v.}); the edit replaced the immediately superseded value, and the vocabulary was extended to twelve values chosen by a recorded tokenizer audit. Models generated answers greedily and were also scored on candidate masses. A development run of 12 histories per depth was to select the shallowest depth at which at least one model's answer accuracy fell between 70\% and 95\%, and a 96-history confirmation would then measure whether edits move generated answers toward the donor value; if no depth qualified, the study would stop. Because no depth qualified, a second run scored candidate masses only on 96 fresh histories per depth, to estimate how $R$ changes with depth; the recorded rule counted growth as supported if $R$ at depth 5 minus $R$ at depth 3 had a lower 95\% bound above zero, comparing independent history sets. Development: 384 generated answers per depth and model.
 
 \paragraph{Vocabulary.} Disjoint chains of up to five values per entity plus two donors need twelve values. The design extended the eight-value vocabulary by walking a recorded candidate list in order and keeping each value that is not a substring of another and keeps the candidate continuations valid for both tokenizers; the audit kept the first four candidates, \lit{olive}, \lit{plum}, \lit{navy}, and \lit{rust}.
 
@@ -61,55 +89,99 @@ Depth 5 $-$ depth 3 & 4.482 [3.915, 5.047] & 0.258 [−0.063, 0.557] \\
 
 \subsection{Updated other attribute}
 
-The 96 histories follow Experiment 1's allocation; the other attribute and the filler attribute are \lit{team} and \lit{project}, swapped between the two halves of the histories, and each history uses all eight vocabulary values (two historical, two extra current, two current for the queried attribute, two donors). Historical order, current order, edited entity, query, and baseline/edit are crossed as in Experiment 1, with the extra current block in the current order; 9,216 prompts per model (6,912 distinct). By order group, the queried-attribute effect was 0.801 [0.691, 0.919] (aligned) and 0.679 [0.579, 0.780] (reversed) in Qwen and 0.362 [0.205, 0.528] and −0.066 [−0.198, 0.064] in Gemma; the update effect was −0.225 [−0.334, −0.117] and −0.354 [−0.452, −0.249] in Qwen and −0.036 [−0.186, 0.099] and −0.019 [−0.150, 0.118] in Gemma.
+\paragraph{Design.} To separate the two properties joined in superseded versus other attribute, three constructions share a six-line layout: two historical lines, two extra current lines, and the two current lines for the queried attribute. In the superseded construction the historical lines assign the queried attribute and the extra lines assign a filler attribute (\lit{Previously, Nora's badge was amber.}; \lit{Currently, Nora's project is slate.}). In the updated other-attribute construction the historical lines assign another attribute and the extra lines update it (\lit{Previously, Nora's team was amber.}; \lit{Currently, Nora's team is slate.}); in the static other-attribute construction the extra lines assign the filler attribute instead. Superseded minus updated other attribute then measures having been the queried attribute, with both values contradicted, and updated minus static other attribute measures being contradicted by an update, with neither value the queried attribute. The recorded prediction of the discount account was an update effect below zero. The study uses 96 histories with Experiment 1's allocation, all eight vocabulary values per history, and 9,216 scored prompts per model.
 
-\subsection{Additional models}
-
-\paragraph{Procedure.} Each additional model was scored on Experiment 1's sealed screening dataset (24 histories) and, if it passed, on the sealed confirmation dataset (96 histories), with the same renderer, candidate validation, scorer, competence rule, and analysis code as Qwen and Gemma. Llama-3.1-8B-Instruct, the planned model from a third family, could not be used because access to its gated weights was declined. Qwen3-14B ran out of memory while loading with int8 weights on the 16 GB GPU and produced no scores.
-
-\paragraph{Screens.} Table~\ref{tab:f-screens} gives strict rank-one accuracy on distinct screening prompts. OLMo-2-7B-Instruct (revision \lit{470b1fba1ae01581f270116362ee4aa1b97f4c84}, int8 weights, bfloat16 computation) failed in four constructions. Phi-4-mini, re-scored with this procedure, reproduced its original screening result exactly.
-
-\begin{table}[h]
-\caption{Competence screens of the additional models: correct current value strictly ranked first, over distinct screening prompts (requirement: 99\% in every construction).}
-\label{tab:f-screens}
+\begin{table}[t]
+\caption{Updated-other-attribute follow-up: $R$ (nats) by construction and the two contrasts it separates, with 95\% history-bootstrap intervals over 96 histories. All three constructions share a six-line layout.}
+\label{tab:update}
 \begin{center}
 \small
 \begin{tabular}{@{}lrr@{}}
 \toprule
-Construction & OLMo-2-7B-Instruct & Phi-4-mini \\
+ & Qwen3-8B & Gemma 3 4B \\
 \midrule
-Live & 287/288 & 288/288 \\
-Superseded & 563/576 & 576/576 \\
-Other attribute & 575/576 & 573/576 \\
-Entity mention & 426/576 & 561/576 \\
-Early unassigned & 452/576 & 576/576 \\
-Late unassigned & 448/576 & 576/576 \\
+Superseded & 1.368 [1.282, 1.457] & 0.817 [0.713, 0.928] \\
+Other attribute, updated & 0.628 [0.555, 0.700] & 0.669 [0.568, 0.770] \\
+Other attribute, not updated & 0.917 [0.835, 1.003] & 0.697 [0.602, 0.802] \\
+\midrule
+Queried attribute (superseded $-$ updated) & 0.740 [0.661, 0.818] & 0.148 [0.038, 0.261] \\
+Update (updated $-$ not updated) & −0.289 [−0.363, −0.215] & −0.028 [−0.137, 0.076] \\
+Superseded $-$ not updated & 0.451 [0.376, 0.525] & 0.120 [0.027, 0.209] \\
 \bottomrule
 \end{tabular}
 \end{center}
 \end{table}
 
-\paragraph{Phi-4-mini, descriptive confirmation.} Outside the screen, Phi-4-mini was scored on all 18,432 confirmation prompts. Table~\ref{tab:f-phi} reports its condition-level relevance and the three planned contrasts; they are descriptive.
+The 96 histories follow Experiment 1's allocation; the other attribute and the filler attribute are \lit{team} and \lit{project}, swapped between the two halves of the histories, and each history uses all eight vocabulary values (two historical, two extra current, two current for the queried attribute, two donors). Historical order, current order, edited entity, query, and baseline/edit are crossed as in Experiment 1, with the extra current block in the current order; 9,216 prompts per model (6,912 distinct). By order group, the queried-attribute effect was 0.801 [0.691, 0.919] (aligned) and 0.679 [0.579, 0.780] (reversed) in Qwen and 0.362 [0.205, 0.528] and −0.066 [−0.198, 0.064] in Gemma; the update effect was −0.225 [−0.334, −0.117] and −0.354 [−0.452, −0.249] in Qwen and −0.036 [−0.186, 0.099] and −0.019 [−0.150, 0.118] in Gemma.
 
-\begin{table}[h]
-\caption{Phi-4-mini on the Experiment 1 confirmation set (descriptive; the model failed the competence screen). Means with 95\% history-bootstrap intervals over 96 histories, in nats.}
-\label{tab:f-phi}
+\subsection{Generated answers below ceiling (exploratory)}
+
+\paragraph{Design.} Because Qwen and Gemma answer at ceiling, generated answers were studied in OLMo-2-7B-Instruct, which fails the competence screen (Section~\ref{sec:additional-models}) and so lies outside the screened population. It generated answers greedily (at most 32 tokens, exact match to the eight values) on all 18,432 Experiment 1 confirmation prompts. The generated-answer analogue of $R$ is \emph{donor following}: the share of edited prompts answered with the donor when the edited entity is queried, minus that share when the other entity is queried, computed per history. This study is exploratory and does not enter any confirmatory claim.
+
+\begin{table}[t]
+\caption{Exploratory generated-answer study in OLMo-2-7B-Instruct (outside the screened population) on the Experiment 1 confirmation set. Accuracy counts all 3,072 prompts per construction; donor following is the share of edited prompts answered with the donor under the edited entity's query minus under the other entity's query, with 95\% history-bootstrap intervals over 96 histories.}
+\label{tab:olmo}
 \begin{center}
 \small
-\begin{tabular}{@{}lr@{}}
+\begin{tabular}{@{}lrrrr@{}}
 \toprule
-Quantity & Phi-4-mini \\
+Construction & Accuracy & Donor following & Aligned & Reversed \\
 \midrule
-$R$ live & 17.593 [17.223, 17.941] \\
-$R$ superseded & 3.110 [2.998, 3.221] \\
-$R$ other attribute & 3.262 [3.141, 3.393] \\
-$R$ entity mention & 4.982 [4.780, 5.179] \\
-$R$ early unassigned & 0.027 [−0.069, 0.130] \\
-$R$ late unassigned & −0.000 [−0.117, 0.115] \\
+Live & 2,970/3,072 & 0.948 [0.924, 0.969] & 0.948 & 0.948 \\
+Superseded & 2,950/3,072 & 0.008 [0.003, 0.014] & 0.016 & 0.000 \\
+Other attribute & 2,990/3,072 & 0.001 [0.000, 0.004] & 0.000 & 0.003 \\
+Entity mention & 1,846/3,072 & 0.155 [0.124, 0.190] & 0.185 & 0.125 \\
+Early unassigned & 1,528/3,072 & −0.001 [−0.022, 0.020] & 0.161 & −0.164 \\
+Late unassigned & 2,131/3,072 & 0.005 [−0.022, 0.031] & 0.148 & −0.138 \\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{table}
+
+\subsection{Additional models}
+
+\paragraph{Procedure.} Each additional model was scored on Experiment 1's sealed screening dataset (24 histories) and, if it passed, on the sealed confirmation dataset (96 histories), with the same renderer, candidate validation, scorer, competence rule, and analysis code as Qwen and Gemma. All additional models were loaded with int8 weights at pinned revisions. Llama-3.1-8B-Instruct, the planned model from a third family, could not be used because access to its gated weights was declined; Falcon3-7B-Instruct and Granite-3.1-8B-Instruct were added as models from other families, Qwen2.5-7B-Instruct and Gemma 3 12B as other generations and sizes within the two original families. Qwen3-14B did not fit in 16 GB of GPU memory and was run on an 80 GB GPU; Qwen2.5-7B produced non-finite logits with float16 computation and was run with bfloat16 computation, before any of its scores were written. Granite's chat template inserts the current date into every prompt; the rendered prompts are stored with its scores.
+
+\paragraph{Screens.} Table~\ref{tab:f-screens} gives strict rank-one accuracy on distinct screening prompts. OLMo-2-7B-Instruct (revision \lit{470b1fba1ae01581f270116362ee4aa1b97f4c84}, bfloat16 computation) failed in four constructions. Phi-4-mini, re-scored with this procedure, reproduced its original screening result exactly. Falcon3-7B, Qwen3-14B, Gemma 3 12B, Granite-3.1-8B and Mistral-7B-Instruct-v0.3 passed. Mistral had failed an earlier, differently formatted version of the screen (97.57\% in one construction) and was screened on Experiment 1 only for the threshold check below; it passed, so by the rule recorded beforehand it is a screened model like the others. Qwen2.5-7B-Instruct failed in late unassigned (563/576).
+
+\begin{table}[h]
+\caption{Competence screens of the additional models: correct current value strictly ranked first, over distinct screening prompts (requirement: 99\% in every construction).}
+\label{tab:f-screens}
+\begin{center}
+\footnotesize
+\begin{tabular}{@{}lrrrrrrl@{}}
+\toprule
+Model & Live & Superseded & Other attr. & Entity mention & Early unass. & Late unass. & Screen \\
 \midrule
-Superseded $-$ other attribute & −0.152 [−0.266, −0.040] \\
-Superseded $-$ entity mention & −1.872 [−2.091, −1.664] \\
-Superseded $-$ early unassigned & 3.082 [2.961, 3.197] \\
+OLMo-2-7B & 287/288 & 563/576 & 575/576 & 426/576 & 452/576 & 448/576 & fail \\
+Phi-4-mini & 288/288 & 576/576 & 573/576 & 561/576 & 576/576 & 576/576 & fail \\
+Qwen2.5-7B & 288/288 & 576/576 & 575/576 & 576/576 & 576/576 & 563/576 & fail \\
+Falcon3-7B & 288/288 & 576/576 & 576/576 & 574/576 & 576/576 & 576/576 & pass \\
+Granite-3.1-8B & 288/288 & 576/576 & 576/576 & 576/576 & 576/576 & 576/576 & pass \\
+Mistral-7B & 288/288 & 574/576 & 572/576 & 571/576 & 576/576 & 576/576 & pass \\
+Gemma 3 12B & 288/288 & 576/576 & 576/576 & 576/576 & 576/576 & 576/576 & pass \\
+Qwen3-14B & 288/288 & 576/576 & 576/576 & 576/576 & 576/576 & 576/576 & pass \\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{table}
+
+\paragraph{Models excluded by the screen, scored descriptively.} Two models failed the screen narrowly, each in a single construction: Phi-4-mini (561/576 in entity mention) and Qwen2.5-7B-Instruct (563/576 in late unassigned). To show whether the conclusions depend on the 99\% threshold, each was scored on all 18,432 confirmation prompts with the unchanged scorer and analysis. Two criteria were recorded before scoring: the entity-mention gap exceeds the relation-status contrast in absolute value, and early-unassigned relevance is positive under aligned and negative under reversed order, with both intervals excluding zero. Table~\ref{tab:f-excluded} gives the results; they are descriptive and enter no confirmatory claim.
+
+\begin{table}[h]
+\caption{Experiment 1 in models that failed the competence screen, scored descriptively, in the format of Table~\ref{tab:models}. Means with 95\% history-bootstrap intervals over 96 histories, in nats.}
+\label{tab:f-excluded}
+\begin{center}
+\scriptsize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lrrrrr@{}}
+\toprule
+ & (a) Superseded & (b) Entity mention & \multicolumn{2}{c}{Early unassigned} & \\
+\cmidrule(lr){4-5}
+Model & $-$ other attribute & $-$ superseded & Aligned & Reversed & (b) $-$ (a) \\
+\midrule
+Phi-4-mini & −0.152 [−0.266, −0.040] & 1.872 [1.664, 2.091] & 3.007 [2.871, 3.149] & −2.953 [−3.075, −2.818] & 2.025 [1.759, 2.306] \\
+Qwen2.5-7B & −0.553 [−0.736, −0.388] & 2.253 [1.931, 2.595] & 5.912 [5.605, 6.253] & −5.845 [−6.181, −5.517] & 2.806 [2.432, 3.227] \\
 \bottomrule
 \end{tabular}
 \end{center}

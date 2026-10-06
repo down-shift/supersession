@@ -3,6 +3,62 @@
 
 All intervals in this appendix are 95\% history-bootstrap intervals (Section~\ref{sec:inference}).
 
+\subsection{Query relevance by construction and order}
+
+Table~\ref{tab:main} and Figure~\ref{fig:construction-order} give $R$ for every construction and order group, and Table~\ref{tab:frozen} the three superseded-minus-control contrasts that tested the original hypothesis. Superseded and other-attribute relevance are positive and similar in both order groups; entity-mention relevance is the largest among the non-live constructions; unassigned relevance is near zero overall but large and of opposite sign in the two order groups.
+
+\begin{table}[t]
+\caption{Query relevance $R$ (nats) by construction and order group in Experiment 1, with 95\% history-bootstrap intervals over 96 histories. The live control has one assignment block, so it has no order split.}
+\label{tab:main}
+\begin{center}
+\small
+\begin{tabular}{@{}llrrr@{}}
+\toprule
+Model & Construction & Overall $R$ & Aligned $R$ & Reversed $R$ \\
+\midrule
+Qwen3-8B & Live & 32.598 [31.258, 33.967] & — & — \\
+Qwen3-8B & Superseded & 1.974 [1.840, 2.109] & 2.144 [1.995, 2.301] & 1.804 [1.660, 1.947] \\
+Qwen3-8B & Other attribute & 1.660 [1.488, 1.835] & 1.679 [1.527, 1.835] & 1.641 [1.422, 1.863] \\
+Qwen3-8B & Entity mention & 5.478 [5.128, 5.825] & 4.493 [4.235, 4.770] & 6.463 [5.971, 6.940] \\
+Qwen3-8B & Early unassigned & −0.037 [−0.203, 0.121] & 3.252 [3.046, 3.455] & −3.327 [−3.518, −3.150] \\
+Qwen3-8B & Late unassigned & 0.001 [−0.208, 0.211] & 3.187 [2.948, 3.442] & −3.184 [−3.433, −2.945] \\
+\midrule
+Gemma 3 4B & Live & 39.355 [38.303, 40.415] & — & — \\
+Gemma 3 4B & Superseded & 1.688 [1.568, 1.817] & 1.703 [1.574, 1.841] & 1.672 [1.529, 1.831] \\
+Gemma 3 4B & Other attribute & 1.683 [1.541, 1.832] & 1.763 [1.598, 1.932] & 1.603 [1.453, 1.771] \\
+Gemma 3 4B & Entity mention & 4.277 [4.029, 4.545] & 5.181 [4.884, 5.496] & 3.372 [3.131, 3.633] \\
+Gemma 3 4B & Early unassigned & 0.113 [−0.023, 0.245] & 2.598 [2.395, 2.798] & −2.372 [−2.567, −2.178] \\
+Gemma 3 4B & Late unassigned & 0.125 [−0.055, 0.305] & 3.445 [3.202, 3.696] & −3.194 [−3.447, −2.945] \\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{table}
+
+\begin{figure}[t]
+\begin{center}
+\includegraphics[width=0.98\linewidth]{figures/construction_by_order.pdf}
+\end{center}
+\caption{Query relevance $R$ (nats) for the five non-live constructions of Experiment 1, by order group and model. Points are means over 96 histories; intervals are 95\% history-bootstrap intervals. Live is omitted from the shared scale (Table~\ref{tab:main}). Paired order differences are in Table~\ref{tab:b-paired-r}.}
+\label{fig:construction-order}
+\end{figure}
+
+\begin{table}[t]
+\caption{Superseded minus each control construction, $R_{\text{superseded}}-R_{\text{control}}$ (nats), with 95\% history-bootstrap intervals over 96 histories. Because early-unassigned $R$ is near zero after averaging over orders (Section~\ref{sec:order}), the last contrast is close to superseded $R$ itself. Order-stratified versions are in Table~\ref{tab:b-order}.}
+\label{tab:frozen}
+\begin{center}
+\small
+\begin{tabular}{@{}llrr@{}}
+\toprule
+Control & Isolates & Qwen3-8B & Gemma 3 4B \\
+\midrule
+Other attribute & relation status & 0.314 [0.147, 0.482] & 0.004 [−0.104, 0.118] \\
+Entity mention & construction & −3.504 [−3.806, −3.198] & −2.589 [−2.829, −2.361] \\
+Early unassigned & none: order-averaged control near zero & 2.011 [1.855, 2.170] & 1.575 [1.440, 1.719] \\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{table}
+
 \subsection{Order groups}
 
 Table~\ref{tab:b-paired-r} gives the paired order effect on $R$ itself for each construction, Table~\ref{tab:b-order} each superseded-minus-control contrast by order group, and Table~\ref{tab:b-paired} the paired difference between the aligned and reversed contrasts. Paired differences are computed within history. The live control has one assignment block and no order split.

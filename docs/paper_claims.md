@@ -132,3 +132,21 @@ weakly by …"). Limits, in addition to those listed there:
 - Ceiling: neither distractors nor update chains (docs/chain_v1.md) lowered answer accuracy; no
   generated-answer claim. OLMo-2-7B is below ceiling but failed the screen; Phi-4-mini results are
   descriptive or exploratory only.
+
+## Amendment 2026-10-06: six-model ranked thesis (human decision)
+
+Decided by the human after the additional-model confirmations (option "Ranked, with exception"). The
+thesis now covers the six screened models from four families (Qwen3-8B, Qwen3-14B, Gemma 3 4B, Gemma 3
+12B, Falcon3-7B, Granite-3.1-8B; Mistral-7B to be added when its confirmation finishes) and is stated
+as a ranking of factors:
+
+- Mention order matters most in every model (early-unassigned aligned − reversed 4.970–10.722 nats).
+- An entity mention outweighs a superseded assignment in every model; the paired difference between
+  that gap and the relation-status contrast is resolved in all but Granite-3.1-8B (0.371
+  [−0.019, 0.744]), which the paper states as an exception.
+- Relation status ranges from no detectable effect (Gemma 3 4B, Falcon3-7B) to 1.162 nats, about a
+  quarter of superseded relevance (Qwen3-14B). "Relation status matters little" is claimed only for
+  Qwen3-8B and Gemma 3 4B.
+- Within-family size differences (8B→14B, 4B→12B) are an observation, not a scaling claim.
+- Two models that narrowly fail the screen (Phi-4-mini, Qwen2.5-7B) meet both criteria recorded in
+  docs/excluded_models_v1.md; the paper says the ranking does not depend on the 99% threshold.

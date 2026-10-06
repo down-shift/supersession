@@ -1,0 +1,14 @@
+# docs/excluded_models_v1.md — scored with scripts/score_exp1_model.py. Revision as in configs/mistral7b_natural_replication.yaml.
+seed: 20261031
+model:
+  id: mistralai/Mistral-7B-Instruct-v0.3
+  revision: c170c708c41dac9275d15a8fff4eca08d52bab71
+  tokenizer_id: mistralai/Mistral-7B-Instruct-v0.3
+  tokenizer_revision: c170c708c41dac9275d15a8fff4eca08d52bab71
+  device: cuda
+  dtype: float16
+  quantization: int8
+  device_map: 0
+  require_full_gpu: true
+  chat_template: true
+  attn_implementation: sdpa
