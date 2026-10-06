@@ -81,4 +81,4 @@ def test_rows_are_grouped_by_question():
     assert seen == list(fig.GROUP_ORDER)
     # Experiment 1 rows come first within their group.
     first = {g: next(r["label"] for r in fig.ordered(rows) if r["group"] == g) for g in seen}
-    assert first["Relation status"] == "superseded $-$ other attribute"
+    assert first["Relation-status comparison"] == "superseded $-$ other attribute"

@@ -13,7 +13,7 @@
   "models": {
     "Qwen3-8B": [
       {
-        "group": "Relation status",
+        "group": "Relation-status comparison",
         "label": "superseded $-$ other attribute",
         "source": "Exp. 1",
         "n_histories": 96,
@@ -24,7 +24,7 @@
         ]
       },
       {
-        "group": "Relation status",
+        "group": "Relation-status comparison",
         "label": "superseded $-$ updated other attr.",
         "source": "update design",
         "n_histories": 96,
@@ -35,7 +35,7 @@
         ]
       },
       {
-        "group": "Relation status",
+        "group": "Relation-status comparison",
         "label": "updated $-$ static other attr.",
         "source": "update design",
         "n_histories": 96,
@@ -46,7 +46,7 @@
         ]
       },
       {
-        "group": "Construction",
+        "group": "Construction comparisons",
         "label": "entity mention $-$ superseded",
         "source": "Exp. 1",
         "n_histories": 96,
@@ -57,7 +57,7 @@
         ]
       },
       {
-        "group": "Construction",
+        "group": "Construction comparisons",
         "label": "same gap, marker and distance matched",
         "source": "distance design",
         "n_histories": 96,
@@ -68,7 +68,7 @@
         ]
       },
       {
-        "group": "Position (aligned $-$ reversed)",
+        "group": "Order comparisons (aligned $-$ reversed)",
         "label": "early unassigned",
         "source": "Exp. 1",
         "n_histories": 96,
@@ -79,7 +79,7 @@
         ]
       },
       {
-        "group": "Position (aligned $-$ reversed)",
+        "group": "Order comparisons (aligned $-$ reversed)",
         "label": "superseded",
         "source": "Exp. 1",
         "n_histories": 96,
@@ -90,7 +90,7 @@
         ]
       },
       {
-        "group": "Position (aligned $-$ reversed)",
+        "group": "Order comparisons (aligned $-$ reversed)",
         "label": "entity mention",
         "source": "Exp. 1",
         "n_histories": 96,
@@ -101,7 +101,7 @@
         ]
       },
       {
-        "group": "Temporal marker (with $-$ without)",
+        "group": "Marker comparisons (with $-$ without)",
         "label": "superseded",
         "source": "Exp. 2",
         "n_histories": 96,
@@ -112,7 +112,7 @@
         ]
       },
       {
-        "group": "Temporal marker (with $-$ without)",
+        "group": "Marker comparisons (with $-$ without)",
         "label": "entity mention",
         "source": "Exp. 2",
         "n_histories": 96,
@@ -125,7 +125,7 @@
     ],
     "Gemma 3 4B": [
       {
-        "group": "Relation status",
+        "group": "Relation-status comparison",
         "label": "superseded $-$ other attribute",
         "source": "Exp. 1",
         "n_histories": 96,
@@ -136,7 +136,7 @@
         ]
       },
       {
-        "group": "Relation status",
+        "group": "Relation-status comparison",
         "label": "superseded $-$ updated other attr.",
         "source": "update design",
         "n_histories": 96,
@@ -147,7 +147,7 @@
         ]
       },
       {
-        "group": "Relation status",
+        "group": "Relation-status comparison",
         "label": "updated $-$ static other attr.",
         "source": "update design",
         "n_histories": 96,
@@ -158,7 +158,7 @@
         ]
       },
       {
-        "group": "Construction",
+        "group": "Construction comparisons",
         "label": "entity mention $-$ superseded",
         "source": "Exp. 1",
         "n_histories": 96,
@@ -169,7 +169,7 @@
         ]
       },
       {
-        "group": "Construction",
+        "group": "Construction comparisons",
         "label": "same gap, marker and distance matched",
         "source": "distance design",
         "n_histories": 96,
@@ -180,7 +180,7 @@
         ]
       },
       {
-        "group": "Position (aligned $-$ reversed)",
+        "group": "Order comparisons (aligned $-$ reversed)",
         "label": "early unassigned",
         "source": "Exp. 1",
         "n_histories": 96,
@@ -191,7 +191,7 @@
         ]
       },
       {
-        "group": "Position (aligned $-$ reversed)",
+        "group": "Order comparisons (aligned $-$ reversed)",
         "label": "superseded",
         "source": "Exp. 1",
         "n_histories": 96,
@@ -202,7 +202,7 @@
         ]
       },
       {
-        "group": "Position (aligned $-$ reversed)",
+        "group": "Order comparisons (aligned $-$ reversed)",
         "label": "entity mention",
         "source": "Exp. 1",
         "n_histories": 96,
@@ -213,7 +213,7 @@
         ]
       },
       {
-        "group": "Temporal marker (with $-$ without)",
+        "group": "Marker comparisons (with $-$ without)",
         "label": "superseded",
         "source": "Exp. 2",
         "n_histories": 96,
@@ -224,7 +224,7 @@
         ]
       },
       {
-        "group": "Temporal marker (with $-$ without)",
+        "group": "Marker comparisons (with $-$ without)",
         "label": "entity mention",
         "source": "Exp. 2",
         "n_histories": 96,

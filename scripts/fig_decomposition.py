@@ -36,32 +36,32 @@ MODELS = {"Qwen3-8B": ("qwen3_8b", "qwen"), "Gemma 3 4B": ("gemma3_4b", "gemma")
 
 # Experiment 1 rows: (group, label, per-history value as a function of one per_history.csv row).
 EXP1_ROWS = [
-    ("Relation status", "superseded $-$ other attribute",
+    ("Relation-status comparison", "superseded $-$ other attribute",
      lambda r: r["R_superseded"] - r["R_other_attribute"]),
-    ("Construction", "entity mention $-$ superseded",
+    ("Construction comparisons", "entity mention $-$ superseded",
      lambda r: r["R_entity_mention"] - r["R_superseded"]),
-    ("Position (aligned $-$ reversed)", "early unassigned",
+    ("Order comparisons (aligned $-$ reversed)", "early unassigned",
      lambda r: r["R_early_unassigned_aligned_minus_reversed"]),
-    ("Position (aligned $-$ reversed)", "superseded",
+    ("Order comparisons (aligned $-$ reversed)", "superseded",
      lambda r: r["R_superseded_aligned_minus_reversed"]),
-    ("Position (aligned $-$ reversed)", "entity mention",
+    ("Order comparisons (aligned $-$ reversed)", "entity mention",
      lambda r: r["R_entity_mention_aligned_minus_reversed"]),
 ]
 # Rows from sealed follow-up analyses: (group, label, source tag, file pattern, summary key).
 SEALED_ROWS = [
-    ("Relation status", "superseded $-$ updated other attr.", "update design",
+    ("Relation-status comparison", "superseded $-$ updated other attr.", "update design",
      "update_v1/update_confirmatory_{slug}_analysis.json", "superseded_minus_other_updated_all"),
-    ("Relation status", "updated $-$ static other attr.", "update design",
+    ("Relation-status comparison", "updated $-$ static other attr.", "update design",
      "update_v1/update_confirmatory_{slug}_analysis.json", "other_updated_minus_other_static_all"),
-    ("Construction", "same gap, marker and distance matched", "distance design",
+    ("Construction comparisons", "same gap, marker and distance matched", "distance design",
      "distance_v1/{slug}_distance_analysis.json", "construction_gap_near_all"),
-    ("Temporal marker (with $-$ without)", "superseded", "Exp. 2",
+    ("Marker comparisons (with $-$ without)", "superseded", "Exp. 2",
      "marker96/{slug}_marker_analysis.json", "superseded_marker_effect_all"),
-    ("Temporal marker (with $-$ without)", "entity mention", "Exp. 2",
+    ("Marker comparisons (with $-$ without)", "entity mention", "Exp. 2",
      "marker96/{slug}_marker_analysis.json", "entity_mention_marker_effect_all"),
 ]
-GROUP_ORDER = ("Relation status", "Construction", "Position (aligned $-$ reversed)",
-               "Temporal marker (with $-$ without)")
+GROUP_ORDER = ("Relation-status comparison", "Construction comparisons", "Order comparisons (aligned $-$ reversed)",
+               "Marker comparisons (with $-$ without)")
 
 
 def read_history_rows(path: Path) -> list[dict[str, float]]:
@@ -151,7 +151,7 @@ def plot(result: dict, path: Path) -> None:
                 est = result["models"][model][i]
                 errorbar(ax, centre + OFFSETS[model], (est["mean"], *est["ci95"]), model)
             ax.text(0.99, centre, rows[i]["source"], transform=trans, ha="right", va="center",
-                    fontsize=6, color="0.45", style="italic")
+                    fontsize=7, color="0.2", style="italic")
             ticks.append(centre)
             labels.append(rows[i]["label"])
             y += row_h
@@ -160,7 +160,7 @@ def plot(result: dict, path: Path) -> None:
     ax.set_ylim(y, 0)
     lo = min(min(e["ci95"][0] for e in result["models"][m]) for m in ORDER)
     hi = max(max(e["ci95"][1] for e in result["models"][m]) for m in ORDER)
-    ax.set_xlim(lo - 0.4, hi + 1.6)  # room on the right for the source tags
+    ax.set_xlim(lo - 0.4, hi + 2.4)  # room on the right for the source tags
     zero_line(ax)
     ax.set_yticks(ticks, labels)
     light_grid(ax)
