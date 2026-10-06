@@ -25,8 +25,8 @@
       },
       {
         "group": "Relation status",
-        "label": "having been the queried attribute",
-        "source": "update",
+        "label": "superseded $-$ updated other attr.",
+        "source": "update design",
         "n_histories": 96,
         "mean": 0.7400799753077899,
         "ci95": [
@@ -36,8 +36,8 @@
       },
       {
         "group": "Relation status",
-        "label": "having been updated",
-        "source": "update",
+        "label": "updated $-$ static other attr.",
+        "source": "update design",
         "n_histories": 96,
         "mean": -0.2894351361835752,
         "ci95": [
@@ -58,8 +58,8 @@
       },
       {
         "group": "Construction",
-        "label": "same, marker and distance matched",
-        "source": "distance",
+        "label": "same gap, marker and distance matched",
+        "source": "distance design",
         "n_histories": 96,
         "mean": 1.2925171003625977,
         "ci95": [
@@ -137,8 +137,8 @@
       },
       {
         "group": "Relation status",
-        "label": "having been the queried attribute",
-        "source": "update",
+        "label": "superseded $-$ updated other attr.",
+        "source": "update design",
         "n_histories": 96,
         "mean": 0.14799034822664006,
         "ci95": [
@@ -148,8 +148,8 @@
       },
       {
         "group": "Relation status",
-        "label": "having been updated",
-        "source": "update",
+        "label": "updated $-$ static other attr.",
+        "source": "update design",
         "n_histories": 96,
         "mean": -0.027713523224608346,
         "ci95": [
@@ -170,8 +170,8 @@
       },
       {
         "group": "Construction",
-        "label": "same, marker and distance matched",
-        "source": "distance",
+        "label": "same gap, marker and distance matched",
+        "source": "distance design",
         "n_histories": 96,
         "mean": 0.36744983187185093,
         "ci95": [

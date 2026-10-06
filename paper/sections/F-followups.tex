@@ -37,7 +37,7 @@ Entity $-$ superseded, far & 2.163 [1.866, 2.459] & 0.788 [0.657, 0.922] \\
 
 \subsection{Update chains}
 
-\paragraph{Design.} To test generated answers below ceiling, each entity received a chain of three, four, or five values revealed in rounds (\lit{Initially, \ldots was v.}, \lit{Then, \ldots changed to v.}, \lit{Currently, \ldots is v.}); the edit replaced the immediately superseded value, and the vocabulary was extended to twelve values chosen by a recorded tokenizer audit. Models generated answers greedily and were also scored on candidate masses. A development run of 12 histories per depth was to select the shallowest depth at which at least one model's answer accuracy fell between 70\% and 95\%, and a 96-history confirmation would then measure whether edits move generated answers toward the donor value; if no depth qualified, the study would stop. Because no depth qualified, a second run scored candidate masses only on 96 fresh histories per depth, to estimate how $R$ changes with depth; the recorded rule counted growth as supported if $R$ at depth 5 minus $R$ at depth 3 had a lower 95\% bound above zero, comparing independent history sets. Development: 384 generated answers per depth and model.
+\paragraph{Design.} Chain depth is the total number of successive assignments of the queried attribute, including the current one, so depth 3 means two updates. To test generated answers below ceiling, each entity received a chain of three, four, or five assignments revealed in rounds (\lit{Initially, \ldots was v.}, \lit{Then, \ldots changed to v.}, \lit{Currently, \ldots is v.}); the edit replaced the immediately superseded value, and the vocabulary was extended to twelve values chosen by a recorded tokenizer audit. Models generated answers greedily and were also scored on candidate masses. A development run of 12 histories per depth was to select the shallowest depth at which at least one model's answer accuracy fell between 70\% and 95\%, and a 96-history confirmation would then measure whether edits move generated answers toward the donor value; if no depth qualified, the study would stop. Because no depth qualified, a second run scored candidate masses only on 96 fresh histories per depth, to estimate how $R$ changes with depth; the recorded rule counted growth as supported if $R$ at depth 5 minus $R$ at depth 3 had a lower 95\% bound above zero, comparing independent history sets. Development: 384 generated answers per depth and model.
 
 \paragraph{Vocabulary.} Disjoint chains of up to five values per entity plus two donors need twelve values. The design extended the eight-value vocabulary by walking a recorded candidate list in order and keeping each value that is not a substring of another and keeps the candidate continuations valid for both tokenizers; the audit kept the first four candidates, \lit{olive}, \lit{plum}, \lit{navy}, and \lit{rust}.
 
@@ -116,7 +116,7 @@ The 96 histories follow Experiment 1's allocation; the other attribute and the f
 
 \subsection{Generated answers below ceiling (exploratory)}
 
-\paragraph{Design.} Because Qwen and Gemma answer at ceiling, generated answers were studied in OLMo-2-7B-Instruct, which fails the competence screen (Section~\ref{sec:additional-models}) and so lies outside the screened population. It generated answers greedily (at most 32 tokens, exact match to the eight values) on all 18,432 Experiment 1 confirmation prompts. The generated-answer analogue of $R$ is \emph{donor following}: the share of edited prompts answered with the donor when the edited entity is queried, minus that share when the other entity is queried, computed per history. This study is exploratory and does not enter any confirmatory claim.
+\paragraph{Design.} Because Qwen and Gemma answer at ceiling, generated answers were studied in OLMo-2-7B-Instruct, which fails the competence screen (Section~\ref{sec:additional-models}) and so lies outside the screened population. It generated answers greedily (at most 32 tokens, exact match to the eight values) on all 18,432 Experiment 1 confirmation prompts. Generated answers are summarized by \emph{donor following}, a separate descriptive measure computed on edited prompts only, without baseline adjustment: the share of edited prompts answered with the donor when the edited entity is queried, minus that share when the other entity is queried, computed per history. This study is exploratory and does not enter any confirmatory claim.
 
 \begin{table}[t]
 \caption{Exploratory generated-answer study in OLMo-2-7B-Instruct (outside the screened population) on the Experiment 1 confirmation set. Accuracy counts all 3,072 prompts per construction; donor following is the share of edited prompts answered with the donor under the edited entity's query minus under the other entity's query, with 95\% history-bootstrap intervals over 96 histories.}
@@ -133,6 +133,56 @@ Other attribute & 2,990/3,072 & 0.001 [0.000, 0.004] & 0.000 & 0.003 \\
 Entity mention & 1,846/3,072 & 0.155 [0.124, 0.190] & 0.185 & 0.125 \\
 Early unassigned & 1,528/3,072 & −0.001 [−0.022, 0.020] & 0.161 & −0.164 \\
 Late unassigned & 2,131/3,072 & 0.005 [−0.022, 0.031] & 0.148 & −0.138 \\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{table}
+
+\paragraph{Error breakdown and score-based relevance.} Table~\ref{tab:f-olmo-errors} classifies every generated answer. Errors split mainly between the two entities' earlier values, in about equal numbers, and answers outside the eight-value format; the edited entity's earlier value (source) and its replacement (donor) appear in the baseline and edited prompts respectively. Table~\ref{tab:f-olmo-r} sets OLMo-2's score-based $R$, computed from the same run's candidate masses, beside a baseline-adjusted generation contrast: for each prompt pair, the change in whether the answer is the donor minus the change in whether it is the source, combined across edited entities and queries exactly as $E$ is combined into $R$. Unlike donor following, this contrast uses the baseline prompts.
+
+\begin{table}[h]
+\caption{OLMo-2-7B-Instruct generated answers on the Experiment 1 confirmation set, by construction and prompt version (1,536 prompts each): correct, the edited entity's earlier value (source), its replacement (donor), the other entity's current or earlier value, another of the eight values, or no valid value.}
+\label{tab:f-olmo-errors}
+\begin{center}
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{@{}llrrrrrrr@{}}
+\toprule
+Construction & Prompt & Correct & Source & Donor & Other's current & Other's earlier & Other value & Invalid \\
+\midrule
+Live & baseline & 1,492 & 6 & 0 & 6 & 0 & 0 & 32 \\
+ & edited & 1,478 & 0 & 4 & 16 & 0 & 0 & 38 \\
+Superseded & baseline & 1,476 & 7 & 0 & 0 & 7 & 0 & 46 \\
+ & edited & 1,474 & 0 & 6 & 1 & 4 & 1 & 50 \\
+Other attribute & baseline & 1,492 & 1 & 0 & 8 & 1 & 2 & 32 \\
+ & edited & 1,498 & 0 & 1 & 7 & 1 & 0 & 29 \\
+Entity mention & baseline & 916 & 145 & 3 & 26 & 145 & 5 & 296 \\
+ & edited & 930 & 1 & 135 & 25 & 146 & 4 & 295 \\
+Early unassigned & baseline & 754 & 146 & 0 & 0 & 146 & 0 & 490 \\
+ & edited & 774 & 0 & 137 & 0 & 149 & 0 & 476 \\
+Late unassigned & baseline & 1,070 & 177 & 0 & 2 & 177 & 0 & 110 \\
+ & edited & 1,061 & 0 & 148 & 4 & 209 & 0 & 114 \\
+\bottomrule
+\end{tabular}}
+\end{center}
+\end{table}
+
+\begin{table}[h]
+\caption{OLMo-2-7B-Instruct: score-based query relevance $R$ (nats) from candidate masses, and the baseline-adjusted generation contrast (change in $P(\text{donor})$ minus change in $P(\text{source})$, query-specific), overall and by order group. Means with 95\% history-bootstrap intervals over 96 histories; order-group values are means.}
+\label{tab:f-olmo-r}
+\begin{center}
+\small
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+ & & \multicolumn{3}{c}{Generation contrast} \\
+\cmidrule(l){3-5}
+Construction & Score-based $R$ & Overall & Aligned & Reversed \\
+\midrule
+Live & 16.864 [16.049, 17.652] & 1.911 [1.867, 1.951] & 1.911 & 1.911 \\
+Superseded & 6.157 [5.933, 6.393] & 0.017 [0.007, 0.029] & 0.031 & 0.003 \\
+Other attribute & 3.744 [3.587, 3.894] & 0.003 [0.000, 0.007] & 0.000 & 0.005 \\
+Entity mention & 5.350 [5.040, 5.669] & 0.320 [0.268, 0.379] & 0.393 & 0.247 \\
+Early unassigned & 0.050 [−0.103, 0.201] & −0.001 [−0.038, 0.035] & 0.315 & −0.318 \\
+Late unassigned & 0.061 [−0.125, 0.251] & 0.014 [−0.027, 0.061] & 0.310 & −0.281 \\
 \bottomrule
 \end{tabular}
 \end{center}
@@ -166,24 +216,66 @@ Qwen3-14B & 288/288 & 576/576 & 576/576 & 576/576 & 576/576 & 576/576 & pass \\
 \end{center}
 \end{table}
 
-\paragraph{Models excluded by the screen, scored descriptively.} Two models failed the screen narrowly, each in a single construction: Phi-4-mini (561/576 in entity mention) and Qwen2.5-7B-Instruct (563/576 in late unassigned). To show whether the conclusions depend on the 99\% threshold, each was scored on all 18,432 confirmation prompts with the unchanged scorer and analysis. Two criteria were recorded before scoring: the entity-mention gap exceeds the relation-status contrast in absolute value, and early-unassigned relevance is positive under aligned and negative under reversed order, with both intervals excluding zero. Table~\ref{tab:f-excluded} gives the results; they are descriptive and enter no confirmatory claim.
+\paragraph{Models excluded by the screen, scored descriptively.} Two models failed the screen narrowly, each in a single construction: Phi-4-mini (561/576 in entity mention) and Qwen2.5-7B-Instruct (563/576 in late unassigned). To show whether the conclusions depend on the 99\% threshold, each was scored on all 18,432 confirmation prompts with the unchanged scorer and analysis. Two criteria were recorded before scoring: the entity-mention gap (b) exceeds the relation-status contrast (a) in absolute value, which we evaluate as both (b) $-$ (a) and (b) $+$ (a) having lower 95\% bounds above zero, and early-unassigned relevance is positive under aligned and negative under reversed order, with both intervals excluding zero. Table~\ref{tab:f-excluded} gives the results; they are descriptive and enter no confirmatory claim.
 
 \begin{table}[h]
-\caption{Experiment 1 in models that failed the competence screen, scored descriptively, in the format of Table~\ref{tab:models}. Means with 95\% history-bootstrap intervals over 96 histories, in nats.}
+\caption{Experiment 1 in models that failed the competence screen, scored descriptively, in the format of Table~\ref{tab:models}, with (b) $+$ (a) added. The recorded criterion (b) $> |$(a)$|$ holds if and only if the lower bounds of both (b) $-$ (a) and (b) $+$ (a) exceed zero. Means with 95\% history-bootstrap intervals over 96 histories, in nats.}
 \label{tab:f-excluded}
 \begin{center}
 \scriptsize
 \setlength{\tabcolsep}{4pt}
-\begin{tabular}{@{}lrrrrr@{}}
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{@{}lrrrrrr@{}}
 \toprule
- & (a) Superseded & (b) Entity mention & \multicolumn{2}{c}{Early unassigned} & \\
+ & (a) Superseded & (b) Entity mention & \multicolumn{2}{c}{Early unassigned} & & \\
 \cmidrule(lr){4-5}
-Model & $-$ other attribute & $-$ superseded & Aligned & Reversed & (b) $-$ (a) \\
+Model & $-$ other attribute & $-$ superseded & Aligned & Reversed & (b) $-$ (a) & (b) $+$ (a) \\
 \midrule
-Phi-4-mini & −0.152 [−0.266, −0.040] & 1.872 [1.664, 2.091] & 3.007 [2.871, 3.149] & −2.953 [−3.075, −2.818] & 2.025 [1.759, 2.306] \\
-Qwen2.5-7B & −0.553 [−0.736, −0.388] & 2.253 [1.931, 2.595] & 5.912 [5.605, 6.253] & −5.845 [−6.181, −5.517] & 2.806 [2.432, 3.227] \\
+Phi-4-mini & −0.152 [−0.266, −0.040] & 1.872 [1.664, 2.091] & 3.007 [2.871, 3.149] & −2.953 [−3.075, −2.818] & 2.025 [1.759, 2.306] & 1.720 [1.527, 1.911] \\
+Qwen2.5-7B & −0.553 [−0.736, −0.388] & 2.253 [1.931, 2.595] & 5.912 [5.605, 6.253] & −5.845 [−6.181, −5.517] & 2.806 [2.432, 3.227] & 1.700 [1.357, 2.043] \\
+\bottomrule
+\end{tabular}}
+\end{center}
+\end{table}
+
+\subsection{Candidate-ranking accuracy}
+
+Table~\ref{tab:c-accuracy} gives the share of scored prompts, baseline and edited, in which the current value's candidate mass is strictly higher than every other candidate's (ties count as errors), for every model and experiment. This is candidate-ranking accuracy, not generated-answer accuracy; the only generated answers are those of Appendix~\ref{app:harder}, the update-chain development run, and OLMo-2.
+
+\begin{table}[h]
+\caption{Current-candidate rank accuracy over all scored prompts, with the construction where it is lowest.}
+\label{tab:c-accuracy}
+\begin{center}
+\footnotesize
+\begin{tabular}{@{}llrl@{}}
+\toprule
+Model & Experiment & Correct & Lowest construction \\
+\midrule
+Qwen3-8B & Experiment 1 & 18,421/18,432 & Live 3,064/3,072 \\
+Gemma 3 4B & Experiment 1 & 18,431/18,432 & Early unassigned 3,071/3,072 \\
+Falcon3-7B & Experiment 1 & 18,427/18,432 & Entity mention 3,069/3,072 \\
+Granite-3.1-8B & Experiment 1 & 18,432/18,432 & Early unassigned 3,072/3,072 \\
+Mistral-7B & Experiment 1 & 18,350/18,432 & Other attribute 3,020/3,072 \\
+Gemma 3 12B & Experiment 1 & 18,432/18,432 & Early unassigned 3,072/3,072 \\
+Qwen3-14B & Experiment 1 & 18,432/18,432 & Early unassigned 3,072/3,072 \\
+Phi-4-mini (excluded) & Experiment 1 & 18,316/18,432 & Entity mention 2,976/3,072 \\
+Qwen2.5-7B (excluded) & Experiment 1 & 18,381/18,432 & Late unassigned 3,040/3,072 \\
+OLMo-2-7B (excluded) & Experiment 1 & 15,687/18,432 & Entity mention 2,096/3,072 \\
+Qwen3-8B & Experiment 2 (marker) & 12,288/12,288 & superseded 6,144/6,144 \\
+Qwen3-8B & Distance & 12,288/12,288 & superseded 6,144/6,144 \\
+Qwen3-8B & Updated other attribute & 9,183/9,216 & other updated 3,054/3,072 \\
+Qwen3-8B & Chains, depth 3, score run & 3,072/3,072 & superseded chain 3,072/3,072 \\
+Qwen3-8B & Chains, depth 4, score run & 3,072/3,072 & superseded chain 3,072/3,072 \\
+Qwen3-8B & Chains, depth 5, score run & 3,072/3,072 & superseded chain 3,072/3,072 \\
+Gemma 3 4B & Experiment 2 (marker) & 12,273/12,288 & superseded 6,129/6,144 \\
+Gemma 3 4B & Distance & 12,288/12,288 & superseded 6,144/6,144 \\
+Gemma 3 4B & Updated other attribute & 8,852/9,216 & superseded 2,895/3,072 \\
+Gemma 3 4B & Chains, depth 3, score run & 3,071/3,072 & superseded chain 3,071/3,072 \\
+Gemma 3 4B & Chains, depth 4, score run & 3,067/3,072 & superseded chain 3,067/3,072 \\
+Gemma 3 4B & Chains, depth 5, score run & 3,070/3,072 & superseded chain 3,070/3,072 \\
 \bottomrule
 \end{tabular}
 \end{center}
 \end{table}
 
+\FloatBarrier

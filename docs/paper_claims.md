@@ -150,3 +150,15 @@ as a ranking of factors:
 - Within-family size differences (8B→14B, 4B→12B) are an observation, not a scaling claim.
 - Two models that narrowly fail the screen (Phi-4-mini, Qwen2.5-7B) meet both criteria recorded in
   docs/excluded_models_v1.md; the paper says the ranking does not depend on the 99% threshold.
+
+## Amendment 2026-10-06 (afternoon): seven-model, position-led thesis (human decision)
+
+Mistral-7B passed the Experiment 1 screen and its confirmation departs from the six-model ranking:
+relation status −1.305 [−2.048, −0.648] (superseded below other attribute); entity mention − superseded
+−0.415 [−1.000, 0.187], unresolved, changing sign with order (aligned: superseded above entity mention
+by 2.417 [1.596, 3.224]; reversed: entity mention above superseded by 1.586 [0.969, 2.242]); early-
+unassigned aligned − reversed 11.837, the largest. Decided by the human (option "Position-led ranking"):
+the thesis covers seven models from five families and is led by position, which exceeds relation status
+in every model (order swing 4.970–11.837 nats; relation status −1.305 to 1.162). Construction is stated
+with its exceptions: entity mention above superseded in six of seven (not Mistral), and above relation
+status in five (not Granite, not Mistral).

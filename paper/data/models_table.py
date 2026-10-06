@@ -32,6 +32,16 @@ COLUMNS = (
 )
 
 
+def paired_gap_plus_relation(history_rows):
+    """(entity mention - superseded) + (superseded - other attribute), paired within history; with
+    (b) - (a), the recorded criterion (b) > |(a)| holds iff both lower bounds exceed zero."""
+    sys.path.insert(0, str(ROOT))
+    from src.cross_model.robustness_analysis import summary
+    s = summary([(r["R_entity_mention"] - r["R_superseded"]) + (r["R_superseded"] - r["R_other_attribute"])
+                 for r in history_rows])
+    return {"mean": s["mean"], "ci95": list(s["ci95_cluster_bootstrap"]), "n_histories": s["n_histories"]}
+
+
 def paired_gap_minus_relation(history_rows):
     """(entity mention - superseded) - (superseded - other attribute), paired within history, with the
     frozen history bootstrap (src.cross_model.robustness_analysis.summary: 2,000 draws, seed 73021)."""
@@ -64,6 +74,8 @@ def rows(models, descriptive):
         results = analysis["sequence_mass"]["results"]
         out[name] = {key: estimate(results[source], sign) for key, source, sign in COLUMNS}
         out[name]["gap_minus_relation"] = paired_gap_minus_relation(analysis["history_rows"])
+        if descriptive:
+            out[name]["gap_plus_relation"] = paired_gap_plus_relation(analysis["history_rows"])
         cells = [f"{fmt(e['mean'])} [{fmt(e['ci95'][0])}, {fmt(e['ci95'][1])}]" for e in out[name].values()]
         lines.append(f"{name} & " + " & ".join(cells) + r" \\")
     return out, lines

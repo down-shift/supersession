@@ -89,33 +89,33 @@ def construction_order_figure():
 
 
 def marker_figure():
+    """Experiment 2 by order group: the Gemma interaction has opposite signs in the two groups."""
     data = read_csv("exp2_marker96_history_estimates.csv")
-    fig, axes = plt.subplots(1, 2, figsize=(6.5, 2.9), sharey=True)
-    x_positions = {0: 0, 1: 1}
+    fig, axes = plt.subplots(2, 2, figsize=(6.5, 4.6), sharey=True, sharex=True)
     constructions = ("superseded", "entity_mention")
-    for ax, model in zip(axes, MODELS):
+    for col, model in enumerate(MODELS):
         model_rows = [row for row in data if row["model"] == model]
-        for construction in constructions:
-            estimates = []
-            for marker in (0, 1):
-                key = f"R_{construction}_marker{marker}_all"
-                est = estimate(model_rows, key)
-                estimates.append(est[0])
-                draw_vertical_interval(ax, est, marker, CONSTRUCTION_COLORS[construction])
-            ax.plot([0, 1], estimates, color=CONSTRUCTION_COLORS[construction],
-                    linewidth=1.1, zorder=2)
-        ax.set_title(model)
-        ax.set_xticks([0, 1], ["Absent", "Present"])
-        ax.set_xlim(-0.25, 1.25)
-        ax.set_ylim(0, 8.5)
-        style.light_grid(ax)
-    axes[0].set_ylabel("Query relevance $R$ (nats)")
+        for row_index, order in enumerate(ORDERS):
+            ax = axes[row_index, col]
+            for construction in constructions:
+                estimates = []
+                for marker in (0, 1):
+                    est = estimate(model_rows, f"R_{construction}_marker{marker}_{order}")
+                    estimates.append(est[0])
+                    draw_vertical_interval(ax, est, marker, CONSTRUCTION_COLORS[construction])
+                ax.plot([0, 1], estimates, color=CONSTRUCTION_COLORS[construction], linewidth=1.1, zorder=2)
+            ax.set_title(f"{model}, {ORDER_LABELS[order].lower()} order")
+            ax.set_xticks([0, 1], ["Absent", "Present"])
+            ax.set_xlim(-0.25, 1.25)
+            ax.set_ylim(0, 9.5)
+            style.light_grid(ax)
+        axes[0, 0].set_ylabel("Query relevance $R$ (nats)")
+        axes[1, 0].set_ylabel("Query relevance $R$ (nats)")
     fig.supxlabel(r"Explicit marker $\it{Previously}$")
     handles = [plt.Line2D([0], [0], color=CONSTRUCTION_COLORS[c], marker="o", label=label)
                for c, label in (("superseded", "Superseded"), ("entity_mention", "Entity mention"))]
-    fig.legend(handles=handles, loc="upper center", ncol=2, frameon=False,
-               bbox_to_anchor=(0.5, 1.03))
-    fig.tight_layout(rect=(0.04, 0, 1, 0.91), w_pad=0.5)
+    fig.legend(handles=handles, loc="upper center", ncol=2, frameon=False, bbox_to_anchor=(0.5, 1.02))
+    fig.tight_layout(rect=(0.02, 0, 1, 0.95), w_pad=0.5, h_pad=0.8)
     fig.savefig(HERE / "marker_by_construction.pdf", bbox_inches="tight")
     plt.close(fig)
 

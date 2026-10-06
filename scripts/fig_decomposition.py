@@ -49,11 +49,11 @@ EXP1_ROWS = [
 ]
 # Rows from sealed follow-up analyses: (group, label, source tag, file pattern, summary key).
 SEALED_ROWS = [
-    ("Relation status", "having been the queried attribute", "update",
+    ("Relation status", "superseded $-$ updated other attr.", "update design",
      "update_v1/update_confirmatory_{slug}_analysis.json", "superseded_minus_other_updated_all"),
-    ("Relation status", "having been updated", "update",
+    ("Relation status", "updated $-$ static other attr.", "update design",
      "update_v1/update_confirmatory_{slug}_analysis.json", "other_updated_minus_other_static_all"),
-    ("Construction", "same, marker and distance matched", "distance",
+    ("Construction", "same gap, marker and distance matched", "distance design",
      "distance_v1/{slug}_distance_analysis.json", "construction_gap_near_all"),
     ("Temporal marker (with $-$ without)", "superseded", "Exp. 2",
      "marker96/{slug}_marker_analysis.json", "superseded_marker_effect_all"),

@@ -176,6 +176,38 @@ Early unassigned & 2.015 [1.861, 2.176] & 1.576 [1.433, 1.714] \\
 \subsection{Source and donor score changes}
 \label{app:score-changes}
 
+Table~\ref{tab:b-abs-mass} gives the absolute log masses of the source, donor, and current candidates before and after the edit, and Table~\ref{tab:b-score-changes} the mean changes. The source and donor masses are low in every construction except live, so a change of several nats between them does not imply that probability moves from one to the other.
+
+\begin{table}[h]
+\caption{Absolute candidate log masses $S$ (nats) in Experiment 1: mean over prompts, with the first and third quartiles below. Source is the edited earlier value, donor its replacement, current the correct answer; 1,536 baseline and 1,536 edited prompts per construction and model. In the live construction the source is the current value of the edited entity, so its mass is high when that entity is queried.}
+\label{tab:b-abs-mass}
+\begin{center}
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{@{}lrrrrrr@{}}
+\toprule
+ & \multicolumn{2}{c}{Source} & \multicolumn{2}{c}{Donor} & \multicolumn{2}{c}{Current} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(l){6-7}
+Construction & Baseline & Edited & Baseline & Edited & Baseline & Edited \\
+\midrule
+\multicolumn{7}{@{}l}{\emph{Qwen3-8B}} \\
+Live & \shortstack[r]{−8.027\\[-1pt]\tiny(−16.124, −0.000)} & \shortstack[r]{−23.650\\[-1pt]\tiny(−26.373, −20.584)} & \shortstack[r]{−24.086\\[-1pt]\tiny(−26.850, −20.941)} & \shortstack[r]{−8.132\\[-1pt]\tiny(−16.394, −0.000)} & \shortstack[r]{−0.004\\[-1pt]\tiny(−0.000, −0.000)} & \shortstack[r]{−0.012\\[-1pt]\tiny(−0.000, −0.000)} \\
+Superseded & \shortstack[r]{−22.271\\[-1pt]\tiny(−24.703, −19.578)} & \shortstack[r]{−23.881\\[-1pt]\tiny(−26.425, −21.172)} & \shortstack[r]{−23.618\\[-1pt]\tiny(−25.922, −20.888)} & \shortstack[r]{−22.120\\[-1pt]\tiny(−24.476, −19.328)} & \shortstack[r]{−0.000\\[-1pt]\tiny(−0.000, −0.000)} & \shortstack[r]{−0.000\\[-1pt]\tiny(−0.000, −0.000)} \\
+Other attribute & \shortstack[r]{−21.048\\[-1pt]\tiny(−23.317, −18.476)} & \shortstack[r]{−22.396\\[-1pt]\tiny(−24.662, −19.810)} & \shortstack[r]{−22.234\\[-1pt]\tiny(−24.235, −19.717)} & \shortstack[r]{−20.903\\[-1pt]\tiny(−22.978, −18.297)} & \shortstack[r]{−0.000\\[-1pt]\tiny(−0.000, −0.000)} & \shortstack[r]{−0.000\\[-1pt]\tiny(−0.000, −0.000)} \\
+Entity mention & \shortstack[r]{−19.836\\[-1pt]\tiny(−23.242, −16.699)} & \shortstack[r]{−23.668\\[-1pt]\tiny(−26.370, −20.562)} & \shortstack[r]{−23.452\\[-1pt]\tiny(−26.000, −20.390)} & \shortstack[r]{−19.868\\[-1pt]\tiny(−23.344, −16.464)} & \shortstack[r]{−0.001\\[-1pt]\tiny(−0.000, −0.000)} & \shortstack[r]{−0.001\\[-1pt]\tiny(−0.000, −0.000)} \\
+Early unassigned & \shortstack[r]{−16.488\\[-1pt]\tiny(−18.781, −14.193)} & \shortstack[r]{−20.697\\[-1pt]\tiny(−22.808, −18.257)} & \shortstack[r]{−20.497\\[-1pt]\tiny(−22.524, −18.016)} & \shortstack[r]{−16.485\\[-1pt]\tiny(−18.609, −13.922)} & \shortstack[r]{−0.000\\[-1pt]\tiny(−0.000, −0.000)} & \shortstack[r]{−0.000\\[-1pt]\tiny(−0.000, −0.000)} \\
+Late unassigned & \shortstack[r]{−17.218\\[-1pt]\tiny(−19.385, −14.906)} & \shortstack[r]{−23.119\\[-1pt]\tiny(−25.287, −20.589)} & \shortstack[r]{−22.899\\[-1pt]\tiny(−25.107, −20.467)} & \shortstack[r]{−17.216\\[-1pt]\tiny(−19.365, −15.031)} & \shortstack[r]{−0.004\\[-1pt]\tiny(−0.000, −0.000)} & \shortstack[r]{−0.004\\[-1pt]\tiny(−0.000, −0.000)} \\
+\multicolumn{7}{@{}l}{\emph{Gemma 3 4B}} \\
+Live & \shortstack[r]{−9.784\\[-1pt]\tiny(−19.619, −0.000)} & \shortstack[r]{−24.049\\[-1pt]\tiny(−26.585, −21.125)} & \shortstack[r]{−24.191\\[-1pt]\tiny(−27.076, −20.906)} & \shortstack[r]{−10.049\\[-1pt]\tiny(−20.275, −0.000)} & \shortstack[r]{−0.000\\[-1pt]\tiny(−0.000, −0.000)} & \shortstack[r]{−0.000\\[-1pt]\tiny(−0.000, −0.000)} \\
+Superseded & \shortstack[r]{−24.311\\[-1pt]\tiny(−26.603, −22.109)} & \shortstack[r]{−25.552\\[-1pt]\tiny(−27.981, −23.386)} & \shortstack[r]{−25.498\\[-1pt]\tiny(−27.876, −23.237)} & \shortstack[r]{−24.268\\[-1pt]\tiny(−26.601, −21.979)} & \shortstack[r]{−0.000\\[-1pt]\tiny(−0.000, −0.000)} & \shortstack[r]{−0.000\\[-1pt]\tiny(−0.000, −0.000)} \\
+Other attribute & \shortstack[r]{−23.486\\[-1pt]\tiny(−25.900, −21.062)} & \shortstack[r]{−24.929\\[-1pt]\tiny(−27.427, −22.533)} & \shortstack[r]{−24.734\\[-1pt]\tiny(−27.127, −22.564)} & \shortstack[r]{−23.621\\[-1pt]\tiny(−25.952, −21.291)} & \shortstack[r]{−0.000\\[-1pt]\tiny(−0.000, −0.000)} & \shortstack[r]{−0.001\\[-1pt]\tiny(−0.000, −0.000)} \\
+Entity mention & \shortstack[r]{−20.540\\[-1pt]\tiny(−23.446, −17.851)} & \shortstack[r]{−23.749\\[-1pt]\tiny(−26.189, −21.445)} & \shortstack[r]{−23.606\\[-1pt]\tiny(−25.977, −21.137)} & \shortstack[r]{−20.650\\[-1pt]\tiny(−23.591, −17.786)} & \shortstack[r]{−0.000\\[-1pt]\tiny(−0.000, −0.000)} & \shortstack[r]{−0.000\\[-1pt]\tiny(−0.000, −0.000)} \\
+Early unassigned & \shortstack[r]{−20.919\\[-1pt]\tiny(−23.138, −18.691)} & \shortstack[r]{−24.235\\[-1pt]\tiny(−26.460, −22.135)} & \shortstack[r]{−23.971\\[-1pt]\tiny(−26.234, −21.627)} & \shortstack[r]{−20.996\\[-1pt]\tiny(−23.279, −18.750)} & \shortstack[r]{−0.000\\[-1pt]\tiny(−0.000, −0.000)} & \shortstack[r]{−0.004\\[-1pt]\tiny(−0.000, −0.000)} \\
+Late unassigned & \shortstack[r]{−20.887\\[-1pt]\tiny(−23.310, −18.196)} & \shortstack[r]{−25.398\\[-1pt]\tiny(−28.104, −22.651)} & \shortstack[r]{−25.138\\[-1pt]\tiny(−27.712, −22.286)} & \shortstack[r]{−21.139\\[-1pt]\tiny(−23.869, −18.339)} & \shortstack[r]{−0.000\\[-1pt]\tiny(−0.000, −0.000)} & \shortstack[r]{−0.000\\[-1pt]\tiny(−0.000, −0.000)} \\
+\bottomrule
+\end{tabular}}
+\end{center}
+\end{table}
+
 Table~\ref{tab:b-score-changes} gives the mean baseline-to-edit change in the source and donor scores, averaged over both queries; their difference is the mean edit effect $E$. Unlike $R$, $E$ does not subtract the other query's effect. These are means over prompt pairs without intervals. Because the scores are log masses, exponentiating a mean gives a geometric mean of masses. The current answer's mean log mass rounds to 0.000 before and after editing in every non-live construction except Qwen's late unassigned (−0.004) and entity mention (−0.001) and Gemma's early unassigned (−0.004 after editing) and other attribute (−0.001 after editing).
 
 \begin{table}[h]
@@ -263,3 +295,5 @@ Early unassigned & 2.011 [1.920, 2.100] & 1.575 [1.477, 1.667] \\
 \end{tabular}
 \end{center}
 \end{table}
+
+\FloatBarrier

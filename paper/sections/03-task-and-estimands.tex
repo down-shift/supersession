@@ -43,7 +43,7 @@ Each value $v$ has a set $\mathcal{W}(v)$ of tokenizer-validated surface forms: 
 \begin{equation}
 S(v\mid p)=\log\sum_{w\in\mathcal{W}(v)}\exp L(w\mid p),
 \end{equation}
-without length normalization or an end-of-answer token. $S$ is therefore the mass of a fixed set of answer prefixes, not the probability of a complete generated answer. Candidate-ranking accuracy compares $S$ across the eight vocabulary values.
+without length normalization or an end-of-answer token. $S$ is therefore the log probability mass of a fixed, finite set of candidate answer prefixes, which is what we mean by a \emph{bounded} score; it is not the probability of a complete generated answer. Candidate-ranking accuracy compares $S$ across the eight vocabulary values.
 
 \subsection{Matched edits and query relevance}
 \label{sec:edits}
