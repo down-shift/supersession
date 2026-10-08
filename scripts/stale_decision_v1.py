@@ -2,8 +2,24 @@
 import argparse
 import json
 from pathlib import Path
-from src.data.stale_decision_v1 import generate, validate, verify_no_overlap, read_rows, write_new, digest
-from src.experiments.stale_decision_v1 import check_config, code_hash, token_audit
+from src.data.stale_decision_v1 import GRID, generate, validate, verify_no_overlap, read_rows, write_new, digest
+from src.experiments.stale_decision_v1 import check_config, code_hash, token_audit, verify_complete_run
+
+
+def expected_histories(split, config):
+    key = {'development': 'development_replicates', 'frozen_gate': 'gate_replicates',
+           'confirmation': 'confirmation_replicates'}[split]
+    return len(GRID) * config[key]
+
+
+def validate_frozen_dataset(rows, config):
+    validate(rows)
+    split = rows[0]['split']
+    count_key = {'development': 'development_replicates', 'frozen_gate': 'gate_replicates',
+                 'confirmation': 'confirmation_replicates'}[split]
+    validate(rows, expected_histories=expected_histories(split, config))
+    if digest(rows) != digest(generate(split, config[count_key])):
+        raise ValueError('dataset differs from deterministic frozen generation')
 
 
 def main():
@@ -35,12 +51,24 @@ def main():
             # Recompute eligibility from referenced raw gate data/scores; never trust a pass flag.
             from src.analysis.stale_decision_v1 import gates
             gr = read_rows(gate['dataset_path']); gs = read_rows(gate['scores_path'])
-            if {r['split'] for r in gr} != {'frozen_gate'} or gate['config_hash'] != digest(config) or gate['code_hash'] != code_hash():
+            validate_frozen_dataset(gr, config)
+            gate_manifest = json.loads(Path(gate['dataset_path']+'.manifest.json').read_text())
+            if (gate_manifest.get('dataset_hash') != digest(gr) or gate_manifest.get('config_hash') != digest(config) or
+                    gate_manifest.get('code_hash') != code_hash() or {r['split'] for r in gr} != {'frozen_gate'} or
+                    gate['config_hash'] != digest(config) or gate['code_hash'] != code_hash()):
                 raise ValueError('invalid frozen gate lineage')
             if digest(gr) != gate['dataset_hash'] or digest(gs) != gate['scores_hash'] or not gates(gr, gs)['any_score_pass']:
                 raise ValueError('no passing recomputed gate')
+            verify_complete_run(gate['scores_path'], gr, config)
         count_key = {'development': 'development_replicates', 'frozen_gate': 'gate_replicates', 'confirmation': 'confirmation_replicates'}[a.split]
         rows = generate(a.split, config[count_key]); prior = [read_rows(e) for e in a.exclude]
+        for exclude_path, ds in zip(a.exclude, prior):
+            validate_frozen_dataset(ds, config)
+            prior_manifest = json.loads(Path(exclude_path+'.manifest.json').read_text())
+            if (prior_manifest.get('dataset_hash') != digest(ds) or
+                    prior_manifest.get('config_hash') != digest(config) or
+                    prior_manifest.get('code_hash') != code_hash()):
+                raise ValueError('excluded dataset provenance differs')
         prior_splits = {r['split'] for ds in prior for r in ds}
         required = {'development', 'frozen_gate'} if a.split == 'confirmation' else {'development'} if a.split == 'frozen_gate' else set()
         if not required <= prior_splits:
@@ -61,7 +89,7 @@ def main():
         return
     if not a.dataset:
         p.error('--dataset required')
-    rows = read_rows(a.dataset); validate(rows)
+    rows = read_rows(a.dataset); validate_frozen_dataset(rows, config)
     sidecar = json.loads(Path(a.dataset+'.manifest.json').read_text())
     if sidecar['dataset_hash'] != digest(rows) or sidecar['config_hash'] != digest(config) or sidecar['code_hash'] != code_hash():
         raise ValueError('dataset provenance differs')
@@ -97,10 +125,7 @@ def main():
         if not a.scores:
             p.error('--scores required')
         from src.analysis.stale_decision_v1 import analyze
-        scores = read_rows(a.scores)
-        saved = json.loads(Path(a.scores+'.run.json').read_text())
-        if saved['dataset_hash'] != digest(rows) or saved['code_hash'] != code_hash() or saved['config_hash'] != digest(config):
-            raise ValueError('score provenance mismatch')
+        _, scores = verify_complete_run(a.scores, rows, config)
         result = analyze(rows, scores)
         result.update(dataset_path=str(Path(a.dataset).resolve()), scores_path=str(Path(a.scores).resolve()),
                       dataset_hash=digest(rows), scores_hash=digest(scores), code_hash=code_hash(), config_hash=digest(config))

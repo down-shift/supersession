@@ -8,7 +8,8 @@ from src.experiments.stale_decision_v1 import checked_scores
 
 def bootstrap(values, seed=81004, draws=2000, level=.95):
     x = np.asarray(values, dtype=float)
-    if x.ndim != 1 or len(x) == 0 or not np.isfinite(x).all() or draws < 1:
+    if (x.ndim != 1 or len(x) == 0 or not np.isfinite(x).all() or
+            type(draws) is not int or draws < 1 or not 0 < level < 1):
         raise ValueError('invalid history bootstrap input')
     rng = np.random.default_rng(seed)
     means = x[rng.integers(len(x), size=(draws, len(x)))].mean(axis=1)
@@ -66,7 +67,7 @@ def gates(rows, scores):
             'none_pass_rule': 'stop confirmation; report feasibility failure; any redesign requires v2'}
 
 
-def prediction(rows, scores, effects):
+def prediction(rows, scores, effects, task=None):
     """Nested-free fixed L2 grouped CV. Incremental held-out log loss is secondary."""
     from sklearn.linear_model import LogisticRegression
     from sklearn.pipeline import make_pipeline
@@ -76,16 +77,20 @@ def prediction(rows, scores, effects):
     relevance = {(e['history_id'], e['family']): e['R_easy_local'] for e in effects}
     x, y, groups = [], [], []
     for r in rows:
+        if task is not None and r['task'] != task:
+            continue
         if r['family'] not in ('superseded', 'updated_other', 'entity_mention', 'unassigned'):
             continue
         s = byid[r['example_id']]; lp = s['easy_target']; old = r['old_values'][r['member']]
         confidence = math.exp(lp[r['correct_state']]) / sum(math.exp(v) for v in lp.values())
+        action_scores = s['action_logp']
+        action_confidence = math.exp(action_scores[r['answer']]) / sum(math.exp(v) for v in action_scores.values())
         # Confidence normalized within bounded retrieval candidate universe, explicitly not valid mass.
         nuisance = [int(r['task'] == 'routing'), int(r['difficulty'] == 'interleaved'),
                     int(r['difficulty'] == 'competing'), int(r['vocabulary'] == 'opaque'),
                     int(r['order_stratum'] == 'reversed')]
         nuisance += [int(r['family'] == f) for f in ('updated_other', 'entity_mention', 'unassigned')]
-        x.append([lp[r['correct_state']]-lp[old], lp[old], confidence,
+        x.append([lp[r['correct_state']]-lp[old], lp[old], confidence, action_confidence,
                   s['history_position'], s['prompt_tokens'], *nuisance, relevance[r['history_id'], r['family']]])
         y.append(int(s['generated']['classification'] != 'correct'))  # Invalid included as failure.
         groups.append(r['history_id'])
@@ -105,6 +110,10 @@ def prediction(rows, scores, effects):
         losses.append(-(y*np.log(p)+(1-y)*np.log(1-p)))
     history_improvements = [float((losses[0]-losses[1])[groups == g].mean()) for g in sorted(set(groups))]
     return {'available': True, 'outcome': 'strict downstream failure including invalid',
+            'baseline_predictors': ['easy current-historical candidate margin', 'easy historical candidate log mass',
+                'easy current-state confidence within four retrieval classes',
+                'downstream correct-action confidence within two canonical EOS events',
+                'historical mention position', 'prompt length', 'task/difficulty/vocabulary/order/construction'],
             'baseline_log_loss': float(losses[0].mean()), 'plus_R_log_loss': float(losses[1].mean()),
             'incremental_log_loss_improvement': bootstrap(history_improvements),
             'method': 'fixed C=1 L2 logistic; 5-fold history-grouped CV; no tuning; paired history bootstrap',
@@ -140,11 +149,37 @@ def analyze(rows, scores):
                     stats['wrong_rate_delta_superseded'] = bootstrap([h['superseded']['wrong_rate_delta'] for h in hh])
                     stats['strict_accuracy_delta_superseded'] = bootstrap([h['superseded']['strict_accuracy_delta'] for h in hh])
                     reports[key] = stats
-    byid = {s['example_id']: s for s in scores}; generated = {}
-    for family in ('superseded', 'updated_other', 'entity_mention', 'unassigned', 'current_only', 'live'):
-        ss = [byid[r['example_id']] for r in rows if r['family'] == family]
-        generated[family] = {'n': len(ss), **{k: sum(s['generated']['classification'] == k for s in ss)/len(ss) for k in ('correct', 'wrong', 'invalid')},
-                             'mean_canonical_valid_mass': float(np.mean([s['canonical_valid_mass'] for s in ss])),
-                             'relaxed_accuracy_diagnostic': float(np.mean([byid[r['example_id']]['generated']['relaxed_action'] == r['answer'] for r in rows if r['family'] == family]))}
+    byid = {s['example_id']: s for s in scores}
+    def generated_summary(selected):
+        if not selected:
+            return {'n_histories': 0}
+        grouped = defaultdict(list)
+        for row in selected:
+            grouped[row['history_id']].append((byid[row['example_id']], row))
+        names = ('correct', 'wrong', 'invalid')
+        category = {name: [] for name in names}
+        relaxed, valid_mass = [], []
+        for members in grouped.values():
+            n = len(members)
+            for name in names:
+                category[name].append(sum(s['generated']['classification'] == name for s, _ in members) / n)
+            relaxed.append(sum(s['generated']['relaxed_action'] == r['answer'] for s, r in members) / n)
+            valid_mass.append(sum(s['canonical_valid_mass'] for s, _ in members) / n)
+        return {'n_histories': len(grouped), **{name: bootstrap(vals) for name, vals in category.items()},
+                'strict_complete_answer_accuracy': bootstrap(category['correct']),
+                'relaxed_accuracy_diagnostic': bootstrap(relaxed),
+                'mean_canonical_valid_mass': bootstrap(valid_mass)}
+
+    families = ('superseded', 'updated_other', 'entity_mention', 'unassigned', 'current_only', 'live')
+    generated = {'by_task_family': {}, 'by_task_difficulty_family': {}}
+    for task in ('access', 'routing'):
+        for family in families:
+            selected = [r for r in rows if r['task'] == task and r['family'] == family]
+            generated['by_task_family'][f'{task}:{family}'] = generated_summary(selected)
+            for difficulty in ('sequential', 'interleaved', 'competing'):
+                cell = [r for r in selected if r['difficulty'] == difficulty]
+                generated['by_task_difficulty_family'][f'{task}:{difficulty}:{family}'] = generated_summary(cell)
+    h3 = {'overall': prediction(rows, scores, effects),
+          'by_task': {task: prediction(rows, scores, effects, task=task) for task in ('access', 'routing')}}
     return {'model_id': scores[0]['model_id'], 'primary': primary, 'strata': reports, 'generation': generated,
-            'history_effects': effects, 'gates': gates(rows, scores), 'H3_secondary': prediction(rows, scores, effects)}
+            'history_effects': effects, 'gates': gates(rows, scores), 'H3_secondary': h3}

@@ -44,6 +44,7 @@ def scores(rows):
         result.append(dict(example_id=r['example_id'], row_hash=data.digest(r), model_id='test',
                            action_logp=lp, easy_target={v: -3. for v in r['policy']},
                            easy_other={v: -3. for v in r['policy']}, raw_text=text, easy_raw_text=r['correct_state'],
+                           generated_token_ids=[1, 0], easy_token_ids=[1, 0], eos_token_id=0,
                            terminated=True, easy_terminated=True,
                            generated=exp.classify(text, r['actions'], r['answer']),
                            easy_generated=exp.classify(r['correct_state'], list(r['policy']), r['correct_state']),
@@ -145,7 +146,7 @@ def test_signed_effects_bootstrap_and_gate(rows, scores):
     with pytest.raises(ValueError): analysis.bootstrap([float('inf')])
     report = analysis.analyze(rows, scores)
     assert report['primary']['access']['Delta_semantic']['mean'] == 1
-    assert report['H3_secondary']['available'] is False  # Perfect generation supplies no failures.
+    assert report['H3_secondary']['overall']['available'] is False  # Perfect generation supplies no failures.
     assert report['gates']['any_score_pass']
     assert not any(c['behavior_eligible'] for c in report['gates']['cells'].values())
     for s in scores:
@@ -182,12 +183,15 @@ def test_interrupted_resume_and_manifest(rows, tmp_path, monkeypatch):
     exp.run(rr, config, output, object(), Tokenizer(), resume=True)
     assert len(data.read_rows(output)) == 11
     assert len(data.read_rows(str(output)+'.easy.jsonl')) == 11
+    exp.verify_complete_run(output, rr, config)
     assert list(tmp_path.glob('*.interrupted.*.bin'))
     with pytest.raises(FileExistsError): exp.run(rr, config, output, object(), Tokenizer())
     changed = copy.deepcopy(config); changed['model']['revision'] = 'a'*40
     with pytest.raises(ValueError, match='manifest'): exp.run(rr, changed, output, object(), Tokenizer(), resume=True)
     ss = data.read_rows(output); ss[0]['row_hash'] = 'bad'
     output.write_text(''.join(json.dumps(s)+'\n' for s in ss))
+    with pytest.raises(ValueError, match='hashes'):
+        exp.verify_complete_run(output, rr, config)
     with pytest.raises(ValueError): exp.run(rr, config, output, object(), Tokenizer(), resume=True)
 
 

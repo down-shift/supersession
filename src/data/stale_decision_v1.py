@@ -155,7 +155,7 @@ def generate(split='development', replicates=1):
     return rows
 
 
-def validate(rows):
+def validate(rows, *, expected_histories=None):
     if not rows:
         raise ValueError('empty dataset')
     ids, histories, pairs = set(), defaultdict(list), defaultdict(dict)
@@ -170,7 +170,21 @@ def validate(rows):
         if r['member'] in pairs[r['pair_id']]:
             raise ValueError('duplicate member')
         pairs[r['pair_id']][r['member']] = r
+        if (r['task'] not in ('access', 'routing') or
+                r['difficulty'] not in ('sequential', 'interleaved', 'competing') or
+                r['vocabulary'] not in VOCABS):
+            raise ValueError('condition is outside the frozen task grid')
         states = set(VOCABS[r['vocabulary']])
+        if (len(r['currents']) != 2 or len(r['old_values']) != 2 or
+                len(r['policy_order']) != len(states) or set(r['policy_order']) != states or
+                len(set(r['policy_order'])) != len(states)):
+            raise ValueError('policy order and assignment vectors must cover the frozen states')
+        if r['actions'] != (['APPROVE', 'DENY'] if r['task'] == 'access' else ['EAST', 'WEST']):
+            raise ValueError('action candidates differ from the frozen task vocabulary')
+        if r['vocabulary_id'] != r['vocabulary']:
+            raise ValueError('vocabulary group identifier mismatch')
+        if r['policy_id'] != digest(r['policy']) or r['entity_pair_id'] != digest(sorted(r['entities'])):
+            raise ValueError('policy/entity group identifier mismatch')
         expected_template = 'heldout' if r['split'] == 'confirmation' else 'development'
         if r['template'] != expected_template or r['template_id'] != expected_template:
             raise ValueError('template holdout violation')
@@ -180,6 +194,8 @@ def validate(rows):
             raise ValueError('order stratum mismatch')
         if any(old == r['other_current'] for old in r['old_values']):
             raise ValueError('other attribute not superseded')
+        if r['other_old'] != r['old_values'][1] or r['other_current'] != r['currents'][0]:
+            raise ValueError('matched unrelated-attribute assignments changed')
         if set(r['policy']) != states or len(set(r['actions'])) != 2 or set(r['policy'].values()) != set(r['actions']):
             raise ValueError('policy/candidate collision')
         if any(list(r['policy'].values()).count(a) != 2 for a in r['actions']):
@@ -195,8 +211,13 @@ def validate(rows):
             raise ValueError('incorrect ground truth')
         if (r['prompt'], r['edit_span']) != build_prompt(r) or r['history_signature'] != signature(r):
             raise ValueError('prompt/span/signature mismatch')
+        if r['pair_id'] != f"{r['history_id']}:{r['family']}" or r['example_id'] != f"{r['pair_id']}:{r['member']}":
+            raise ValueError('pair/example identifier mismatch')
     seen_histories = set()
     for hid, records in histories.items():
+        expected_id_prefix = f"{SCHEMA}:{records[0]['split']}:"
+        if not hid.startswith(expected_id_prefix):
+            raise ValueError('history identifier/split mismatch')
         sig = records[0]['history_signature']
         if sig in seen_histories:
             raise ValueError('duplicate concrete history')
@@ -208,6 +229,15 @@ def validate(rows):
         for r in records:
             if {k:v for k,v in r.items() if k not in changing} != {k:v for k,v in reference.items() if k not in changing}:
                 raise ValueError('history metadata changed')
+    if expected_histories is not None:
+        if expected_histories < 1 or len(histories) != expected_histories:
+            raise ValueError('dataset does not contain the frozen number of histories')
+        split = rows[0]['split']
+        expected_ids = {f'{SCHEMA}:{split}:{rep}:{i}'
+                        for rep in range(expected_histories // len(GRID))
+                        for i in range(len(GRID))}
+        if expected_histories % len(GRID) or set(histories) != expected_ids:
+            raise ValueError('dataset does not cover the complete frozen factorial split')
     for members in pairs.values():
         a = members[0]
         if a['family'] == 'current_only':
