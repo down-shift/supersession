@@ -137,13 +137,13 @@ def plot(result: dict, path: Path) -> None:
         groups[-1][1].append(i)
 
     header, row_h = 0.6, 1.0  # vertical space for a group title and for one row
-    fig, ax = plt.subplots(figsize=(4.5, 4.1))
+    fig, ax = plt.subplots(figsize=(5.5, 4.6))
     y, ticks, labels = 0.0, [], []
     trans = ax.get_yaxis_transform()
     for k, (name, idx) in enumerate(groups):
         top = y
         ax.text(0.01, top + 0.08, name, transform=ax.get_yaxis_transform(), ha="left", va="top",
-                fontname="cmb10", fontsize=7.5)
+                fontname="cmb10", fontsize=10)
         y += header
         for i in idx:
             centre = y + row_h / 2
@@ -151,7 +151,7 @@ def plot(result: dict, path: Path) -> None:
                 est = result["models"][model][i]
                 errorbar(ax, centre + OFFSETS[model], (est["mean"], *est["ci95"]), model)
             ax.text(0.99, centre, rows[i]["source"], transform=trans, ha="right", va="center",
-                    fontsize=7, color="0.2", style="italic")
+                    fontsize=9, color="0.2", style="italic")
             ticks.append(centre)
             labels.append(rows[i]["label"])
             y += row_h
@@ -164,8 +164,11 @@ def plot(result: dict, path: Path) -> None:
     zero_line(ax)
     ax.set_yticks(ticks, labels)
     light_grid(ax)
-    ax.set_xlabel("Difference in $R$ (nats)")
+    ax.tick_params(axis="both", labelsize=10)
+    ax.set_xlabel("Difference in $R$ (nats)", fontsize=10)
     legend_above(ax)
+    for text in ax.get_legend().get_texts():
+        text.set_fontsize(10)
     fig.tight_layout(pad=0.3)
     fig.savefig(path)
     plt.close(fig)

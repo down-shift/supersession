@@ -1,0 +1,18 @@
+{
+  "protocol": "stale_decision_v1",
+  "model": {
+    "id": "Qwen/Qwen3-8B",
+    "revision": "b968826d9c46dd6066d109eabc6255188de91218",
+    "tokenizer_revision": "b968826d9c46dd6066d109eabc6255188de91218",
+    "dtype": "float16",
+    "quantization": "none",
+    "device_map": "auto",
+    "attn_implementation": "sdpa"
+  },
+  "max_new_tokens": 16,
+  "bootstrap_draws": 2000,
+  "development_replicates": 1,
+  "gate_replicates": 2,
+  "confirmation_replicates": 8,
+  "status": "frozen-ready, Stage 1 only; inference requires Stage 2 authorization"
+}
