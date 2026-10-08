@@ -200,6 +200,9 @@ def test_immutable_revision_and_exclusive_creation(tmp_path):
     exp.check_config(config)
     config['model']['revision'] = 'main'
     with pytest.raises(ValueError): exp.check_config(config)
+    config['model']['revision'] = 'b968826d9c46dd6066d109eabc6255188de91218'
+    config['model']['quantization'] = 'none'
+    with pytest.raises(ValueError, match='runtime'): exp.check_config(config)
     path = tmp_path/'artifact.json'; data.write_new(path, {'a': 1})
     with pytest.raises(FileExistsError): data.write_new(path, {'a': 2})
 

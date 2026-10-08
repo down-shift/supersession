@@ -22,8 +22,13 @@ def code_hash():
 def check_config(config):
     if config.get('protocol') != 'stale_decision_v1':
         raise ValueError('wrong protocol')
+    model = config.get('model', {})
+    if (model.get('dtype') != 'float16' or model.get('quantization') != 'int8' or
+            model.get('device_map') != 'auto' or model.get('attn_implementation') != 'sdpa' or
+            model.get('tokenizer_id') != model.get('id')):
+        raise ValueError('model runtime differs from the frozen prior Qwen downstream-transfer setup')
     for key in ('revision', 'tokenizer_revision'):
-        if not re.fullmatch('[a-f0-9]{40}', str(config['model'].get(key, ''))):
+        if not re.fullmatch('[a-f0-9]{40}', str(model.get(key, ''))):
             raise ValueError('immutable model/tokenizer revisions required')
     if any(config.get(k) != v for k, v in [('development_replicates', 1), ('gate_replicates', 2), ('confirmation_replicates', 8)]):
         raise ValueError('frozen split counts differ')
