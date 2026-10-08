@@ -6,38 +6,57 @@
 
 Figure~\ref{fig:decomposition} sets the comparisons of Section~\ref{sec:decomposition-logic} side by side for Qwen and Gemma. Relation status matters little on average: superseded relevance exceeds other-attribute relevance by 0.314 nats (95\% CI [0.147, 0.482]) in Qwen and by 0.004 [−0.104, 0.118] in Gemma. The figure adds two comparisons from a separate update design (Section~\ref{sec:relation-split}). Construction matters more, with entity-mention relevance above superseded relevance by 3.504 [3.198, 3.806] and 2.589 [2.361, 2.829] nats, and a smaller gap remains with the marker and name--value distance matched (Section~\ref{sec:entity-gap}). The rows of Figure~\ref{fig:decomposition} are comparisons from different designs and stimulus sets, not a factorial decomposition, so they do not add up to one another. Mention order decides the sign for never-assigned values. Reversing the order lowers early-unassigned relevance by 6.578 [6.356, 6.789] nats in Qwen and 4.970 [4.700, 5.257] in Gemma, taking it from positive to negative, while the same reversal moves superseded relevance by only 0.340 [0.218, 0.470] and 0.032 [−0.101, 0.168]. For entity mentions the aligned-minus-reversed difference has opposite signs in the two models: −1.969 [−2.344, −1.604] in Qwen and +1.810 [1.580, 2.058] in Gemma. In Experiment 2, adding the prefix \lit{Previously,} lowers relevance in the tested constructions by between 0.652 and 1.734 nats in each construction and model.
 
-Table~\ref{tab:models} gives the main comparisons for all seven models that passed the competence screen. In every one, reversing mention order moves early-unassigned relevance from positive to negative, by more than relation status moves relevance in any model. Entity mentions outweigh superseded assignments in all but Mistral-7B, and the paired difference between that gap and relation status is resolved in all but Granite-3.1-8B and Mistral-7B (Section~\ref{sec:additional-models}). $R$ for every construction and order group, including the live control (32.598 nats in Qwen, 39.355 in Gemma), is in Appendix~\ref{app:exp1}.
-
-\begin{figure}[t]
+\begin{figure}[!htbp]
 \begin{center}
-\includegraphics[width=0.62\linewidth]{figures/decomposition.pdf}
+\includegraphics[width=0.85\linewidth]{figures/decomposition.pdf}
 \end{center}
-\caption{What changes query relevance. Every row is a difference in $R$ (nats) between two prompt variants, with 95\% history-bootstrap intervals. Relation-status comparison: superseded minus other attribute (Experiment 1), then two comparisons from the separate updated-other-attribute design: superseded minus updated other attribute, and updated minus static other attribute. Construction comparisons: entity mention minus superseded (Experiment 1), then the same gap with the marker and name--value distance matched (distance follow-up, near condition; Table~\ref{tab:gap}). Order comparisons: $R$ under aligned minus $R$ under reversed order, paired within history. Marker comparisons: $R$ with minus without the prefix \lit{Previously,}, within each construction. The grey tag at the right of each row names its design; rows from different designs use different prompts and are not a factorial decomposition. Every design uses 96 histories, and Experiment 2 uses one entity pair and one attribute. Estimates are computed from the sealed analyses by \lit{scripts/fig\_decomposition.py}.}
+\caption{What changes query relevance. Every row is a difference in $R$ (nats) between two prompt variants, with 95\% history-bootstrap intervals. Relation-status comparison: superseded minus other attribute (Experiment 1), then two comparisons from the separate updated-other-attribute design: superseded minus updated other attribute, and updated minus static other attribute. Construction comparisons: entity mention minus superseded (Experiment 1), then the same gap with the marker and name--value distance matched (distance follow-up, near condition; Table~\ref{tab:gap}). Order comparisons: $R$ under aligned minus $R$ under reversed order, paired within history. Marker comparisons: $R$ with minus without the prefix ``\lit{Previously,} within each construction. The grey tag at the right of each row names its design; rows from different designs use different prompts and are not a factorial decomposition. Every design uses 96 histories, and Experiment 2 uses one entity pair and one attribute. Estimates are computed from the sealed analyses by \lit{scripts/fig\_decomposition.py}.}
 \label{fig:decomposition}
 \end{figure}
+
+Table~\ref{tab:models} gives the main comparisons for all seven models that passed the competence screen. In every one, reversing mention order moves early-unassigned relevance from positive to negative, by more than relation status moves relevance in any model. Entity mentions outweigh superseded assignments in all but Mistral-7B, and the paired difference between that gap and relation status is resolved in all but Granite-3.1-8B and Mistral-7B (Section~\ref{sec:additional-models}). $R$ for every construction and order group, including the live control (32.598 nats in Qwen, 39.355 in Gemma), is in Appendix~\ref{app:exp1}.
+
+
 
 \begin{table}[t]
 \caption{Experiment 1 in every model that passed the competence screen: (a) the relation-status contrast, (b) the entity-mention gap, early-unassigned relevance by order group, and (b) minus (a) paired within history. Means with 95\% history-bootstrap intervals over 96 histories, in nats; models are reported separately.}
 \label{tab:models}
 \begin{center}
-\scriptsize
+\small
 \setlength{\tabcolsep}{4pt}
-\resizebox{\linewidth}{!}{%
-\begin{tabular}{@{}lrrrrr@{}}
+\textbf{Construction contrasts}
+
+\begin{tabular}{@{}lrrr@{}}
 \toprule
- & (a) Superseded & (b) Entity mention & \multicolumn{2}{c}{Early unassigned} & \\
-\cmidrule(lr){4-5}
-Model & $-$ other attribute & $-$ superseded & Aligned & Reversed & (b) $-$ (a) \\
+Model & \shortstack{(a) Superseded\\$-$ other attribute} & \shortstack{(b) Entity mention\\$-$ superseded} & (b) $-$ (a) \\
 \midrule
-Qwen3-8B & 0.314 [0.147, 0.482] & 3.504 [3.198, 3.806] & 3.252 [3.046, 3.455] & −3.327 [−3.518, −3.150] & 3.191 [2.811, 3.567] \\
-Gemma 3 4B & 0.004 [−0.104, 0.118] & 2.589 [2.361, 2.829] & 2.598 [2.395, 2.798] & −2.372 [−2.567, −2.178] & 2.585 [2.317, 2.861] \\
-Falcon3-7B & −0.052 [−0.168, 0.058] & 1.203 [0.928, 1.494] & 3.866 [3.699, 4.038] & −3.893 [−4.082, −3.695] & 1.254 [0.929, 1.596] \\
-Granite-3.1-8B & 1.001 [0.880, 1.125] & 1.372 [1.015, 1.741] & 5.105 [4.761, 5.477] & −5.616 [−5.920, −5.309] & 0.371 [−0.019, 0.744] \\
-Mistral-7B & −1.305 [−2.048, −0.648] & −0.415 [−1.000, 0.187] & 5.975 [5.478, 6.481] & −5.862 [−6.460, −5.309] & 0.889 [−0.134, 1.986] \\
-Gemma 3 12B & 0.442 [0.249, 0.631] & 1.321 [0.987, 1.645] & 3.772 [3.533, 4.027] & −3.316 [−3.571, −3.063] & 0.879 [0.423, 1.351] \\
-Qwen3-14B & 1.162 [0.988, 1.351] & 2.380 [2.045, 2.698] & 3.686 [3.391, 3.978] & −3.987 [−4.296, −3.667] & 1.218 [0.770, 1.640] \\
+Qwen3-8B & 0.314 [0.147, 0.482] & 3.504 [3.198, 3.806] & 3.191 [2.811, 3.567] \\
+Gemma 3 4B & 0.004 [−0.104, 0.118] & 2.589 [2.361, 2.829] & 2.585 [2.317, 2.861] \\
+Falcon3-7B & −0.052 [−0.168, 0.058] & 1.203 [0.928, 1.494] & 1.254 [0.929, 1.596] \\
+Granite-3.1-8B & 1.001 [0.880, 1.125] & 1.372 [1.015, 1.741] & 0.371 [−0.019, 0.744] \\
+Mistral-7B & −1.305 [−2.048, −0.648] & −0.415 [−1.000, 0.187] & 0.889 [−0.134, 1.986] \\
+Gemma 3 12B & 0.442 [0.249, 0.631] & 1.321 [0.987, 1.645] & 0.879 [0.423, 1.351] \\
+Qwen3-14B & 1.162 [0.988, 1.351] & 2.380 [2.045, 2.698] & 1.218 [0.770, 1.640] \\
 \bottomrule
-\end{tabular}}
+\end{tabular}
+
+\medskip
+
+\textbf{Positional contrasts}
+
+\begin{tabular}{@{}lrr@{}}
+\toprule
+Model & Early unassigned: aligned & Early unassigned: reversed \\
+\midrule
+Qwen3-8B & 3.252 [3.046, 3.455] & −3.327 [−3.518, −3.150] \\
+Gemma 3 4B & 2.598 [2.395, 2.798] & −2.372 [−2.567, −2.178] \\
+Falcon3-7B & 3.866 [3.699, 4.038] & −3.893 [−4.082, −3.695] \\
+Granite-3.1-8B & 5.105 [4.761, 5.477] & −5.616 [−5.920, −5.309] \\
+Mistral-7B & 5.975 [5.478, 6.481] & −5.862 [−6.460, −5.309] \\
+Gemma 3 12B & 3.772 [3.533, 4.027] & −3.316 [−3.571, −3.063] \\
+Qwen3-14B & 3.686 [3.391, 3.978] & −3.987 [−4.296, −3.667] \\
+\bottomrule
+\end{tabular}
 \end{center}
 \end{table}
 
@@ -51,7 +70,7 @@ Superseded minus other attribute is the study's closest estimate of what being a
 \subsection{Mention order}
 \label{sec:order}
 
-When no sentence links a value to an entity, the models link them by position. Under aligned order the first unassigned value sits in the same slot as the entity listed first in the current block, and an edit to it is more relevant to that entity's query; under reversed order the same value lines up with the other entity, and relevance turns negative. The pattern holds for early and late unassigned mentions in both models, with paired order effects between 4.970 and 6.639 nats and positive in every one of the 96 histories (Table~\ref{tab:b-paired-r}). We say that such a value is \emph{credited} to an entity as shorthand for this query-specific score contrast, which follows matching ordinal positions across the historical and current blocks. It is distinct from primacy or recency: the unassigned lines occupy the same positions in both order groups, and early and late placement show the same sign pattern. This behavior is consistent with slot-based matching of values to entities in these prompts. It is related to the ordinal structure that \citet{feng2024bind} report in binding IDs and to the ordering IDs of \citet{prakash2026lookbacks}, which identify an item as first or second in its block; \citet{gurarieh2026mixing} find that positional retrieval degrades as bindings multiply. None of this identifies the mechanism here.
+When no sentence links a value to an entity, the models link them by position. Under aligned order the first unassigned value sits in the same slot as the entity listed first in the current block, and an edit to it is more relevant to that entity's query; under reversed order the same value lines up with the other entity, and relevance turns negative. The pattern holds for early and late unassigned mentions in both models, with paired order effects between 4.970 and 6.639 nats and positive in every one of the 96 histories (Table~\ref{tab:b-paired-r}). We say that such a value is \emph{credited} to an entity as shorthand for this query-specific score contrast, which follows matching ordinal positions across the historical and current blocks. It is distinct from primacy or recency: the unassigned lines occupy the same positions in both order groups, and early and late placement show the same sign pattern. This behavior is consistent with slot-based matching of values to entities in these prompts. Related mechanistic work identifies abstract binding IDs \citep{feng2024bind} and ordering IDs that track entities by their order of introduction \citep{prakash2026lookbacks}. None of this identifies the mechanism here.
 
 Averaging over orders hides this pattern: overall unassigned relevance is near zero (−0.037 and 0.001 in Qwen; 0.113 and 0.125 in Gemma) not because the edit is ignored (an early unassigned edit shifts scores by 6.234 to 8.239 nats under either query in both models) but because aligned and reversed effects cancel. Explicit association keeps relevance positive in both order groups: superseded relevance changes little with order, while entity-mention relevance changes in opposite directions in the two models (Figure~\ref{fig:order}, Appendix~\ref{app:exp1}).
 
@@ -63,7 +82,7 @@ Experiment 2 adds or removes the prefix \lit{Previously,} with the rest of each 
 \subsection{Separating relation status}
 \label{sec:relation-split}
 
-The updated-other-attribute follow-up varies whether the other attribute is also updated. With prompt length and layout matched, having been the queried attribute raised relevance (superseded minus updated other attribute: 0.740 [0.661, 0.818] nats in Qwen, 0.148 [0.038, 0.261] in Gemma), while being contradicted by an update lowered it in Qwen (updated minus static other attribute: −0.289 [−0.363, −0.215]) but not detectably in Gemma (−0.028 [−0.137, 0.076]; Table~\ref{tab:update}). In this design Gemma ranks the current candidate first on only 2,895 of 3,072 superseded prompts, below the 99\% screening level (Table~\ref{tab:c-accuracy}). Restricted to histories in which every prompt is ranked correctly, the estimates keep their sign and resolution: 0.734 [0.662, 0.811] and $-0.276$ [$-0.353$, $-0.200$] in Qwen (87 histories), 0.277 [0.080, 0.481] and an unresolved 0.047 [$-0.123$, 0.221] in Gemma, although only 28 of Gemma's 96 histories qualify. Both contrasts are conditional: the first compares queried-attribute status when both assignments are updated, the second compares updating when the assignment concerns another attribute. In Qwen the result supports an account in which a positive attribute effect and a negative update effect partly cancel; the follow-up uses different prompts and does not decompose the Experiment 1 estimate. The recorded prediction of the discount account holds for Qwen and is unresolved for Gemma.
+The updated-other-attribute follow-up varies whether the other attribute is also updated. With prompt length and layout matched, having been the queried attribute raised relevance (superseded minus updated other attribute: 0.740 [0.661, 0.818] nats in Qwen, 0.148 [0.038, 0.261] in Gemma), while being contradicted by an update lowered it in Qwen (updated minus static other attribute: −0.289 [−0.363, −0.215]) but not detectably in Gemma (−0.028 [−0.137, 0.076]; Table~\ref{tab:update}). In this design Gemma ranks the current candidate first on only 2,895 of 3,072 superseded prompts, below the 99\% screening level (Table~\ref{tab:c-accuracy}). Restricting to histories in which every prompt is ranked correctly preserves the positive queried-attribute effects and Qwen's negative update effect; Gemma's update effect remains unresolved: 0.734 [0.662, 0.811] and $-0.276$ [$-0.353$, $-0.200$] in Qwen (87 histories), 0.277 [0.080, 0.481] and an unresolved 0.047 [$-0.123$, 0.221] in Gemma, although only 28 of Gemma's 96 histories qualify. Both contrasts are conditional: the first compares queried-attribute status when both assignments are updated, the second compares updating when the assignment concerns another attribute. In Qwen the result supports an account in which a positive attribute effect and a negative update effect partly cancel; the follow-up uses different prompts and does not decompose the Experiment 1 estimate. The recorded prediction of the discount account holds for Qwen and is unresolved for Gemma.
 
 \subsection{Why entity mentions outweigh assignments}
 \label{sec:entity-gap}
