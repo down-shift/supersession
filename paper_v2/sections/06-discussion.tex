@@ -1,0 +1,38 @@
+\section{Discussion}
+\label{sec:discussion}
+
+\paragraph{What the evidence supports.} In a model that reports both the current and the initial state
+correctly, an obsolete state still changes about one decision in six toward the action it implies. This
+shows that stale-value interference, documented for value queries
+\citep{guo2026context,wang2025unable}, also reaches single-step policy decisions in an open model after a
+single update, in items where retrieval is at ceiling. It is a gap that retrieval accuracy would not
+reveal. The mention control changes how the finding should be read. The same word, mentioned once by the
+same entity and never assigned, moves decisions as much or more. In our records, the interference behaves
+like entrainment by decision-relevant words attached to the queried entity \citep{niu2025entrainment},
+not like a failure to track which assignment is current. Supersession contributes only in the routing
+comparison with an updated unrelated attribute. There it adds 1.2 nats.
+
+\paragraph{Consequences for evaluation and mitigation.} Two practical points follow. First, stale-state
+benchmarks that vary only update histories cannot tell supersession from incidental mention. A matched
+mention condition is cheap and changed our conclusion. Second, mitigations that act on update structure,
+such as removing superseded entries, marking them as historical, or routing attention to the current
+entry, address only part of the effect if mentions behave the same way. We did not test a mitigation, so
+this is a prediction, not a result. A selective mitigation would have to be evaluated jointly on
+decisions and on historical retrieval, which the model performs well and which a blunt fix could destroy.
+
+\paragraph{Scores and behavior.} Two score-level results caution against reading log-probability shifts
+as behavior. An unattached word shifted preferences by 2.5--3.0 nats but flipped few decisions.
+And retrieval-score sensitivity to the edit, although large, did not predict which decisions failed. A
+preference shift matters behaviorally only when it crosses the item's decision margin, so it can be large
+and still inconsequential. Studies that measure only scores, or only accuracy, see different parts of the
+same effect.
+
+\paragraph{Alternative explanations.} The constructions differ in syntax around the edited word, so the
+contrasts compare whole constructions. The mention construction could be read as more salient. Its
+advantage varied with template, which fits a surface explanation better than a categorical one. The other
+entity's current state always implied the wrong action. Confusing the two entities therefore always
+yields the wrong action. This may contribute to baseline errors, but it cancels in every paired contrast. Natural state words
+carry prior meanings, but the pattern does not depend on them. In all 12 task $\times$ cell $\times$
+vocabulary strata (64 histories each), $D_{\mathrm{superseded}}$ was positive (2.53--4.53 nats).
+$\Delta_{\mathrm{mention}}$ was negative in all 12, with intervals excluding zero in 11, including all six with opaque labels
+(Table~\ref{tab:strata}).

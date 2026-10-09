@@ -1,0 +1,46 @@
+\section{Protocol}
+\label{sec:protocol}
+
+\paragraph{Model and runtime.} Qwen3-8B \citep{yang2025qwen3} at a pinned revision
+(Appendix~\ref{app:repro}), with thinking disabled through the chat template. Inference ran in float32
+without quantization on one GPU. We chose float32 after finding that 8-bit and bfloat16 inference made
+the log probability at a fixed position change by up to 0.843 and 0.875 nats when tokens were appended
+after it. Float32 gave exactly zero (Appendix~\ref{app:precision}). Action events were scored with a
+key--value-cache scorer. Before each run, the scorer was checked against one full forward pass per event
+on identical prompts (maximum difference $5.08\times10^{-5}$ nats against a tolerance of 0.02). Answers
+were generated greedily with at most 16 new tokens and parsed strictly: an answer counts only if, after
+stripping outer whitespace, it is exactly one allowed label.
+
+\paragraph{Splits and gate.} Three disjoint splits were generated from separate seeds and separate
+entity-name pools. A development split (192 histories) was used only to check competence and answer
+formats. A frozen gate split (384 histories) decided eligibility. The confirmation split (768 histories,
+8{,}448 records, 11 per history) used a held-out paraphrase of the introduction and query. A task-cell
+was \emph{competent} if strict direct retrieval of the current state was at least 0.95, current-only
+decision accuracy at least 0.90, and invalid answers at most 0.05. Confirmation data were generated only
+after the gate, recomputed from its saved scores, showed at least one competent cell. All cells are
+reported. Task-level estimates average the fixed grid, and estimates from non-competent cells are labeled
+as such.
+
+\paragraph{Hypotheses and statistics.} The protocol fixed two primary hypotheses per task: H1,
+$D_{\mathrm{superseded}} > 0$; and H2, $\Delta_{\mathrm{semantic}} \neq 0$, two-sided. Both use 97.5\%
+percentile intervals from a history bootstrap (2{,}000 draws, fixed seed), Bonferroni-adjusted over the
+two tasks. Secondary outcomes use unadjusted 95\% intervals: $\Delta_{\mathrm{mention}}$, the other
+construction effects, net switch rates, and H3. Histories are the resampling unit. Both members, all
+constructions and all queries of a history stay together. The two tasks are never pooled, and an
+interval that includes zero is reported as inconclusive, not as evidence of no effect.
+
+\paragraph{Prediction (H3).} Predictors that are available before the decision query is asked: the easy
+query's margin between the current and the historical state, the historical candidate's log mass, easy
+confidence, the edited token's position, prompt length, and design indicators. The comparison adds
+$R_{\mathrm{easy}}$ to these. The outcome is a strict downstream failure on the historical constructions.
+Models are L2-regularized logistic regressions ($C=1$, no tuning) evaluated by five-fold cross-validation
+with folds grouped by history. Out-of-fold log loss with and without $R_{\mathrm{easy}}$ is compared by a
+paired history bootstrap. The downstream answer's own confidence is reported separately as a
+contemporaneous reference, not as a predictor, because it comes from the decision query itself.
+
+\paragraph{Protocol history.} The confirmation protocol is the second redesign of a design that was
+frozen before any model was run. The first version scored action events that the model never produces
+and was corrected before inference. The second failed its competence gate because a trailing
+\lit{Answer:} line made the model echo the prefix. The redesign changed only that line, the seeds and
+the name pools. Appendix~\ref{app:history} lists every change and when it was made. The protocol records
+are internal and dated. We call them \emph{frozen before confirmation}, not preregistered.

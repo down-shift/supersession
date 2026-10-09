@@ -1,0 +1,155 @@
+\section{Results}
+\label{sec:results}
+
+All numbers in this section come from the frozen confirmation (Qwen3-8B, held-out template, 384 histories
+per task) unless marked otherwise.
+
+\subsection{Competence}
+\label{sec:results-competence}
+
+\begin{table}[t]
+\centering
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+Cell & Direct & No history & History & Competent \\
+\midrule
+access seq.   & 0.916 & 0.867 & 0.831 & no \\
+access int.   & 0.945 & 0.875 & 0.858 & no \\
+access comp.  & 0.908 & 0.859 & 0.867 & no \\
+routing seq.  & 0.988 & 0.953 & 0.858 & yes \\
+routing int.  & 0.986 & 0.961 & 0.868 & yes \\
+routing comp. & 0.982 & 0.953 & 0.846 & yes \\
+\bottomrule
+\end{tabular}
+\caption{Strict accuracy on the confirmation data. \emph{Direct}: current state of the queried entity,
+asked directly. \emph{No history}: decision on the current-only item. \emph{History}: decision over all
+historical-construction items. Competent: direct $\ge 0.95$, no history $\ge 0.90$, invalid $\le 0.05$.
+No answer was invalid.}
+\label{tab:competence}
+\end{table}
+
+The routing cells meet all competence criteria; the access cells do not, mainly because current-only
+decisions fall short of 0.90 (Table~\ref{tab:competence}). Asked for the \emph{initial} state on the
+superseded items, the model answered correctly in 0.990 of routing and 0.973 of access cases. In routing,
+then, the model reports the current state, reports the initial state, and applies the policy without
+history at or above 0.95. Access results are reported below as fixed-grid averages over cells that do not
+meet the competence criteria.
+
+\subsection{Obsolete states change decisions}
+\label{sec:results-h1}
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/constructions.pdf}
+\caption{Decision effects by construction (confirmation, 384 histories per task, 95\% history-bootstrap
+intervals). (a) $D_c$: increase in the wrong action's log-odds when the edited word implies the wrong
+rather than the correct action. (b) Net generated switches toward the wrong action per history.}
+\label{fig:constructions}
+\end{figure*}
+
+H1 is supported in both tasks. When the superseded state implied the wrong action rather than the
+correct one, the wrong action's log-odds rose by $D_{\mathrm{superseded}} = 3.904$ nats in access
+(97.5\% interval $[3.474, 4.346]$) and $3.133$ $[2.743, 3.516]$ in routing. For scale, editing the
+\emph{current} state itself, which legitimately changes the correct action, moved the same quantity by
+$-10.100$ and $-8.197$ nats.
+
+The shift reaches generated answers. The net switch rate toward the wrong action was $0.167$
+$[0.130, 0.206]$ in access and $0.185$ $[0.143, 0.227]$ in routing. Switches were nearly one-directional:
+65 histories switched to the wrong action and 1 to the correct one in access, 75 and 4 in routing. In
+each competent routing cell, the net switch rate was between 0.164 and 0.227 (Table~\ref{tab:switch-cells}).
+Figure~\ref{fig:competence} shows this as accuracy. In every routing cell, decisions were correct
+in 0.906--0.953 of histories when the superseded state implied the correct action, and in 0.727--0.750
+when it implied the wrong one. The same records gave current- and initial-state retrieval at or above
+0.98.
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/competence.pdf}
+\caption{Retrieval and decision accuracy on the same confirmation records, per cell. Initial-state
+retrieval is reported per task. Dotted lines mark the competence thresholds (0.95 retrieval, 0.90
+decisions).}
+\label{fig:competence}
+\end{figure*}
+
+\subsection{The interference is not specific to supersession}
+\label{sec:results-h2}
+
+H2 compares the superseded assignment with an assignment of the same word to a different attribute that
+was later updated. It is supported in routing, $\Delta_{\mathrm{semantic}} = +1.224$ $[0.973, 1.485]$, and
+inconclusive in access, $+0.035$ $[-0.318, 0.400]$. The generated switches agree: $+0.120$
+$[0.076, 0.164]$ in routing, $+0.029$ $[-0.016, 0.073]$ in access. Whether the word was assigned to the
+queried attribute therefore mattered in routing but was not detectable in access.
+
+The mention control, a secondary outcome, gives the clearer answer. When the same entity only
+\emph{mentioned} the word, the decision effect was larger than for the superseded assignment:
+$D_{\mathrm{entity\,mention}} = 5.182$ against $3.904$ in access and $4.807$ against $3.133$ in routing
+(Figure~\ref{fig:constructions}a). That gives $\Delta_{\mathrm{mention}} = -1.278$ $[-1.579, -0.977]$ and
+$-1.675$ $[-1.896, -1.441]$. In generated answers, mentions caused at least as many switches as
+superseded assignments: $0.195$ (76 to wrong, 1 to correct) against $0.167$ in access, an inconclusive
+difference, and $0.294$ (113 against 0) against $0.185$ in routing, difference $-0.109$
+$[-0.156, -0.065]$. A word attached to no entity still shifted preference substantially, by $3.043$ and
+$2.496$ nats, but rarely changed a generated decision ($0.062$ and $0.039$). Score shifts of similar size
+can thus have very different behavioral consequences.
+
+\paragraph{Replication across splits.} The same protocol family was also run on four earlier splits: the
+development and gate splits of the first redesign and of the confirmed protocol. These used the
+standard template, and the first redesign kept the \lit{Answer:} line. They are not confirmatory, but
+they show which conclusions depend on wording (Figure~\ref{fig:replication} in Appendix~\ref{app:tables}).
+$D_{\mathrm{superseded}}$ was positive in all ten split-by-task estimates, between 3.133 and 6.599 nats.
+$\Delta_{\mathrm{semantic}}$ was positive with an interval excluding zero in every estimate except the
+confirmation's access task. $\Delta_{\mathrm{mention}}$ never favored the superseded assignment. On the
+standard template, however, it ranged from $-0.806$ to $+0.163$, and six of eight intervals included zero.
+On that template, mention effects were indistinguishable from or larger than superseded effects. On the
+held-out template, they were clearly larger. No split
+showed a superseded assignment exceeding the mention control. The size of the mention advantage, however,
+depends on wording.
+
+\subsection{Easy-query sensitivity does not predict failures}
+\label{sec:results-h3}
+
+\begin{table}[t]
+\centering
+\small
+\setlength{\tabcolsep}{3pt}
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{@{}lccc@{}}
+\toprule
+& Overall & Access & Routing \\
+\midrule
+Failures & 892/6144 & 454/3072 & 438/3072 \\
+Log loss, prevalence & 0.414 & 0.419 & 0.410 \\
+Log loss, pre-decision & 0.346 & 0.323 & 0.358 \\
+AUROC, pre-decision & 0.780 & 0.834 & 0.729 \\
+AUROC, $+R_{\mathrm{easy}}$ & 0.779 & 0.833 & 0.730 \\
+Gain from $R_{\mathrm{easy}}$ & $+0.0004$ & $-0.0006$ & $+0.0013$ \\
+\bottomrule
+\end{tabular}}
+\caption{H3: out-of-fold prediction of strict downstream failure on historical-construction items
+(history-grouped five-fold cross-validation). 95\% intervals for the gain: overall $[-0.0011, 0.0019]$,
+access $[-0.0020, 0.0008]$, routing $[-0.0022, 0.0047]$. The decision's own action confidence, a contemporaneous
+reference that is not available before the decision, reaches AUROC 1.000.}
+\label{tab:h3}
+\end{table}
+
+The edit strongly affected easy retrieval scores: the mean $R_{\mathrm{easy}}$ on superseded items was
+$8.096$ nats in access and $10.878$ in routing. That sensitivity carried no information about which
+decisions would fail (Table~\ref{tab:h3}). Pre-decision features reduced log loss from $0.414$ to
+$0.346$ and reached AUROC $0.780$. Adding $R_{\mathrm{easy}}$ changed log loss by $+0.0004$ nats,
+interval $[-0.0011, 0.0019]$; the upper end is under 3\% of what the simple features already gain. The
+result is the same in each task and for the wrong-answer outcome. Within this design,
+$R_{\mathrm{easy}}$ describes how retrieval scores respond to the edit; it does not diagnose decision
+vulnerability.
+
+\subsection{A second model did not meet the competence gate}
+\label{sec:results-gemma}
+
+Gemma 3 4B \citep{gemma2025gemma3} was added under a model list frozen before any of its data were scored,
+with the same rows, rules and runtime. The only change was its end-of-turn event, corrected after a
+format-only smoke test (Appendix~\ref{app:history}). On the gate split, no cell met the criteria.
+Current-only decision accuracy was 0.609--0.719, direct retrieval 0.916--0.964, and decision accuracy
+with history 0.488--0.678. Initial-state retrieval in development was 0.984. Gemma reads these records
+but does not apply the policy reliably, so no confirmation split was generated for it. This is an
+eligibility result: it says nothing for or against stale-state interference in Gemma. The conclusions
+above therefore rest on one model.

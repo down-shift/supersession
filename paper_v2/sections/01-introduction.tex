@@ -1,0 +1,93 @@
+\section{Introduction}
+\label{sec:intro}
+
+Agents and assistants increasingly act on records that change: a user's clearance is revoked, a ticket is
+rerouted, a preference is replaced. The record usually keeps the history, and the model is told that only
+the latest entry counts. Retrieval benchmarks ask whether the model can then report the current value, and
+recent work shows that old values do intrude on such reports, especially after many overwrites
+\citep{wang2025unable,guo2026context,chattaraj2026dual}. A deployed system, however, rarely asks the model
+to restate a value. It asks the model to \emph{use} it. Two questions follow that retrieval accuracy does
+not answer. When a model can state the current value correctly, does the obsolete value still change the
+decision it takes? And if it does, is the obsolete value acting as a superseded assignment of the queried
+attribute, or simply as a word that occurs in the context near the entity?
+
+The second question matters because the remedies differ. If the interference is tied to supersession, it
+is a failure of state tracking, and update-aware memory, historical marking or attention routing toward the
+current entry \citep{guo2026context} are the natural fixes. If any nearby mention of a decision-relevant
+word does the same, the problem is contextual entrainment \citep{niu2025entrainment} reaching decisions.
+Removing or marking stale entries would then leave most of it in place, and evaluations that only vary
+update histories would misattribute it.
+
+\paragraph{Design.} We hold everything that should determine the decision fixed: the current state, the
+policy that maps states to actions, the query, and the correct action. We edit one obsolete state. In one
+member of each pair, the obsolete state implies the wrong action; in the other, it implies the correct
+action. The difference in the model's preference for the wrong action between the two members is the
+decision effect of the obsolete content, and the paired generated answers give its behavioral
+counterpart (Figure~\ref{fig:example}). The same edit is repeated in matched constructions that keep the
+word and its position but change its role: an assignment to a different attribute that was later updated,
+a word the entity only mentioned, and a word attached to no entity. Before testing decisions, we check on
+the same records that the model reports the current and the initial state correctly when asked.
+
+\paragraph{Findings.} The experiment ran under a protocol frozen before the confirmation data were
+generated, on a held-out prompt template, with one model (Qwen3-8B) that passed a task-competence gate.
+A second model, Gemma 3 4B, did not pass it. Three conclusions hold for the confirmed model:
+\begin{enumerate}
+  \item \textbf{Obsolete states change current decisions in a model that tracks them correctly.} Making
+  the obsolete state imply the wrong action raised the wrong action's log-odds by 3--4 nats and flipped
+  roughly one generated decision in six toward it. Reverse flips were rare. In routing, this happened in
+  every condition where the model reported the current and initial states with 0.98--0.99 accuracy and
+  decided correctly without history (\S\ref{sec:results-h1}).
+  \item \textbf{The interference does not require supersession.} The same word mentioned in passing by the
+  same entity moved decisions at least as much as a superseded assignment, and more in routing. Whether a
+  superseded assignment exceeded the mention control at the score level changed with the prompt template
+  (\S\ref{sec:results-h2}).
+  \item \textbf{A score-level sensitivity measure does not identify vulnerable items.} The edit's effect on
+  easy retrieval queries was large but did not predict which decisions would fail beyond simple
+  pre-decision features (\S\ref{sec:results-h3}).
+\end{enumerate}
+
+\paragraph{What is and is not new.} That stale context interferes with answers is established
+\citep{wang2025unable,guo2026context,qian2026forget,chao2026stale}, as is the fact that mentioned tokens
+gain probability \citep{niu2025entrainment}. Our contribution is a controlled test that connects the two at
+the level of decisions. We measure interference on policy decisions in an open model, on items whose
+current and historical states the model retrieves correctly. We use minimal-pair edits that hold the
+correct action fixed, report both scores and generated answers, and include the matched controls needed
+to ask whether supersession is the operative factor. We also report the negative result for a
+sensitivity-based predictor and, in Appendix~\ref{app:history}, two measurement problems we found along
+the way: chat-format events that the model never generates, and log-probabilities that change when tokens
+are appended under 8-bit and bfloat16 inference.
+
+\begin{figure*}[t]
+\centering
+\begin{prompt}
+Read the dated record. Only the final assignment governs the decision.
+Initially, EvbUnit0096A had routing state pending.        <- edited: pending | suspended
+Initially, EvbUnit0096B had routing state suspended.
+Later, EvbUnit0096A had archive tag restricted.
+Finally, EvbUnit0096A had routing state restricted.
+Later, EvbUnit0096B had archive tag restricted.
+Finally, EvbUnit0096B had routing state pending.
+Policy: state to bin: restricted -> B0, suspended -> B1, pending -> B2,
+  active -> B3; bin to action: B0 -> EAST, B1 -> EAST, B2 -> WEST, B3 -> WEST
+Apply the supplied rule to the final assignment of EvbUnit0096A; give its action.
+Respond with exactly one label (EAST, WEST), with no other text.
+\end{prompt}
+\vspace{-0.5em}
+{\small
+\begin{tabular}{@{}ll@{}}
+\toprule
+Construction & Edited line (same word, same position) \\
+\midrule
+Superseded assignment & \lit{Initially, EvbUnit0096A had routing state pending.} \\
+Other attribute, updated & \lit{Initially, EvbUnit0096A had archive tag pending.} \\
+Mentioned by entity & \lit{Initially, EvbUnit0096A mentioned the word pending.} \\
+Unattached word & \lit{Initially, the unassigned word was pending.} \\
+\bottomrule
+\end{tabular}}
+\caption{One confirmation item (routing task, sequential order, held-out template; the annotation arrow is
+not part of the prompt). The current state \lit{restricted} maps to \lit{EAST}. The obsolete state is
+edited between \lit{pending} (implies \lit{WEST}, wrong) and \lit{suspended} (implies \lit{EAST}, correct);
+everything else is identical. The table shows how the edited line reads in each construction. The decision
+effect $D_c$ compares the model's preference for the wrong action across the two edits.}
+\label{fig:example}
+\end{figure*}

@@ -1,0 +1,35 @@
+\section{Related work}
+\label{sec:related}
+
+\paragraph{Interference from updated values.} Proactive interference grows with the number of overwrites of
+a key, and errors are mostly earlier values of the same key \citep{wang2025unable}. Models also retrieve
+the first value of a key more reliably than the latest \citep{chattaraj2026dual,qiao2026retrieval}.
+\citet{guo2026context} name the failure \emph{stale binding}. They find that almost all errors on current
+value queries return an old value of the queried variable, that the current value stays linearly
+recoverable on failures, that moving a historical mention near the query increases errors and historical
+wording reduces them, and that test-time attention routing repairs most errors in 3--9B models. Their
+decision scenarios, run with four closed reasoning models, showed no difference between full histories
+and resolved snapshots. \citet{qian2026forget} and \citet{chao2026stale} evaluate forgetting and stale
+memories in dialogue and agent settings. STALE in particular separates recognizing an update from applying
+it in a later policy. Both are accuracy benchmarks with naturalistic text. Our setting differs in three
+ways: a single update instead of long overwrite chains, decisions whose correct action is fixed by an
+explicit policy, and matched minimal pairs with lexical controls. The failures we study sit below the
+interference loads at which retrieval breaks.
+
+\paragraph{Entrainment and distraction.} Tokens that appear in the context gain probability whether or
+not they are relevant, random tokens included \citep{niu2025entrainment}. Irrelevant context also degrades
+reasoning \citep{shi2023distracted}. Our entity-mention and unattached-word constructions measure this
+effect in the update setting. The question we ask is whether a superseded assignment adds decision
+pressure beyond it. \citet{yang2026compared} argue that counterfactual prompt edits are compound
+treatments and must be compared against matched alternative edits rather than against no edit. Our design
+follows that logic: each construction applies the same lexical edit, and the contrasts compare constructions.
+
+\paragraph{Binding and state tracking.} Mechanistic work identifies how models bind attributes to entities
+\citep{feng2024bind,gurarieh2026mixing,prakash2026lookbacks}. It also shows that models aggregate state
+changes at query time rather than updating incrementally \citep{tang2026entities,kim2023entity}. These
+accounts offer plausible reasons why lexical identity and position could matter more than assignment
+history, but our experiments are behavioral and do not test them.
+
+\paragraph{Knowledge conflicts.} Our records contain an intra-context conflict with an explicit temporal
+resolution \citep{xu2024conflicts}. Related benchmarks ask for the value valid at a given time
+\citep{yang2026conflicts}. That is our historical retrieval check, not our decision task.

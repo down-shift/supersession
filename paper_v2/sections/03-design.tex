@@ -1,0 +1,63 @@
+\section{Task, constructions and estimands}
+\label{sec:design}
+
+\paragraph{Records and decisions.} Each history describes two entities. Each entity has an initial entry,
+an update of a separate \emph{archive tag}, and a final assignment of the decision-relevant attribute
+(Figure~\ref{fig:example}). A policy maps four states to two actions, two states per action. In the
+\emph{access} task, clearance maps directly to \lit{APPROVE} or \lit{DENY}. In the \emph{routing} task,
+the routing state maps to a bin and the bin to \lit{EAST} or \lit{WEST}. The model is asked for the action
+implied by one entity's final assignment and must answer with exactly one label. Two vocabularies are used:
+natural states (\lit{active}, \lit{pending}, \lit{restricted}, \lit{suspended}) and opaque states
+(\lit{S1}--\lit{S4}). Natural labels carry prior meanings that the policy may contradict. Three orders
+define the cells: \emph{sequential} (both initial entries, then both final blocks), \emph{interleaved}
+(initial and final blocks alternate across entities), and \emph{competing} (interleaved, plus two
+archived discussions that quote decision-relevant state words for the two entities). The factorial
+crosses task, cell, vocabulary, correct action, historical order, current order and entity orientation:
+192 histories per replicate. State-to-label assignments rotate so that every state appears in every role.
+In every history the other entity's current state implies the wrong action. Confusing the two entities is
+therefore always an error, but it is identical in both members of a pair and cancels in the paired
+contrasts below.
+
+\paragraph{Constructions.} For the queried entity, the obsolete line takes one of four forms, all with the
+same edited word in the same slot:
+\emph{superseded} (the queried attribute was initially assigned the word and later reassigned);
+\emph{updated other attribute} (the archive tag was initially the word and was later updated);
+\emph{entity mention} (the entity mentioned the word, with no assignment); and
+\emph{unattached} (\lit{the unassigned word was}~\ldots). Every history also contains a
+\emph{current-only} item with no initial lines, which measures whether the model can apply the policy at
+all, and a \emph{live} item that edits the final assignment itself, which shows the size of a legitimate
+change. The constructions share the policy, query, archive-tag update, final assignments and surrounding
+text. They differ in syntax around the edited word, so the contrasts compare constructions as wholes,
+not isolated semantic features.
+
+\paragraph{Decision effect.} For a prompt $x$, let
+$L(x) = \log P(a_{\mathrm{wrong}} \mid x) - \log P(a_{\mathrm{correct}} \mid x)$, where each action event
+is the label exactly as the model writes it at the start of its turn, followed by the end-of-turn token.
+For construction $c$ and history $h$, the two members differ only in the obsolete word: in member
+$x^{-}_{h,c}$ it implies the wrong action, and in $x^{+}_{h,c}$ the correct one. The decision effect is
+\begin{equation}
+D_c = \frac{1}{|H|}\sum_{h \in H} \bigl[L(x^{-}_{h,c}) - L(x^{+}_{h,c})\bigr].
+\end{equation}
+$D_c > 0$ means the obsolete content pushes preference toward the action it implies. It is a preference
+shift in nats, not an error rate. The two hypothesis contrasts are
+$\Delta_{\mathrm{semantic}} = D_{\mathrm{superseded}} - D_{\mathrm{updated\,other}}$, which asks whether
+the assignment's attribute matters, and
+$\Delta_{\mathrm{mention}} = D_{\mathrm{superseded}} - D_{\mathrm{entity\,mention}}$, which asks whether
+assignment adds anything to an incidental mention.
+
+\paragraph{Generated switches.} With greedy decoding, a history scores $+1$ for construction $c$ if the
+model answers wrongly under $x^{-}$ and not under $x^{+}$, $-1$ for the reverse, and $0$ otherwise. The
+mean over histories is the net switch rate.
+
+\paragraph{Retrieval checks.} On each record we also ask \emph{easy} queries for the current state of the
+queried entity and of the other entity. For superseded items we ask for the \emph{initial} state, under an
+introduction that announces both initial and final assignments. The answers are generated and parsed
+strictly.
+
+\paragraph{Easy-query sensitivity.} Let $w^{-}$ and $w^{+}$ be the two values of the edited word, and
+let $m_{x}(w)$ be the log probability that easy query $q$, asked on record $x$, assigns to the answer
+$w$ (summed over its spaced, unspaced and capitalized surface forms, scored as answer prefixes). Define
+$E(q) = [m_{x^{+}}(w^{+}) - m_{x^{+}}(w^{-})] - [m_{x^{-}}(w^{+}) - m_{x^{-}}(w^{-})]$. Then
+$R_{\mathrm{easy}} = E(\text{queried entity}) - E(\text{other entity})$ is a per-history, query-specific
+sensitivity of retrieval scores to the edit. Hypothesis H3 asks whether $R_{\mathrm{easy}}$ helps predict
+downstream failures beyond features that are available before the decision query is asked.
