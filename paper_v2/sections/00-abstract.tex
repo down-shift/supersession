@@ -1,21 +1,14 @@
 \begin{abstract}
 A model that reads an updated record can report the current value correctly and still let the old value
-affect what it decides. We test whether that happens, and whether it happens \emph{because} the old value
-was an assignment that has since been superseded. In synthetic access-control and routing records, the
-current state, the decision policy and the correct action are held fixed while a single obsolete state is
-edited so that it implies either the correct or the wrong action. Matched controls place the same word as
-an assignment to an unrelated attribute that was later updated, as a word the same entity merely mentioned,
-or as an unattached word. In a frozen confirmation on held-out wording (Qwen3-8B, 768 histories), the
-obsolete state raised the wrong action's log-odds by 3.904 and 3.133 nats in the two tasks and flipped the
-generated decision in about one history in six, almost always toward the wrong action (65 against 1 and 75
-against 4 histories), including in routing conditions where the model retrieved both the current
-(0.982--0.988) and the initial (0.990) state and decided correctly without history (0.953--0.961). The
-effect is not specific to supersession: an incidental mention of the same word by the same entity moved
-decisions as much in access and more in routing (net switches 0.294 against 0.185), and whether a
-superseded assignment exceeded the mention control in score depended on the prompt template. A superseded
-assignment exceeded an updated unrelated attribute in routing but not detectably in access. Finally,
-the edit's effect on easy retrieval queries, a score-level sensitivity measure, added no information
-about which decisions would fail beyond simple pre-decision predictors (log-loss gain $+0.0004$ nats,
-95\% interval $[-0.0011, +0.0019]$). A second model, Gemma 3 4B, did not meet the task-competence gate,
-so the results are for one model.
+shape its decision. We test whether this happens, and whether it depends on the old value having been
+superseded. In synthetic routing and access-control records, the current state, the policy and the
+correct action are fixed while one obsolete state is edited to imply the correct or the wrong action.
+Matched controls place the same word as an updated assignment of an unrelated attribute, as a word the
+entity merely mentioned, or as an unattached word. In a frozen confirmation on held-out wording
+(Qwen3-8B), we kept the routing histories in which the model retrieved the current and initial states and
+decided correctly without history (348 of 384). There, the obsolete state gave a net switch rate toward
+the wrong action of 0.158 (58 histories switched to wrong, 3 to correct). Across routing histories, a
+superseded assignment added 1.224 nats of wrong-action preference over an updated unrelated attribute.
+An incidental mention of the same word by the same entity moved decisions at least as much (net switch
+rate 0.278). \modelcountsentence
 \end{abstract}

@@ -1,0 +1,33 @@
+\section{Reproducibility}
+\label{app:repro}
+
+\paragraph{Models.} Qwen3-8B, Hugging Face revision \lit{b968826d9c46dd6066d109eabc6255188de91218}; Qwen3-14B,
+revision \lit{40c069824f4251a91eefaf281ebe4c544efd3e18}; Gemma 3 4B (instruction-tuned), revision
+\lit{093f9f388b31de276ce2de164bdc2081324b9767}. All ran in float32 without
+quantization, with SDPA attention, on one 80\,GB H100 GPU, using Transformers \citep{wolf2020transformers}
+and PyTorch \citep{paszke2019pytorch}. Licenses: Qwen3 (Apache 2.0) and Gemma 3 (Gemma Terms of Use), used for
+non-commercial research within their terms.
+
+\paragraph{Artifacts.} Each dataset is regenerated deterministically from its seed and checked against
+its manifest. Each score file carries per-record checksums and a completion record binding the scores,
+retrieval scores, run manifest, tokenizer audit, code hash and configuration hash. Analyses refuse
+incomplete or altered runs. Confirmation: seed 82003, dataset hash
+\lit{3e972257\ldots}, code hash \lit{c6648aba\ldots}, configuration hash \lit{78d09215\ldots}, score file
+SHA-256 \lit{b159b727\ldots}. The protocol was frozen on 2026-10-08 (UTC), before the gate and
+confirmation splits were generated. Every number and figure in this paper is produced from the sealed
+analysis reports by one script, which records the hash of each input.
+
+\paragraph{Compute.} Qwen3-8B's confirmation scoring took 6.27 GPU hours (2.67 s per record, including two
+retrieval queries, one historical query where applicable, two scored action events and greedy
+generation). Qwen3-14B took 1.12 (development), 2.23 (gate) and 4.48 GPU hours (confirmation), 1.91 s per
+confirmation record. Both runs used the same GPU type, software versions (PyTorch 2.14.0, Transformers
+5.17.0), scorer and prompts (mean 199 prompt tokens). The times are wall-clock as logged. We did not record
+GPU sharing or clock state, so we cannot attribute the faster per-record time of the larger model. The
+whole program, including failed runs, development and gate splits and the ineligible model, used about
+32 GPU hours.
+
+\paragraph{Code.} The anonymized archive submitted as supplementary software contains the generators,
+scoring and analysis code, tests, configuration files, the dated protocol records, the sealed analysis
+reports with their run records, the confirmation datasets and per-record scores of both confirmed models,
+and the scripts that derive every number, table and figure in this paper; run from the archive, they
+reproduce the paper's derived values exactly.

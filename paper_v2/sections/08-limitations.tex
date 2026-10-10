@@ -1,0 +1,31 @@
+\section*{Limitations}
+
+\paragraph{Two models, one family.} The confirmed results are for Qwen3-8B and Qwen3-14B. Gemma 3 4B did
+not meet the competence gate, and four further models listed in our amendment were deferred. We make no
+claim about other model families, and the mention comparison already differs between the two Qwen models.
+
+\paragraph{Synthetic tasks.} The records, policies and constructions are synthetic and short: two
+entities, one update and an explicit policy. This control is what lets the contrasts hold the correct
+action fixed, but the effect sizes need not transfer to natural dialogue, long agent logs or tool
+outputs.
+
+\paragraph{Competence in access.} The access cells did not meet the competence criteria on the confirmation data in either model, mainly because
+current-only accuracy was 0.859--0.875 for Qwen3-8B and 0.820--0.859 for Qwen3-14B. Access estimates are fixed-grid averages over cells where the
+model already makes errors without history.
+
+\paragraph{Construction differences.} Constructions share the edited word and its position but differ in
+syntax. The contrasts compare constructions, not isolated semantic properties. The template dependence of
+the mention contrast shows that wording matters.
+
+\paragraph{Behavioral evidence only.} We measure scores and generated answers. Nothing here identifies a
+mechanism, and terms such as \emph{entrainment} describe the behavioral pattern, not a verified internal
+process.
+
+\paragraph{Prediction scope.} H3 uses cross-validation within the confirmation split. A null result there
+does not rule out other score-based diagnostics, other outcomes, or other models.
+
+\paragraph{No mitigation.} We did not test an intervention; the paper makes no claim about which
+mitigations work.
+
+\paragraph{Use of AI assistants.} A large language model assisted with implementing the experiment code
+and drafting this manuscript. The authors checked the claims, analyses, references and final text.

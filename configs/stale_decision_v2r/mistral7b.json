@@ -1,0 +1,23 @@
+{
+  "protocol": "stale_decision_v2r",
+  "model": {
+    "id": "mistralai/Mistral-7B-Instruct-v0.3",
+    "tokenizer_id": "mistralai/Mistral-7B-Instruct-v0.3",
+    "revision": "c170c708c41dac9275d15a8fff4eca08d52bab71",
+    "tokenizer_revision": "c170c708c41dac9275d15a8fff4eca08d52bab71",
+    "dtype": "float32",
+    "quantization": "none",
+    "device_map": 0,
+    "attn_implementation": "sdpa",
+    "require_full_gpu": true,
+    "end_token": "</s>",
+    "end_suffix": ""
+  },
+  "max_new_tokens": 16,
+  "bootstrap_draws": 2000,
+  "development_replicates": 1,
+  "gate_replicates": 2,
+  "confirmation_replicates": 4,
+  "status": "v2r: mistralai/Mistral-7B-Instruct-v0.3 (docs/stale_decision_v2_replication.md)",
+  "scorer": "kv_cache"
+}

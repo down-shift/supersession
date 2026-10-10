@@ -2,7 +2,8 @@
 \label{sec:protocol}
 
 \paragraph{Model and runtime.} Qwen3-8B \citep{yang2025qwen3} at a pinned revision
-(Appendix~\ref{app:repro}), with thinking disabled through the chat template. Inference ran in float32
+(Appendix~\ref{app:repro}), with thinking disabled through the chat template. Qwen3-14B and Gemma 3 4B were
+run later under dated amendments, with the same rows and rules (\S\ref{sec:results-replication}). Inference ran in float32
 without quantization on one GPU. We chose float32 after finding that 8-bit and bfloat16 inference made
 the log probability at a fixed position change by up to 0.843 and 0.875 nats when tokens were appended
 after it. Float32 gave exactly zero (Appendix~\ref{app:precision}). Action events were scored with a
@@ -17,7 +18,9 @@ formats. A frozen gate split (384 histories) decided eligibility. The confirmati
 8{,}448 records, 11 per history) used a held-out paraphrase of the introduction and query. A task-cell
 was \emph{competent} if strict direct retrieval of the current state was at least 0.95, current-only
 decision accuracy at least 0.90, and invalid answers at most 0.05. Confirmation data were generated only
-after the gate, recomputed from its saved scores, showed at least one competent cell. All cells are
+after the gate, recomputed from its saved scores, showed at least one competent cell. The gate decided
+eligibility; competence labels in the results are computed on the confirmation data, except in
+Table~\ref{tab:models-gate}, which reports the gate. All cells are
 reported. Task-level estimates average the fixed grid, and estimates from non-competent cells are labeled
 as such.
 
@@ -33,14 +36,12 @@ interval that includes zero is reported as inconclusive, not as evidence of no e
 query's margin between the current and the historical state, the historical candidate's log mass, easy
 confidence, the edited token's position, prompt length, and design indicators. The comparison adds
 $R_{\mathrm{easy}}$ to these. The outcome is a strict downstream failure on the historical constructions.
-Models are L2-regularized logistic regressions ($C=1$, no tuning) evaluated by five-fold cross-validation
+Models are L2-regularized logistic regressions \citep[scikit-learn;][]{pedregosa2011sklearn} ($C=1$, no tuning) evaluated by five-fold cross-validation
 with folds grouped by history. Out-of-fold log loss with and without $R_{\mathrm{easy}}$ is compared by a
 paired history bootstrap. The downstream answer's own confidence is reported separately as a
 contemporaneous reference, not as a predictor, because it comes from the decision query itself.
 
-\paragraph{Protocol history.} The confirmation protocol is the second redesign of a design that was
-frozen before any model was run. The first version scored action events that the model never produces
-and was corrected before inference. The second failed its competence gate because a trailing
-\lit{Answer:} line made the model echo the prefix. The redesign changed only that line, the seeds and
-the name pools. Appendix~\ref{app:history} lists every change and when it was made. The protocol records
-are internal and dated. We call them \emph{frozen before confirmation}, not preregistered.
+\paragraph{Protocol history.} The confirmation protocol is the second redesign of a design frozen before
+any model was run; every change, and the amendments that added models, are dated and listed in
+Appendix~\ref{app:history}. The records are internal, so we call them \emph{frozen before confirmation},
+not preregistered.

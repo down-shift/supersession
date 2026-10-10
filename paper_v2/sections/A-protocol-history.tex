@@ -1,0 +1,60 @@
+\section{Protocol history}
+\label{app:history}
+
+Every change below is recorded, with its date, in the protocol documents released with the code. None was
+made after looking at confirmation data.
+
+\paragraph{v1 (frozen design, never run).} The design fixed the hypotheses, estimands, factorial,
+constructions, gates, bootstrap and held-out confirmation template. An audit before any inference found
+two problems. (i) The action events began with a space (\lit{\textvisiblespace APPROVE}). Qwen3-8B begins
+its turn without one, and the two strings tokenize differently, so v1 would have scored continuations the
+model never produces. (ii) Among the H3 predictors was the decision's own action confidence, which is not
+available before the decision is made.
+
+\paragraph{v1b (corrected before inference).} Action events became the label exactly as generated plus the
+end-of-turn token. The H3 predictors were split into pre-decision predictors and a contemporaneous
+reference. Historical retrieval was added as a competence measure. During setup, the runtime was changed
+twice for numerical reasons (Appendix~\ref{app:precision}), and a rounding tolerance of $10^{-5}$ was added
+to validators that rejected float32 log probabilities a few $10^{-7}$ above zero. The v1b gate failed:
+direct retrieval was 0.851--0.946 in every cell. The cause was the prompt format. The user message ended
+with a literal \lit{Answer:} line, which the model often echoed (about 260 of 4{,}224 retrieval answers);
+about 100 answers gave an action label instead of a state. Only 64 named the obsolete value. The decision
+effects replicated on the gate histories.
+
+\paragraph{v2 (first redesign; at most two were allowed).} The redesign changed only what the failure
+required: it removed the trailing \lit{Answer:} line and used new seeds and entity-name pools so that all
+histories were new. Confirmation size was set to four replicates (768 histories) before any v2 data
+existed, to fit the compute budget. The scorer was changed from a batched scorer to a key--value-cache
+scorer for speed, before any v2 effect was inspected. Both scorers compute the same quantity, and the
+cache scorer passed its equivalence check. The v2 gate passed in three cells, and confirmation data were
+then generated.
+
+\paragraph{Second model.} The model list, adding Gemma 3 4B with the same rows, rules and runtime, was
+fixed before any Gemma data were scored. A 24-record smoke test, inspected for format only, showed that
+Gemma writes its label, a newline and then its end-of-turn token. The scored events had omitted the
+newline and covered at most a few percent of the probability mass. The scored event was corrected to include the
+newline, the checks were rerun, and the smoke outputs were set aside. Development and gate then failed the
+competence criteria in every cell (\S\ref{sec:results-gemma}).
+
+\paragraph{Replication models.} A further amendment, dated before any of their data were generated, listed
+five models in a fixed order with pinned revisions. It fixed the per-model sequence, the competence
+criteria, the reporting rule, and the definition of competent cells: those passing on the model's own
+frozen gate. For this submission the scope was reduced, before any of the five had produced data, to the
+first model, Qwen3-14B. The other four are deferred under the same amendment. Qwen3-14B's preflight needed
+no correction (causality 0.0; scorer difference $8.3\times10^{-7}$ nats; it ends its answer with the
+label and its end-of-turn token). Its rows were byte-identical to Qwen3-8B's in every split.
+
+\subsection{Numerical causality of log-probability scoring}
+\label{app:precision}
+
+Scoring answers by teacher forcing assumes that the log probability at a position does not depend on
+tokens appended after it. We tested this directly on the same prompts, by comparing the next-token
+distribution at a fixed position with and without one or two tokens appended. With 8-bit weights
+(LLM.int8(), \citealp{dettmers2022llmint8}), log probabilities changed by up to 0.843 nats. With bfloat16, the
+top-20 log probabilities changed by up to 0.875 nats, and computing only the output layer in float32 reduced it to
+0.502. In float32, and with 4-bit nf4 weights, it was exactly zero. In practice this broke our
+validators: four disjoint candidate answers summed to more than probability one. A key--value-cache
+scorer also disagreed with full recomputation by 3.406 nats under 8-bit weights, but by
+$5.08\times10^{-5}$ in float32. Score differences of a few nats are the size of the effects studied here,
+so we ran all inference in float32. Score-based studies that use reduced precision should report a
+check of this kind.

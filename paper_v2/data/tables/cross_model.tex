@@ -1,0 +1,21 @@
+\begin{table*}[t]
+\centering
+\small
+\setlength{\tabcolsep}{4pt}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{@{}llccccc@{}}
+\toprule
+Model & Task (competent cells) & $n$ & $D_{\mathrm{superseded}}$ & $\Delta_{\mathrm{semantic}}$ & $\Delta_{\mathrm{mention}}$ & Net switch rate \\
+\midrule
+Qwen3-8B & routing (comp., int., seq.) & 384 & $+3.133$ {\scriptsize $[+2.743, +3.516]$} & $+1.224$ {\scriptsize $[+0.973, +1.485]$} & $-1.675$ {\scriptsize $[-1.896, -1.441]$} & $+0.185$ {\scriptsize $[+0.143, +0.227]$} \\
+Qwen3-8B & access & \multicolumn{5}{l}{no competent cell} \\
+\midrule
+Qwen3-14B & routing (comp., int., seq.) & 384 & $+4.785$ {\scriptsize $[+4.244, +5.354]$} & $+0.866$ {\scriptsize $[+0.417, +1.328]$} & $+0.248$ {\scriptsize $[-0.117, +0.601]$} & $+0.167$ {\scriptsize $[+0.130, +0.206]$} \\
+Qwen3-14B & access & \multicolumn{5}{l}{no competent cell} \\
+\midrule
+Gemma 3 4B & \multicolumn{6}{l}{not eligible: no competent cell at the gate} \\
+\bottomrule
+\end{tabular}}
+\caption{Confirmation results per model, on the task-cells that met the competence criteria \emph{on the confirmation data} (the rule used in the text and in Table~\ref{tab:competence}). $D$ and $\Delta$ in nats; $D_{\mathrm{superseded}}$ and $\Delta_{\mathrm{semantic}}$ with 97.5\% intervals, $\Delta_{\mathrm{mention}}$ and the superseded net switch rate with 95\% intervals (history bootstrap). Models are reported separately, never pooled. The replication amendment defined competent cells by each model\textquoteright s frozen gate (Table~\ref{tab:models-gate}); gate-rule estimates are in Appendix~\ref{app:tables}.}
+\label{tab:cross-model}
+\end{table*}

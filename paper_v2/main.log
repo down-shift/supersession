@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.3.26)  9 OCT 2026 19:46
+This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.3.26)  10 OCT 2026 13:25
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -466,24 +466,24 @@ File: l3backend-pdftex.def 2025-10-09 L3 backend support: PDF output (pdfTeX)
 (./main.aux)
 \openout1 = `main.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 29.
-LaTeX Font Info:    ... okay on input line 29.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 29.
-LaTeX Font Info:    ... okay on input line 29.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 29.
-LaTeX Font Info:    ... okay on input line 29.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 29.
-LaTeX Font Info:    ... okay on input line 29.
-LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 29.
-LaTeX Font Info:    ... okay on input line 29.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 29.
-LaTeX Font Info:    ... okay on input line 29.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 29.
-LaTeX Font Info:    ... okay on input line 29.
-LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 29.
-LaTeX Font Info:    ... okay on input line 29.
-LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 29.
-LaTeX Font Info:    ... okay on input line 29.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 37.
+LaTeX Font Info:    ... okay on input line 37.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 37.
+LaTeX Font Info:    ... okay on input line 37.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 37.
+LaTeX Font Info:    ... okay on input line 37.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 37.
+LaTeX Font Info:    ... okay on input line 37.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 37.
+LaTeX Font Info:    ... okay on input line 37.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 37.
+LaTeX Font Info:    ... okay on input line 37.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 37.
+LaTeX Font Info:    ... okay on input line 37.
+LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 37.
+LaTeX Font Info:    ... okay on input line 37.
+LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 37.
+LaTeX Font Info:    ... okay on input line 37.
 
 (/usr/local/texlive/2026/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
@@ -544,18 +544,18 @@ e
 Package caption Info: Begin \AtBeginDocument code.
 Package caption Info: hyperref package is loaded.
 Package caption Info: End \AtBeginDocument code.
-Package hyperref Info: Link coloring ON on input line 29.
+Package hyperref Info: Link coloring ON on input line 37.
 (./main.out) (./main.out)
 \@outlinefile=\write4
 \openout4 = `main.out'.
 
-LaTeX Info: Redefining \microtypecontext on input line 29.
-Package microtype Info: Applying patch `item' on input line 29.
-Package microtype Info: Applying patch `toc' on input line 29.
-Package microtype Info: Applying patch `eqnum' on input line 29.
-Package microtype Info: Applying patch `footnote' on input line 29.
-Package microtype Info: Applying patch `verbatim' on input line 29.
-LaTeX Info: Redefining \microtypesetup on input line 29.
+LaTeX Info: Redefining \microtypecontext on input line 37.
+Package microtype Info: Applying patch `item' on input line 37.
+Package microtype Info: Applying patch `toc' on input line 37.
+Package microtype Info: Applying patch `eqnum' on input line 37.
+Package microtype Info: Applying patch `footnote' on input line 37.
+Package microtype Info: Applying patch `verbatim' on input line 37.
+LaTeX Info: Redefining \microtypesetup on input line 37.
 Package microtype Info: Generating PDF output.
 Package microtype Info: Character protrusion enabled (level 2).
 Package microtype Info: Using default protrusion set `alltext'.
@@ -578,13 +578,13 @@ tim
 File: mt-cmr.cfg 2013/05/19 v2.2 microtype config. file: Computer Modern Roman 
 (RS)
 )
-LaTeX Font Info:    Trying to load font information for U+lasy on input line 30
+LaTeX Font Info:    Trying to load font information for U+lasy on input line 38
 .
 
 (/usr/local/texlive/2026/texmf-dist/tex/latex/base/ulasy.fd
 File: ulasy.fd 1998/08/17 v2.2e LaTeX symbol font definitions
 )
-LaTeX Font Info:    Trying to load font information for U+msa on input line 30.
+LaTeX Font Info:    Trying to load font information for U+msa on input line 38.
 
 
 (/usr/local/texlive/2026/texmf-dist/tex/latex/amsfonts/umsa.fd
@@ -593,7 +593,7 @@ File: umsa.fd 2013/01/14 v3.01 AMS symbols A
 (/usr/local/texlive/2026/texmf-dist/tex/latex/microtype/mt-msa.cfg
 File: mt-msa.cfg 2006/02/04 v1.1 microtype config. file: AMS symbols (a) (RS)
 )
-LaTeX Font Info:    Trying to load font information for U+msb on input line 30.
+LaTeX Font Info:    Trying to load font information for U+msb on input line 38.
 
 
 (/usr/local/texlive/2026/texmf-dist/tex/latex/amsfonts/umsb.fd
@@ -614,145 +614,241 @@ local/texlive/2026/texmf-dist/fonts/enc/dvips/base/8r.enc}
 
 
 ]
-LaTeX Font Info:    Trying to load font information for T1+zi4 on input line 62
+LaTeX Font Info:    Trying to load font information for T1+zi4 on input line 68
 .
 
 (/usr/local/texlive/2026/texmf-dist/tex/latex/inconsolata/t1zi4.fd
 File: t1zi4.fd 2018/01/14 T1/zi4 (Inconsolata)
 )
 LaTeX Font Info:    Font shape `T1/zi4/m/n' will be
-(Font)              scaled to size 9.0pt on input line 62.
+(Font)              scaled to size 9.0pt on input line 68.
 Package microtype Info: Loading generic protrusion settings for font family
 (microtype)             `zi4' (encoding: T1).
 (microtype)             For optimal results, create family-specific settings.
 (microtype)             See the microtype manual for details.
 LaTeX Font Info:    Font shape `T1/zi4/m/n' will be
-(Font)              scaled to size 10.0pt on input line 91.
+(Font)              scaled to size 10.0pt on input line 97.
 )
-(./sections/02-related-work.tex [2]) (./sections/03-design.tex
+(./sections/02-related-work.tex) (./sections/03-design.tex [2]
 LaTeX Font Info:    Font shape `T1/zi4/m/n' will be
 (Font)              scaled to size 10.95pt on input line 7.
- [3{/usr/local/texlive/2026/texmf-dist/fonts/enc/dvips/inconsolata/i4-t1-0.enc}
-]
+
 Underfull \hbox (badness 1270) in paragraph at lines 40--47
 \T1/ptm/m/n/10.95 (+20) a pref-er-ence shift in nats, not an er-ror rate.
  []
 
+[3{/usr/local/texlive/2026/texmf-dist/fonts/enc/dvips/inconsolata/i4-t1-0.enc}]
 ) (./sections/04-protocol.tex
-Underfull \hbox (badness 10000) in paragraph at lines 24--31
+Underfull \hbox (badness 2680) in paragraph at lines 4--14
+\T1/ptm/m/n/10.95 (+20) think-ing dis-abled through the chat tem-plate.
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 27--34
  []\T1/ptm/b/n/10.95 (+20) Hypotheses and statis-tics.[] \T1/ptm/m/n/10.95 (+20
 ) The pro-to-col
  []
 
 
-Underfull \hbox (badness 1412) in paragraph at lines 24--31
+Underfull \hbox (badness 1412) in paragraph at lines 27--34
 \T1/ptm/m/n/10.95 (+20) fixed two pri-mary hy-pothe-ses per task: H1,
  []
 
 [4]) (./sections/05-results.tex
-<figures/constructions.pdf, id=213, 476.98201pt x 187.902pt>
+<figures/constructions.pdf, id=222, 476.98201pt x 187.902pt>
 File: figures/constructions.pdf Graphic file (type pdf)
 <use figures/constructions.pdf>
-Package pdftex.def Info: figures/constructions.pdf  used on input line 45.
+Package pdftex.def Info: figures/constructions.pdf  used on input line 46.
 (pdftex.def)             Requested size: 455.24411pt x 179.34308pt.
-<figures/competence.pdf, id=216, 476.98201pt x 209.58301pt>
+<figures/competence.pdf, id=226, 476.98201pt x 209.58301pt>
 File: figures/competence.pdf Graphic file (type pdf)
 <use figures/competence.pdf>
-Package pdftex.def Info: figures/competence.pdf  used on input line 69.
+Package pdftex.def Info: figures/competence.pdf  used on input line 108.
 (pdftex.def)             Requested size: 455.24411pt x 200.03653pt.
  [5]
+Underfull \hbox (badness 3536) in paragraph at lines 124--137
+\T1/ptm/m/n/10.95 (+20) of pres-sure in Qwen3-8B. When the same
+ []
+
+
+Underfull \hbox (badness 3158) in paragraph at lines 124--137
+\T1/ptm/m/n/10.95 (+20) en-tity only \T1/ptm/m/it/10.95 (+20) men-tioned \T1/pt
+m/m/n/10.95 (+20) the word, the ef-fect
+ []
+
+
+Underfull \hbox (badness 2368) in paragraph at lines 124--137
+\T1/ptm/m/n/10.95 (+20) In rout-ing, $\OML/cmm/m/it/10.95 D[] \OT1/cmr/m/n/10.9
+5 = 4\OML/cmm/m/it/10.95 :\OT1/cmr/m/n/10.95 807$ \T1/ptm/m/n/10.95 (+20) again
+st
+ []
+
+
+Underfull \hbox (badness 2050) in paragraph at lines 124--137
+\T1/ptm/m/n/10.95 (+20) Net switches were $\OT1/cmr/m/n/10.95 0\OML/cmm/m/it/10
+.95 :\OT1/cmr/m/n/10.95 294$ \T1/ptm/m/n/10.95 (+20) (113 to wrong, 0
+ []
+
+
+Underfull \hbox (badness 2285) in paragraph at lines 124--137
+\T1/ptm/m/n/10.95 (+20) to cor-rect) against $\OT1/cmr/m/n/10.95 0\OML/cmm/m/it
+/10.95 :\OT1/cmr/m/n/10.95 185$\T1/ptm/m/n/10.95 (+20) , dif-fer-ence $\OMS/cms
+y/m/n/10.95 ^^@\OT1/cmr/m/n/10.95 0\OML/cmm/m/it/10.95 :\OT1/cmr/m/n/10.95 109$
+
+ []
+
+
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
 
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
- [6 <./figures/constructions.pdf> <./figures/competence.pdf>])
-(./sections/06-discussion.tex) (./sections/07-conclusion.tex [7])
-(./sections/08-limitations.tex
+
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [6 <./figures/constructions.pdf> <./figures/competence.pdf>]
+(./data/tables/cross_model.tex)) (./sections/06-discussion.tex [7])
+(./sections/07-conclusion.tex) (./sections/08-limitations.tex
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [8]
 Underfull \hbox (badness 4608) in paragraph at lines 24--26
  []\T1/ptm/b/n/10.95 (+20) Prediction scope.[] \T1/ptm/m/n/10.95 (+20) H3 uses 
 cross-validation
  []
 
-) (./main.bbl [8]
-Underfull \hbox (badness 1577) in paragraph at lines 72--80
+) (./sections/09-ethics.tex) (./main.bbl
+Underfull \hbox (badness 1184) in paragraph at lines 5--9
+[]\T1/ptm/m/n/10 (+20) H. Chao, Y. Bai, R. Sheng, T. Li, and Y. Sun.
+ []
+
+
+Underfull \hbox (badness 1577) in paragraph at lines 65--73
 \T1/ptm/m/n/10 (+20) L. Antiga, A. Des-mai-son, A. Köpf, E. Yang,
  []
 
-) (./sections/A-protocol-history.tex [9]) (./sections/B-tables.tex
-Overfull \hbox (4.88297pt too wide) in paragraph at lines 8--21
+[9]) (./sections/A-protocol-history.tex [10]
+Underfull \hbox (badness 4120) in paragraph at lines 39--46
+ []\T1/ptm/b/n/10.95 (+20) Replication mod-els.[] \T1/ptm/m/n/10.95 (+20) A fur
+-ther amend-ment,
+ []
+
+) (./sections/B-tables.tex
+Overfull \hbox (4.88297pt too wide) in paragraph at lines 16--30
+ [][] 
+ []
+
+[11] (./data/tables/gate_rule.tex)
+<figures/replication.pdf, id=448, 476.98201pt x 158.99399pt>
+File: figures/replication.pdf Graphic file (type pdf)
+<use figures/replication.pdf>
+Package pdftex.def Info: figures/replication.pdf  used on input line 75.
+(pdftex.def)             Requested size: 455.24411pt x 151.75183pt.
+ (./data/tables/models_gate.tex
+Overfull \hbox (11.65698pt too wide) in paragraph at lines 5--31
  [][] 
  []
 
 
 LaTeX Warning: `h' float specifier changed to `ht'.
 
+) (./data/tables/joint_by_model.tex
+Overfull \hbox (46.1068pt too wide) in paragraph at lines 5--20
+ [][] 
+ []
+
 
 LaTeX Warning: `h' float specifier changed to `ht'.
 
-<figures/replication.pdf, id=395, 476.98201pt x 158.99399pt>
-File: figures/replication.pdf Graphic file (type pdf)
-<use figures/replication.pdf>
-Package pdftex.def Info: figures/replication.pdf  used on input line 55.
-(pdftex.def)             Requested size: 455.24411pt x 151.75183pt.
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
+)
+<figures/constructions_qwen3_14b.pdf, id=455, 476.98201pt x 187.902pt>
+File: figures/constructions_qwen3_14b.pdf Graphic file (type pdf)
+<use figures/constructions_qwen3_14b.pdf>
+Package pdftex.def Info: figures/constructions_qwen3_14b.pdf  used on input lin
+e 113.
+(pdftex.def)             Requested size: 455.24411pt x 179.34308pt.
 ) (./sections/C-reproducibility.tex
-Underfull \hbox (badness 2735) in paragraph at lines 4--8
+Underfull \hbox (badness 2735) in paragraph at lines 4--10
  []\T1/ptm/b/n/10.95 (+20) Models.[] \T1/ptm/m/n/10.95 (+20) Qwen3-8B, Hug-ging
  Face re-vi-sion
  []
 
 
-Overfull \hbox (1.98776pt too wide) in paragraph at lines 4--8
+Overfull \hbox (1.98776pt too wide) in paragraph at lines 4--10
 \T1/zi4/m/n/10.95 b968826d9c46dd6066d109eabc6255188de91218\T1/ptm/m/n/10.95 (-2
 0) ;
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 4--8
+Underfull \hbox (badness 10000) in paragraph at lines 4--10
+\T1/ptm/m/n/10.95 (+20) Qwen3-14B, re-vi-sion
+ []
+
+
+Overfull \hbox (1.71402pt too wide) in paragraph at lines 4--10
+\T1/zi4/m/n/10.95 40c069824f4251a91eefaf281ebe4c544efd3e18\T1/ptm/m/n/10.95 (-2
+0) ;
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 4--10
 \T1/ptm/m/n/10.95 (+20) Gemma 3 4B (instruction-tuned), re-vi-sion
  []
 
 
-Overfull \hbox (0.68pt too wide) in paragraph at lines 4--8
+Overfull \hbox (0.68pt too wide) in paragraph at lines 4--10
 \T1/zi4/m/n/10.95 093f9f388b31de276ce2de164bdc2081324b9767\T1/ptm/m/n/10.95 (-2
 0) .
  []
 
 
-Underfull \hbox (badness 1308) in paragraph at lines 9--17
+Underfull \hbox (badness 2698) in paragraph at lines 4--10
+\T1/ptm/m/n/10.95 (+20) at-ten-tion, on one 80GB H100 GPU, us-ing
+ []
+
+
+Underfull \hbox (badness 1308) in paragraph at lines 11--19
  []\T1/ptm/b/n/10.95 (+20) Artifacts.[] \T1/ptm/m/n/10.95 (+20) Each dataset is
  re-gen-er-ated de-ter-
  []
 
 
-Underfull \hbox (badness 3826) in paragraph at lines 9--17
+Underfull \hbox (badness 3826) in paragraph at lines 11--19
 \T1/ptm/m/n/10.95 (+20) its man-i-fest. Each score file car-ries per-
  []
 
 
-Underfull \hbox (badness 1558) in paragraph at lines 9--17
+Underfull \hbox (badness 1558) in paragraph at lines 11--19
 \T1/ptm/m/n/10.95 (+20) to-k-enizer au-dit, code hash and con-fig-u-ra-tion
  []
 
-[10]) [11
 
- <./figures/replication.pdf>] (./main.aux)
+Underfull \hbox (badness 2326) in paragraph at lines 20--28
+ []\T1/ptm/b/n/10.95 (+20) Compute.[] \T1/ptm/m/n/10.95 (+20) Qwen3-8B's con-fi
+r-ma-tion scor-ing
+ []
+
+[12]) [13 <./figures/replication.pdf> <./figures/constructions_qwen3_14b.pdf>]
+(./main.aux)
  ***********
 LaTeX2e <2025-11-01>
 L3 programming layer <2026-01-19>
  ***********
 Package rerunfilecheck Info: File `main.out' has not changed.
-(rerunfilecheck)             Checksum: 248D9A8D5B83F43DE23B906D09397FAC;2739.
+(rerunfilecheck)             Checksum: 90631966CA7B0A6FBCF3E09C9F49C5D1;2923.
  ) 
 Here is how much of TeX's memory you used:
- 16578 strings out of 467525
- 262211 string characters out of 5418982
- 735009 words of memory out of 5000000
- 44771 multiletter control sequences out of 15000+600000
- 685583 words of font info for 331 fonts, out of 8000000 for 9000
+ 16686 strings out of 467525
+ 264443 string characters out of 5418982
+ 742313 words of memory out of 5000000
+ 44823 multiletter control sequences out of 15000+600000
+ 688522 words of font info for 352 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  84i,12n,93p,1001b,624s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </usr/local/texlive/2026/texmf-dist/fonts/type1/public/inconsolata/Inconsolat
@@ -768,16 +864,17 @@ usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr
 cal/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></usr/local
 /texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/
 texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy6.pfb></usr/local/te
-xlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/local/texl
-ive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy9.pfb></usr/local/texliv
-e/2026/texmf-dist/fonts/type1/urw/helvetic/uhvb8a.pfb></usr/local/texlive/2026/
-texmf-dist/fonts/type1/urw/times/utmb8a.pfb></usr/local/texlive/2026/texmf-dist
-/fonts/type1/urw/times/utmr8a.pfb></usr/local/texlive/2026/texmf-dist/fonts/typ
-e1/urw/times/utmri8a.pfb>
-Output written on main.pdf (11 pages, 330433 bytes).
+xlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/local/texl
+ive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/local/texliv
+e/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy9.pfb></usr/local/texlive/
+2026/texmf-dist/fonts/type1/urw/helvetic/uhvb8a.pfb></usr/local/texlive/2026/te
+xmf-dist/fonts/type1/urw/times/utmb8a.pfb></usr/local/texlive/2026/texmf-dist/f
+onts/type1/urw/times/utmr8a.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1
+/urw/times/utmri8a.pfb>
+Output written on main.pdf (13 pages, 374271 bytes).
 PDF statistics:
- 543 PDF objects out of 1000 (max. 8388607)
- 461 compressed objects within 5 object streams
- 103 named destinations out of 1000 (max. 500000)
- 46736 words of extra memory for PDF output out of 51595 (max. 10000000)
+ 626 PDF objects out of 1000 (max. 8388607)
+ 525 compressed objects within 6 object streams
+ 112 named destinations out of 1000 (max. 500000)
+ 48789 words of extra memory for PDF output out of 51595 (max. 10000000)
 

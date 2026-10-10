@@ -1,0 +1,23 @@
+{
+  "protocol": "stale_decision_v2r",
+  "model": {
+    "id": "google/gemma-3-12b-it",
+    "tokenizer_id": "google/gemma-3-12b-it",
+    "revision": "96b6f1eccf38110c56df3a15bffe176da04bfd80",
+    "tokenizer_revision": "96b6f1eccf38110c56df3a15bffe176da04bfd80",
+    "dtype": "float32",
+    "quantization": "none",
+    "device_map": 0,
+    "attn_implementation": "sdpa",
+    "require_full_gpu": true,
+    "end_token": "<end_of_turn>",
+    "end_suffix": "\n"
+  },
+  "max_new_tokens": 16,
+  "bootstrap_draws": 2000,
+  "development_replicates": 1,
+  "gate_replicates": 2,
+  "confirmation_replicates": 4,
+  "status": "v2r: google/gemma-3-12b-it (docs/stale_decision_v2_replication.md)",
+  "scorer": "kv_cache"
+}

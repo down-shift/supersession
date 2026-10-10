@@ -1,0 +1,22 @@
+\begin{table}[h]
+\centering
+\small
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}llccc@{}}
+\toprule
+Model & Construction & Kept & Net switch rate & Switched \\
+\midrule
+Qwen3-8B & superseded & 348/384 & $+0.158$ {\scriptsize $[+0.118, +0.198]$} & 58 / 3 \\
+ & other attr. & 357/384 & $+0.048$ {\scriptsize $[+0.014, +0.084]$} & 29 / 12 \\
+ & mention & 349/384 & $+0.278$ {\scriptsize $[+0.232, +0.327]$} & 97 / 0 \\
+ & unattached & 351/384 & $+0.034$ {\scriptsize $[+0.009, +0.060]$} & 17 / 5 \\
+\midrule
+Qwen3-14B & superseded & 376/384 & $+0.165$ {\scriptsize $[+0.128, +0.205]$} & 65 / 3 \\
+ & other attr. & 367/384 & $+0.136$ {\scriptsize $[+0.101, +0.174]$} & 52 / 2 \\
+ & mention & 363/384 & $+0.168$ {\scriptsize $[+0.132, +0.207]$} & 61 / 0 \\
+ & unattached & 375/384 & $+0.024$ {\scriptsize $[+0.000, +0.051]$} & 16 / 7 \\
+\bottomrule
+\end{tabular}
+\caption{Routing histories the model demonstrably tracks (criteria of Table~\ref{tab:joint}), per model and construction. Condition (ii), initial-state retrieval, is asked only on the superseded members and is applied at the history level to all four constructions. Net switch rate with 95\% history-bootstrap intervals; switched: histories switched to the wrong / to the correct action.}
+\label{tab:joint-by-model}
+\end{table}

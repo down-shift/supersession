@@ -769,6 +769,776 @@
     "n": 384
    }
   },
+  "joint_correctness": {
+   "access:competing:entity_mention": {
+    "D": {
+     "ci": [
+      4.413471461280033,
+      5.954129353947038
+     ],
+     "level": 0.95,
+     "mean": 5.175883790266328,
+     "n": 84
+    },
+    "n_retained": 84,
+    "n_total": 128,
+    "switch": {
+     "ci": [
+      0.11904761904761904,
+      0.27380952380952384
+     ],
+     "level": 0.95,
+     "mean": 0.19047619047619047,
+     "n": 84
+    },
+    "to_correct": 0,
+    "to_wrong": 16
+   },
+   "access:competing:superseded": {
+    "D": {
+     "ci": [
+      2.547125822542816,
+      3.9066598731271114
+     ],
+     "level": 0.95,
+     "mean": 3.22870469783594,
+     "n": 93
+    },
+    "n_retained": 93,
+    "n_total": 128,
+    "switch": {
+     "ci": [
+      0.03225806451612903,
+      0.15053763440860216
+     ],
+     "level": 0.95,
+     "mean": 0.08602150537634409,
+     "n": 93
+    },
+    "to_correct": 0,
+    "to_wrong": 8
+   },
+   "access:competing:unassigned": {
+    "D": {
+     "ci": [
+      2.04770126437462,
+      3.483313795108434
+     ],
+     "level": 0.95,
+     "mean": 2.7667406562721126,
+     "n": 90
+    },
+    "n_retained": 90,
+    "n_total": 128,
+    "switch": {
+     "ci": [
+      0.0,
+      0.03333333333333333
+     ],
+     "level": 0.95,
+     "mean": 0.011111111111111112,
+     "n": 90
+    },
+    "to_correct": 0,
+    "to_wrong": 1
+   },
+   "access:competing:updated_other": {
+    "D": {
+     "ci": [
+      3.2162972880324188,
+      4.468831174285664
+     ],
+     "level": 0.95,
+     "mean": 3.810707146926825,
+     "n": 89
+    },
+    "n_retained": 89,
+    "n_total": 128,
+    "switch": {
+     "ci": [
+      0.011235955056179775,
+      0.11235955056179775
+     ],
+     "level": 0.95,
+     "mean": 0.056179775280898875,
+     "n": 89
+    },
+    "to_correct": 0,
+    "to_wrong": 5
+   },
+   "access:entity_mention": {
+    "D": {
+     "ci": [
+      4.774899526062366,
+      5.736617717480374
+     ],
+     "level": 0.95,
+     "mean": 5.239559356496074,
+     "n": 274
+    },
+    "n_retained": 274,
+    "n_total": 384,
+    "switch": {
+     "ci": [
+      0.12408759124087591,
+      0.21532846715328466
+     ],
+     "level": 0.95,
+     "mean": 0.1678832116788321,
+     "n": 274
+    },
+    "to_correct": 1,
+    "to_wrong": 47
+   },
+   "access:interleaved:entity_mention": {
+    "D": {
+     "ci": [
+      4.139890899399847,
+      5.918560471298119
+     ],
+     "level": 0.95,
+     "mean": 5.013556791155063,
+     "n": 97
+    },
+    "n_retained": 97,
+    "n_total": 128,
+    "switch": {
+     "ci": [
+      0.08247422680412371,
+      0.2268041237113402
+     ],
+     "level": 0.95,
+     "mean": 0.15463917525773196,
+     "n": 97
+    },
+    "to_correct": 1,
+    "to_wrong": 16
+   },
+   "access:interleaved:superseded": {
+    "D": {
+     "ci": [
+      3.786107635485725,
+      5.48862881281841
+     ],
+     "level": 0.95,
+     "mean": 4.623058234653589,
+     "n": 98
+    },
+    "n_retained": 98,
+    "n_total": 128,
+    "switch": {
+     "ci": [
+      0.19387755102040816,
+      0.3673469387755102
+     ],
+     "level": 0.95,
+     "mean": 0.2755102040816326,
+     "n": 98
+    },
+    "to_correct": 0,
+    "to_wrong": 27
+   },
+   "access:interleaved:unassigned": {
+    "D": {
+     "ci": [
+      2.411178368385279,
+      3.9224163876001383
+     ],
+     "level": 0.95,
+     "mean": 3.175753640675487,
+     "n": 99
+    },
+    "n_retained": 99,
+    "n_total": 128,
+    "switch": {
+     "ci": [
+      0.0,
+      0.050505050505050504
+     ],
+     "level": 0.95,
+     "mean": 0.020202020202020204,
+     "n": 99
+    },
+    "to_correct": 0,
+    "to_wrong": 2
+   },
+   "access:interleaved:updated_other": {
+    "D": {
+     "ci": [
+      3.807127960726417,
+      5.1103426236961935
+     ],
+     "level": 0.95,
+     "mean": 4.434466092734948,
+     "n": 99
+    },
+    "n_retained": 99,
+    "n_total": 128,
+    "switch": {
+     "ci": [
+      0.08080808080808081,
+      0.2222222222222222
+     ],
+     "level": 0.95,
+     "mean": 0.15151515151515152,
+     "n": 99
+    },
+    "to_correct": 0,
+    "to_wrong": 15
+   },
+   "access:sequential:entity_mention": {
+    "D": {
+     "ci": [
+      4.730886464129256,
+      6.381963023775088
+     ],
+     "level": 0.95,
+     "mean": 5.532795876940986,
+     "n": 93
+    },
+    "n_retained": 93,
+    "n_total": 128,
+    "switch": {
+     "ci": [
+      0.0967741935483871,
+      0.23655913978494625
+     ],
+     "level": 0.95,
+     "mean": 0.16129032258064516,
+     "n": 93
+    },
+    "to_correct": 0,
+    "to_wrong": 15
+   },
+   "access:sequential:superseded": {
+    "D": {
+     "ci": [
+      3.449649191966042,
+      5.192999697515809
+     ],
+     "level": 0.95,
+     "mean": 4.295561096801239,
+     "n": 93
+    },
+    "n_retained": 93,
+    "n_total": 128,
+    "switch": {
+     "ci": [
+      0.0965053763440865,
+      0.23655913978494625
+     ],
+     "level": 0.95,
+     "mean": 0.16129032258064516,
+     "n": 93
+    },
+    "to_correct": 0,
+    "to_wrong": 15
+   },
+   "access:sequential:unassigned": {
+    "D": {
+     "ci": [
+      2.8841232241693655,
+      4.555053125798697
+     ],
+     "level": 0.95,
+     "mean": 3.700751495012787,
+     "n": 97
+    },
+    "n_retained": 97,
+    "n_total": 128,
+    "switch": {
+     "ci": [
+      0.05154639175257732,
+      0.16494845360824742
+     ],
+     "level": 0.95,
+     "mean": 0.10309278350515463,
+     "n": 97
+    },
+    "to_correct": 0,
+    "to_wrong": 10
+   },
+   "access:sequential:updated_other": {
+    "D": {
+     "ci": [
+      2.3312700645248854,
+      3.8624642749586546
+     ],
+     "level": 0.95,
+     "mean": 3.1042282353554564,
+     "n": 101
+    },
+    "n_retained": 101,
+    "n_total": 128,
+    "switch": {
+     "ci": [
+      -0.019801980198019802,
+      0.09900990099009901
+     ],
+     "level": 0.95,
+     "mean": 0.039603960396039604,
+     "n": 101
+    },
+    "to_correct": 3,
+    "to_wrong": 7
+   },
+   "access:superseded": {
+    "D": {
+     "ci": [
+      3.5787782231384457,
+      4.554992279223734
+     ],
+     "level": 0.95,
+     "mean": 4.0592127672440474,
+     "n": 284
+    },
+    "n_retained": 284,
+    "n_total": 384,
+    "switch": {
+     "ci": [
+      0.13380281690140844,
+      0.21830985915492956
+     ],
+     "level": 0.95,
+     "mean": 0.176056338028169,
+     "n": 284
+    },
+    "to_correct": 0,
+    "to_wrong": 50
+   },
+   "access:unassigned": {
+    "D": {
+     "ci": [
+      2.78628632836806,
+      3.6591677957707156
+     ],
+     "level": 0.95,
+     "mean": 3.22510197380281,
+     "n": 286
+    },
+    "n_retained": 286,
+    "n_total": 384,
+    "switch": {
+     "ci": [
+      0.024475524475524476,
+      0.06993006993006994
+     ],
+     "level": 0.95,
+     "mean": 0.045454545454545456,
+     "n": 286
+    },
+    "to_correct": 0,
+    "to_wrong": 13
+   },
+   "access:updated_other": {
+    "D": {
+     "ci": [
+      3.37685685753992,
+      4.174559011635107
+     ],
+     "level": 0.95,
+     "mean": 3.7774814222427273,
+     "n": 289
+    },
+    "n_retained": 289,
+    "n_total": 384,
+    "switch": {
+     "ci": [
+      0.04844290657439446,
+      0.12110726643598616
+     ],
+     "level": 0.95,
+     "mean": 0.08304498269896193,
+     "n": 289
+    },
+    "to_correct": 3,
+    "to_wrong": 27
+   },
+   "routing:competing:entity_mention": {
+    "D": {
+     "ci": [
+      3.658935430374509,
+      4.925766968163741
+     ],
+     "level": 0.95,
+     "mean": 4.278229854817089,
+     "n": 118
+    },
+    "n_retained": 118,
+    "n_total": 128,
+    "switch": {
+     "ci": [
+      0.16101694915254236,
+      0.3135593220338983
+     ],
+     "level": 0.95,
+     "mean": 0.23728813559322035,
+     "n": 118
+    },
+    "to_correct": 0,
+    "to_wrong": 28
+   },
+   "routing:competing:superseded": {
+    "D": {
+     "ci": [
+      2.2227073736545133,
+      3.291437196286303
+     ],
+     "level": 0.95,
+     "mean": 2.7644002125619522,
+     "n": 116
+    },
+    "n_retained": 116,
+    "n_total": 128,
+    "switch": {
+     "ci": [
+      0.06896551724137931,
+      0.1896551724137931
+     ],
+     "level": 0.95,
+     "mean": 0.12931034482758622,
+     "n": 116
+    },
+    "to_correct": 0,
+    "to_wrong": 15
+   },
+   "routing:competing:unassigned": {
+    "D": {
+     "ci": [
+      1.4547510587911092,
+      2.5710031085891076
+     ],
+     "level": 0.95,
+     "mean": 1.996294294711741,
+     "n": 117
+    },
+    "n_retained": 117,
+    "n_total": 128,
+    "switch": {
+     "ci": [
+      -0.042735042735042736,
+      0.042735042735042736
+     ],
+     "level": 0.95,
+     "mean": 0.0,
+     "n": 117
+    },
+    "to_correct": 3,
+    "to_wrong": 3
+   },
+   "routing:competing:updated_other": {
+    "D": {
+     "ci": [
+      1.2930050248464124,
+      2.243858593875311
+     ],
+     "level": 0.95,
+     "mean": 1.7646101615856316,
+     "n": 119
+    },
+    "n_retained": 119,
+    "n_total": 128,
+    "switch": {
+     "ci": [
+      -0.025210084033613446,
+      0.09243697478991597
+     ],
+     "level": 0.95,
+     "mean": 0.03361344537815126,
+     "n": 119
+    },
+    "to_correct": 4,
+    "to_wrong": 8
+   },
+   "routing:entity_mention": {
+    "D": {
+     "ci": [
+      4.2926301445571875,
+      5.027293463891726
+     ],
+     "level": 0.95,
+     "mean": 4.649139056246681,
+     "n": 349
+    },
+    "n_retained": 349,
+    "n_total": 384,
+    "switch": {
+     "ci": [
+      0.23209169054441262,
+      0.32664756446991405
+     ],
+     "level": 0.95,
+     "mean": 0.27793696275071633,
+     "n": 349
+    },
+    "to_correct": 0,
+    "to_wrong": 97
+   },
+   "routing:interleaved:entity_mention": {
+    "D": {
+     "ci": [
+      3.9719590837567864,
+      5.154218860585593
+     ],
+     "level": 0.95,
+     "mean": 4.524389338927057,
+     "n": 116
+    },
+    "n_retained": 116,
+    "n_total": 128,
+    "switch": {
+     "ci": [
+      0.20689655172413793,
+      0.3620689655172414
+     ],
+     "level": 0.95,
+     "mean": 0.28448275862068967,
+     "n": 116
+    },
+    "to_correct": 0,
+    "to_wrong": 33
+   },
+   "routing:interleaved:superseded": {
+    "D": {
+     "ci": [
+      2.622289357873466,
+      3.909519344801682
+     ],
+     "level": 0.95,
+     "mean": 3.2521228044531174,
+     "n": 114
+    },
+    "n_retained": 114,
+    "n_total": 128,
+    "switch": {
+     "ci": [
+      0.13157894736842105,
+      0.2807017543859649
+     ],
+     "level": 0.95,
+     "mean": 0.20175438596491227,
+     "n": 114
+    },
+    "to_correct": 1,
+    "to_wrong": 24
+   },
+   "routing:interleaved:unassigned": {
+    "D": {
+     "ci": [
+      1.7830672931535119,
+      2.7885188372199843
+     ],
+     "level": 0.95,
+     "mean": 2.2987542286119647,
+     "n": 114
+    },
+    "n_retained": 114,
+    "n_total": 128,
+    "switch": {
+     "ci": [
+      0.017543859649122806,
+      0.09649122807017543
+     ],
+     "level": 0.95,
+     "mean": 0.05263157894736842,
+     "n": 114
+    },
+    "to_correct": 0,
+    "to_wrong": 6
+   },
+   "routing:interleaved:updated_other": {
+    "D": {
+     "ci": [
+      1.4125053023406007,
+      2.148497287743728
+     ],
+     "level": 0.95,
+     "mean": 1.7755890750655154,
+     "n": 116
+    },
+    "n_retained": 116,
+    "n_total": 128,
+    "switch": {
+     "ci": [
+      -0.008620689655172414,
+      0.1206896551724138
+     ],
+     "level": 0.95,
+     "mean": 0.05172413793103448,
+     "n": 116
+    },
+    "to_correct": 4,
+    "to_wrong": 10
+   },
+   "routing:sequential:entity_mention": {
+    "D": {
+     "ci": [
+      4.482702573640266,
+      5.821405489278425
+     ],
+     "level": 0.95,
+     "mean": 5.155558647357707,
+     "n": 115
+    },
+    "n_retained": 115,
+    "n_total": 128,
+    "switch": {
+     "ci": [
+      0.22608695652173913,
+      0.4
+     ],
+     "level": 0.95,
+     "mean": 0.3130434782608696,
+     "n": 115
+    },
+    "to_correct": 0,
+    "to_wrong": 36
+   },
+   "routing:sequential:superseded": {
+    "D": {
+     "ci": [
+      2.3619310150348447,
+      3.568303692114963
+     ],
+     "level": 0.95,
+     "mean": 2.9587301398822214,
+     "n": 118
+    },
+    "n_retained": 118,
+    "n_total": 128,
+    "switch": {
+     "ci": [
+      0.07627118644067797,
+      0.22033898305084745
+     ],
+     "level": 0.95,
+     "mean": 0.1440677966101695,
+     "n": 118
+    },
+    "to_correct": 2,
+    "to_wrong": 19
+   },
+   "routing:sequential:unassigned": {
+    "D": {
+     "ci": [
+      2.55260390263953,
+      3.6817115663042093
+     ],
+     "level": 0.95,
+     "mean": 3.123794825802176,
+     "n": 120
+    },
+    "n_retained": 120,
+    "n_total": 128,
+    "switch": {
+     "ci": [
+      0.0,
+      0.1
+     ],
+     "level": 0.95,
+     "mean": 0.05,
+     "n": 120
+    },
+    "to_correct": 2,
+    "to_wrong": 8
+   },
+   "routing:sequential:updated_other": {
+    "D": {
+     "ci": [
+      1.5125524121942975,
+      2.4910602277978025
+     ],
+     "level": 0.95,
+     "mean": 2.011068795762437,
+     "n": 122
+    },
+    "n_retained": 122,
+    "n_total": 128,
+    "switch": {
+     "ci": [
+      -0.00020491803278652415,
+      0.11475409836065574
+     ],
+     "level": 0.95,
+     "mean": 0.05737704918032787,
+     "n": 122
+    },
+    "to_correct": 4,
+    "to_wrong": 11
+   },
+   "routing:superseded": {
+    "D": {
+     "ci": [
+      2.660804581108452,
+      3.3421410281855737
+     ],
+     "level": 0.95,
+     "mean": 2.990064887560184,
+     "n": 348
+    },
+    "n_retained": 348,
+    "n_total": 384,
+    "switch": {
+     "ci": [
+      0.11781609195402298,
+      0.19827586206896552
+     ],
+     "level": 0.95,
+     "mean": 0.15804597701149425,
+     "n": 348
+    },
+    "to_correct": 3,
+    "to_wrong": 58
+   },
+   "routing:unassigned": {
+    "D": {
+     "ci": [
+      2.165101524912682,
+      2.7937582091962616
+     ],
+     "level": 0.95,
+     "mean": 2.479999412077774,
+     "n": 351
+    },
+    "n_retained": 351,
+    "n_total": 384,
+    "switch": {
+     "ci": [
+      0.008547008547008548,
+      0.05982905982905983
+     ],
+     "level": 0.95,
+     "mean": 0.03418803418803419,
+     "n": 351
+    },
+    "to_correct": 5,
+    "to_wrong": 17
+   },
+   "routing:updated_other": {
+    "D": {
+     "ci": [
+      1.596997938571265,
+      2.122484307120211
+     ],
+     "level": 0.95,
+     "mean": 1.8524014986535218,
+     "n": 357
+    },
+    "n_retained": 357,
+    "n_total": 384,
+    "switch": {
+     "ci": [
+      0.014005602240896359,
+      0.08403361344537816
+     ],
+     "level": 0.95,
+     "mean": 0.047619047619047616,
+     "n": 357
+    },
+    "to_correct": 12,
+    "to_wrong": 29
+   }
+  },
   "member_accuracy": {
    "access:competing:entity_mention": {
     "old_implies_correct": {
@@ -2700,6 +3470,26 @@
   }
  },
  "inputs": {
+  "Gemma 3 4B:gate": {
+   "path": "outputs/stale_decision_v2m/gemma3_4b/gate/gate_report.json",
+   "sha256": "392fcedc12cbd519b3fe3e1e29a0a55239582d4092a7b78ce3092d6b92ecee84"
+  },
+  "Qwen3-14B:confirmation": {
+   "path": "outputs/stale_decision_v2r/qwen3_14b/confirmation/confirmation_report.json",
+   "sha256": "05a268ff2a5ca87fcb2b6981bf174b14a11327fa73c03c03f3dea052a90c492a"
+  },
+  "Qwen3-14B:gate": {
+   "path": "outputs/stale_decision_v2r/qwen3_14b/gate/gate_report.json",
+   "sha256": "dd8041d22e234216406ecbc4184839a4d427e75360fd6d7115d6c5004f07f416"
+  },
+  "Qwen3-8B:confirmation": {
+   "path": "outputs/stale_decision_v2/confirmation/confirmation_report.json",
+   "sha256": "5b3ad1d83c9e2a5a452eaeb21cc99bcafd26d3fe95fa7607ce8e8e11ac2adeb4"
+  },
+  "Qwen3-8B:gate": {
+   "path": "outputs/stale_decision_v2/gate/gate_report.json",
+   "sha256": "23c6ba7739c1c72853fe7ea2db25b00eca661a4ea520d55f8787e38e67c7278d"
+  },
   "gemma_development": {
    "path": "outputs/stale_decision_v2m/gemma3_4b/development_report.json",
    "sha256": "ffc98e33901cba4b79d97867d51ee2f797a84ab1bfdb39eb6128a20f4b464ebb"
@@ -2727,6 +3517,5771 @@
   "v2_gate": {
    "path": "outputs/stale_decision_v2/gate/gate_report.json",
    "sha256": "23c6ba7739c1c72853fe7ea2db25b00eca661a4ea520d55f8787e38e67c7278d"
+  }
+ },
+ "models": {
+  "Gemma 3 4B": {
+   "any_score_pass": false,
+   "competent_cells": [],
+   "gate_cells": {
+    "access:competing": {
+     "behavior_eligible": false,
+     "current_only_accuracy": 0.671875,
+     "direct_accuracy": 0.9460227272727273,
+     "easy_invalid_rate": 0.02130681818181818,
+     "historical_accuracy": 0.640625,
+     "invalid_rate": 0.0,
+     "n": 704,
+     "n_current_only": 64,
+     "n_historical": 512,
+     "score_eligible": false
+    },
+    "access:interleaved": {
+     "behavior_eligible": false,
+     "current_only_accuracy": 0.609375,
+     "direct_accuracy": 0.9360795454545454,
+     "easy_invalid_rate": 0.02130681818181818,
+     "historical_accuracy": 0.67578125,
+     "invalid_rate": 0.0,
+     "n": 704,
+     "n_current_only": 64,
+     "n_historical": 512,
+     "score_eligible": false
+    },
+    "access:sequential": {
+     "behavior_eligible": false,
+     "current_only_accuracy": 0.71875,
+     "direct_accuracy": 0.9446022727272727,
+     "easy_invalid_rate": 0.026988636363636364,
+     "historical_accuracy": 0.677734375,
+     "invalid_rate": 0.0,
+     "n": 704,
+     "n_current_only": 64,
+     "n_historical": 512,
+     "score_eligible": false
+    },
+    "routing:competing": {
+     "behavior_eligible": false,
+     "current_only_accuracy": 0.625,
+     "direct_accuracy": 0.9161931818181818,
+     "easy_invalid_rate": 0.0014204545454545455,
+     "historical_accuracy": 0.533203125,
+     "invalid_rate": 0.0,
+     "n": 704,
+     "n_current_only": 64,
+     "n_historical": 512,
+     "score_eligible": false
+    },
+    "routing:interleaved": {
+     "behavior_eligible": false,
+     "current_only_accuracy": 0.609375,
+     "direct_accuracy": 0.9644886363636364,
+     "easy_invalid_rate": 0.002840909090909091,
+     "historical_accuracy": 0.48828125,
+     "invalid_rate": 0.0,
+     "n": 704,
+     "n_current_only": 64,
+     "n_historical": 512,
+     "score_eligible": false
+    },
+    "routing:sequential": {
+     "behavior_eligible": false,
+     "current_only_accuracy": 0.6875,
+     "direct_accuracy": 0.9389204545454546,
+     "easy_invalid_rate": 0.022727272727272728,
+     "historical_accuracy": 0.64453125,
+     "invalid_rate": 0.0,
+     "n": 704,
+     "n_current_only": 64,
+     "n_historical": 512,
+     "score_eligible": false
+    }
+   }
+  },
+  "Qwen3-14B": {
+   "any_score_pass": true,
+   "competent_cells": [
+    "routing:competing",
+    "routing:interleaved",
+    "routing:sequential"
+   ],
+   "confirmation": {
+    "H3": {
+     "access": {
+      "R_incremental_log_loss_improvement": {
+       "confidence_interval": [
+        -0.00227037327420242,
+        0.0020342287144950576
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": -8.210513779658515e-05,
+       "n_histories": 384,
+       "seed": 81004
+      },
+      "available": true,
+      "contemporaneous_action_confidence": {
+       "auroc": 1.0,
+       "average_precision": 1.0,
+       "brier": 0.002053130462241974,
+       "log_loss": 0.009646983241736039,
+       "prevalence": 0.244140625
+      },
+      "events": 750,
+      "method": "fixed C=1 L2 logistic; 5-fold history-grouped CV; no tuning; paired history bootstrap",
+      "n": 3072,
+      "note": "contemporaneous_action_confidence uses the downstream forward pass and is a comparison, not a predictor available before the downstream question",
+      "outcome": "failure",
+      "pre_downstream": {
+       "auroc": 0.693556129773184,
+       "average_precision": 0.449466639383029,
+       "brier": 0.1663663259955281,
+       "log_loss": 0.511663011650738,
+       "prevalence": 0.244140625
+      },
+      "pre_downstream_plus_R": {
+       "auroc": 0.6924605225380419,
+       "average_precision": 0.45144852476349745,
+       "brier": 0.16643505240658935,
+       "log_loss": 0.5117451167885346,
+       "prevalence": 0.244140625
+      }
+     },
+     "overall": {
+      "R_incremental_log_loss_improvement": {
+       "confidence_interval": [
+        -0.0026706928443575298,
+        0.0022223326192608835
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": -0.00011062697354542746,
+       "n_histories": 768,
+       "seed": 81004
+      },
+      "available": true,
+      "contemporaneous_action_confidence": {
+       "auroc": 1.0,
+       "average_precision": 1.0,
+       "brier": 0.0017653444554568242,
+       "log_loss": 0.008088509656614834,
+       "prevalence": 0.19466145833333334
+      },
+      "events": 1196,
+      "method": "fixed C=1 L2 logistic; 5-fold history-grouped CV; no tuning; paired history bootstrap",
+      "n": 6144,
+      "note": "contemporaneous_action_confidence uses the downstream forward pass and is a comparison, not a predictor available before the downstream question",
+      "outcome": "failure",
+      "pre_downstream": {
+       "auroc": 0.6836979165258488,
+       "average_precision": 0.3779212170780468,
+       "brier": 0.14393506023236038,
+       "log_loss": 0.45671557052353057,
+       "prevalence": 0.19466145833333334
+      },
+      "pre_downstream_plus_R": {
+       "auroc": 0.6851420323200753,
+       "average_precision": 0.3758876759741454,
+       "brier": 0.144078218515744,
+       "log_loss": 0.456826197497076,
+       "prevalence": 0.19466145833333334
+      }
+     },
+     "routing": {
+      "R_incremental_log_loss_improvement": {
+       "confidence_interval": [
+        0.0022056497957491966,
+        0.01840280879844127
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": 0.01050818041639374,
+       "n_histories": 384,
+       "seed": 81004
+      },
+      "available": true,
+      "contemporaneous_action_confidence": {
+       "auroc": 0.9999957308597365,
+       "average_precision": 0.9999750425081722,
+       "brier": 0.002216149406256125,
+       "log_loss": 0.010247929382824317,
+       "prevalence": 0.14518229166666666
+      },
+      "events": 446,
+      "method": "fixed C=1 L2 logistic; 5-fold history-grouped CV; no tuning; paired history bootstrap",
+      "n": 3072,
+      "note": "contemporaneous_action_confidence uses the downstream forward pass and is a comparison, not a predictor available before the downstream question",
+      "outcome": "failure",
+      "pre_downstream": {
+       "auroc": 0.6917151356391245,
+       "average_precision": 0.23725486017849437,
+       "brier": 0.11846874192120051,
+       "log_loss": 0.387505535629927,
+       "prevalence": 0.14518229166666666
+      },
+      "pre_downstream_plus_R": {
+       "auroc": 0.7269466425773312,
+       "average_precision": 0.26691709521234536,
+       "brier": 0.11564649792602676,
+       "log_loss": 0.3769973552135332,
+       "prevalence": 0.14518229166666666
+      }
+     }
+    },
+    "competence": {
+     "access:competing": {
+      "behavior_eligible": false,
+      "current_only_accuracy": 0.8203125,
+      "direct_accuracy": 0.9616477272727273,
+      "easy_invalid_rate": 0.024147727272727272,
+      "historical_accuracy": 0.7470703125,
+      "invalid_rate": 0.0,
+      "n": 1408,
+      "n_current_only": 128,
+      "n_historical": 1024,
+      "score_eligible": false
+     },
+     "access:interleaved": {
+      "behavior_eligible": false,
+      "current_only_accuracy": 0.859375,
+      "direct_accuracy": 0.9204545454545454,
+      "easy_invalid_rate": 0.049005681818181816,
+      "historical_accuracy": 0.7763671875,
+      "invalid_rate": 0.0,
+      "n": 1408,
+      "n_current_only": 128,
+      "n_historical": 1024,
+      "score_eligible": false
+     },
+     "access:sequential": {
+      "behavior_eligible": false,
+      "current_only_accuracy": 0.8359375,
+      "direct_accuracy": 0.9190340909090909,
+      "easy_invalid_rate": 0.05539772727272727,
+      "historical_accuracy": 0.744140625,
+      "invalid_rate": 0.0,
+      "n": 1408,
+      "n_current_only": 128,
+      "n_historical": 1024,
+      "score_eligible": false
+     },
+     "routing:competing": {
+      "behavior_eligible": true,
+      "current_only_accuracy": 0.9921875,
+      "direct_accuracy": 0.9971590909090909,
+      "easy_invalid_rate": 0.0,
+      "historical_accuracy": 0.8427734375,
+      "invalid_rate": 0.0,
+      "n": 1408,
+      "n_current_only": 128,
+      "n_historical": 1024,
+      "score_eligible": true
+     },
+     "routing:interleaved": {
+      "behavior_eligible": true,
+      "current_only_accuracy": 0.9765625,
+      "direct_accuracy": 0.9964488636363636,
+      "easy_invalid_rate": 0.0,
+      "historical_accuracy": 0.8505859375,
+      "invalid_rate": 0.0,
+      "n": 1408,
+      "n_current_only": 128,
+      "n_historical": 1024,
+      "score_eligible": true
+     },
+     "routing:sequential": {
+      "behavior_eligible": true,
+      "current_only_accuracy": 0.984375,
+      "direct_accuracy": 0.9893465909090909,
+      "easy_invalid_rate": 0.0,
+      "historical_accuracy": 0.87109375,
+      "invalid_rate": 0.0,
+      "n": 1408,
+      "n_current_only": 128,
+      "n_historical": 1024,
+      "score_eligible": true
+     }
+    },
+    "competent": {
+     "access": null,
+     "routing": {
+      "D_superseded": {
+       "ci": [
+        4.243595861882353,
+        5.354404122644199
+       ],
+       "level": 0.975,
+       "mean": 4.785467757560348,
+       "n": 384
+      },
+      "Delta_mention": {
+       "ci": [
+        -0.11714031296857874,
+        0.6010989760062678
+       ],
+       "level": 0.95,
+       "mean": 0.2475871493388845,
+       "n": 384
+      },
+      "Delta_semantic": {
+       "ci": [
+        0.41729686197209614,
+        1.32772030189005
+       ],
+       "level": 0.975,
+       "mean": 0.8662918360088057,
+       "n": 384
+      },
+      "cells": [
+       "competing",
+       "interleaved",
+       "sequential"
+      ],
+      "n": 384,
+      "switch_entity_mention": {
+       "ci": [
+        0.1328125,
+        0.20833333333333334
+       ],
+       "level": 0.95,
+       "mean": 0.16927083333333334,
+       "n": 384
+      },
+      "switch_superseded": {
+       "ci": [
+        0.13020833333333334,
+        0.20572916666666666
+       ],
+       "level": 0.95,
+       "mean": 0.16666666666666666,
+       "n": 384
+      }
+     }
+    },
+    "competent_confirmation": {
+     "access": null,
+     "routing": {
+      "D_superseded": {
+       "ci": [
+        4.243595861882353,
+        5.354404122644199
+       ],
+       "level": 0.975,
+       "mean": 4.785467757560348,
+       "n": 384
+      },
+      "Delta_mention": {
+       "ci": [
+        -0.11714031296857874,
+        0.6010989760062678
+       ],
+       "level": 0.95,
+       "mean": 0.2475871493388845,
+       "n": 384
+      },
+      "Delta_semantic": {
+       "ci": [
+        0.41729686197209614,
+        1.32772030189005
+       ],
+       "level": 0.975,
+       "mean": 0.8662918360088057,
+       "n": 384
+      },
+      "cells": [
+       "competing",
+       "interleaved",
+       "sequential"
+      ],
+      "n": 384,
+      "switch_entity_mention": {
+       "ci": [
+        0.1328125,
+        0.20833333333333334
+       ],
+       "level": 0.95,
+       "mean": 0.16927083333333334,
+       "n": 384
+      },
+      "switch_superseded": {
+       "ci": [
+        0.13020833333333334,
+        0.20572916666666666
+       ],
+       "level": 0.95,
+       "mean": 0.16666666666666666,
+       "n": 384
+      }
+     }
+    },
+    "confirmation_competent_cells": [
+     "routing:competing",
+     "routing:interleaved",
+     "routing:sequential"
+    ],
+    "constructions": {
+     "access:competing:entity_mention": {
+      "ci": [
+       3.1826099605213543,
+       5.196246741878593
+      ],
+      "level": 0.95,
+      "mean": 4.161513348142337,
+      "n": 128
+     },
+     "access:competing:live": {
+      "ci": [
+       -21.2685274507292,
+       -17.667552938418126
+      ],
+      "level": 0.95,
+      "mean": -19.419487726680146,
+      "n": 128
+     },
+     "access:competing:superseded": {
+      "ci": [
+       3.3307574631448325,
+       5.844632024061077
+      ],
+      "level": 0.95,
+      "mean": 4.550679348073704,
+      "n": 128
+     },
+     "access:competing:unassigned": {
+      "ci": [
+       1.009222967364897,
+       2.506236487940185
+      ],
+      "level": 0.95,
+      "mean": 1.7501199560298497,
+      "n": 128
+     },
+     "access:competing:updated_other": {
+      "ci": [
+       3.0810023823300985,
+       4.901418503269904
+      ],
+      "level": 0.95,
+      "mean": 3.9654203681064653,
+      "n": 128
+     },
+     "access:entity_mention": {
+      "ci": [
+       3.0137294495203206,
+       4.0636268813374326
+      ],
+      "level": 0.95,
+      "mean": 3.531749517355454,
+      "n": 384
+     },
+     "access:interleaved:entity_mention": {
+      "ci": [
+       1.8751109368041254,
+       3.58923733842593
+      ],
+      "level": 0.95,
+      "mean": 2.732252209718494,
+      "n": 128
+     },
+     "access:interleaved:live": {
+      "ci": [
+       -19.435628975877396,
+       -15.588740658289355
+      ],
+      "level": 0.95,
+      "mean": -17.485969074917236,
+      "n": 128
+     },
+     "access:interleaved:superseded": {
+      "ci": [
+       3.170158072652071,
+       4.831781162824693
+      ],
+      "level": 0.95,
+      "mean": 3.939299239514705,
+      "n": 128
+     },
+     "access:interleaved:unassigned": {
+      "ci": [
+       1.746201171176866,
+       3.9765234293706553
+      ],
+      "level": 0.95,
+      "mean": 2.850555819545491,
+      "n": 128
+     },
+     "access:interleaved:updated_other": {
+      "ci": [
+       2.4708655145677363,
+       4.157737719642902
+      ],
+      "level": 0.95,
+      "mean": 3.288873618388327,
+      "n": 128
+     },
+     "access:live": {
+      "ci": [
+       -20.044519253282555,
+       -17.84840742178777
+      ],
+      "level": 0.95,
+      "mean": -18.9283078054347,
+      "n": 384
+     },
+     "access:sequential:entity_mention": {
+      "ci": [
+       2.793923319982593,
+       4.6888688845393425
+      ],
+      "level": 0.95,
+      "mean": 3.70148299420553,
+      "n": 128
+     },
+     "access:sequential:live": {
+      "ci": [
+       -21.804509115521352,
+       -17.942306314469313
+      ],
+      "level": 0.95,
+      "mean": -19.879466614706725,
+      "n": 128
+     },
+     "access:sequential:superseded": {
+      "ci": [
+       3.7628604392845832,
+       5.658988351828518
+      ],
+      "level": 0.95,
+      "mean": 4.6402472699468,
+      "n": 128
+     },
+     "access:sequential:unassigned": {
+      "ci": [
+       -0.09220050013840787,
+       1.552665009434131
+      ],
+      "level": 0.95,
+      "mean": 0.7029647004798599,
+      "n": 128
+     },
+     "access:sequential:updated_other": {
+      "ci": [
+       2.94365283273067,
+       4.6650898149633
+      ],
+      "level": 0.95,
+      "mean": 3.7682420421566603,
+      "n": 128
+     },
+     "access:superseded": {
+      "ci": [
+       3.805607911913285,
+       4.959507820437838
+      ],
+      "level": 0.95,
+      "mean": 4.376741952511736,
+      "n": 384
+     },
+     "access:unassigned": {
+      "ci": [
+       1.236569352817087,
+       2.289490175072943
+      ],
+      "level": 0.95,
+      "mean": 1.767880158685067,
+      "n": 384
+     },
+     "access:updated_other": {
+      "ci": [
+       3.2006463671131837,
+       4.173489168045016
+      ],
+      "level": 0.95,
+      "mean": 3.6741786762171507,
+      "n": 384
+     },
+     "routing:competing:entity_mention": {
+      "ci": [
+       3.215758399832286,
+       4.826391181814214
+      ],
+      "level": 0.95,
+      "mean": 3.97235565574855,
+      "n": 128
+     },
+     "routing:competing:live": {
+      "ci": [
+       -19.71166151272473,
+       -16.37742532761365
+      ],
+      "level": 0.95,
+      "mean": -18.011731164473503,
+      "n": 128
+     },
+     "routing:competing:superseded": {
+      "ci": [
+       3.3035502333367663,
+       4.99176229040378
+      ],
+      "level": 0.95,
+      "mean": 4.121099280176874,
+      "n": 128
+     },
+     "routing:competing:unassigned": {
+      "ci": [
+       0.8387988206564091,
+       2.2844224329796075
+      ],
+      "level": 0.95,
+      "mean": 1.555268616511571,
+      "n": 128
+     },
+     "routing:competing:updated_other": {
+      "ci": [
+       2.9469214022426495,
+       4.352913883537902
+      ],
+      "level": 0.95,
+      "mean": 3.64300352055921,
+      "n": 128
+     },
+     "routing:entity_mention": {
+      "ci": [
+       4.13426528907678,
+       4.952459798908416
+      ],
+      "level": 0.95,
+      "mean": 4.537880608221464,
+      "n": 384
+     },
+     "routing:interleaved:entity_mention": {
+      "ci": [
+       3.4649473465157943,
+       5.019317123501062
+      ],
+      "level": 0.95,
+      "mean": 4.219628508128628,
+      "n": 128
+     },
+     "routing:interleaved:live": {
+      "ci": [
+       -18.58846945536356,
+       -15.48524926211729
+      ],
+      "level": 0.95,
+      "mean": -17.004019154208084,
+      "n": 128
+     },
+     "routing:interleaved:superseded": {
+      "ci": [
+       4.48665450544532,
+       6.47135411009065
+      ],
+      "level": 0.95,
+      "mean": 5.476004530831355,
+      "n": 128
+     },
+     "routing:interleaved:unassigned": {
+      "ci": [
+       2.137269252061938,
+       3.1695248656374555
+      ],
+      "level": 0.95,
+      "mean": 2.6396620135408577,
+      "n": 128
+     },
+     "routing:interleaved:updated_other": {
+      "ci": [
+       3.033276829243339,
+       4.162232120112784
+      ],
+      "level": 0.95,
+      "mean": 3.6101281424798444,
+      "n": 128
+     },
+     "routing:live": {
+      "ci": [
+       -17.99251668535485,
+       -16.217113338061537
+      ],
+      "level": 0.95,
+      "mean": -17.102204030141973,
+      "n": 384
+     },
+     "routing:sequential:entity_mention": {
+      "ci": [
+       4.885858718905563,
+       5.990738879036649
+      ],
+      "level": 0.95,
+      "mean": 5.421657660787213,
+      "n": 128
+     },
+     "routing:sequential:live": {
+      "ci": [
+       -17.5848921110531,
+       -14.914965362639846
+      ],
+      "level": 0.95,
+      "mean": -16.29086177174433,
+      "n": 128
+     },
+     "routing:sequential:superseded": {
+      "ci": [
+       4.130079808902349,
+       5.377799564029035
+      ],
+      "level": 0.95,
+      "mean": 4.759299461672817,
+      "n": 128
+     },
+     "routing:sequential:unassigned": {
+      "ci": [
+       1.8160942357253687,
+       2.6658829185027706
+      ],
+      "level": 0.95,
+      "mean": 2.240386853903776,
+      "n": 128
+     },
+     "routing:sequential:updated_other": {
+      "ci": [
+       4.008713503991021,
+       5.00455089356344
+      ],
+      "level": 0.95,
+      "mean": 4.5043961016155745,
+      "n": 128
+     },
+     "routing:superseded": {
+      "ci": [
+       4.305661668826046,
+       5.277143395837273
+      ],
+      "level": 0.95,
+      "mean": 4.785467757560348,
+      "n": 384
+     },
+     "routing:unassigned": {
+      "ci": [
+       1.840103362913315,
+       2.4774720133492734
+      ],
+      "level": 0.95,
+      "mean": 2.1451058279854016,
+      "n": 384
+     },
+     "routing:updated_other": {
+      "ci": [
+       3.591754568708603,
+       4.251975349299241
+      ],
+      "level": 0.95,
+      "mean": 3.919175921551543,
+      "n": 384
+     }
+    },
+    "historical_retrieval": {
+     "access": {
+      "ci": [
+       1.0,
+       1.0
+      ],
+      "level": 0.95,
+      "mean": 1.0,
+      "n": 384
+     },
+     "routing": {
+      "ci": [
+       0.9934895833333334,
+       1.0
+      ],
+      "level": 0.95,
+      "mean": 0.9973958333333334,
+      "n": 384
+     }
+    },
+    "joint_correctness": {
+     "access:competing:entity_mention": {
+      "D": {
+       "ci": [
+        2.8681976815007664,
+        4.715106208654167
+       ],
+       "level": 0.95,
+       "mean": 3.7325876890838083,
+       "n": 100
+      },
+      "n_retained": 100,
+      "n_total": 128,
+      "switch": {
+       "ci": [
+        0.04,
+        0.15
+       ],
+       "level": 0.95,
+       "mean": 0.09,
+       "n": 100
+      },
+      "to_correct": 0,
+      "to_wrong": 9
+     },
+     "access:competing:superseded": {
+      "D": {
+       "ci": [
+        2.584481681006367,
+        4.978044956660663
+       ],
+       "level": 0.95,
+       "mean": 3.72902592009379,
+       "n": 105
+      },
+      "n_retained": 105,
+      "n_total": 128,
+      "switch": {
+       "ci": [
+        0.06666666666666667,
+        0.21904761904761905
+       ],
+       "level": 0.95,
+       "mean": 0.14285714285714285,
+       "n": 105
+      },
+      "to_correct": 2,
+      "to_wrong": 17
+     },
+     "access:competing:unassigned": {
+      "D": {
+       "ci": [
+        0.9653766118913152,
+        2.2296685833795094
+       ],
+       "level": 0.95,
+       "mean": 1.575642332238457,
+       "n": 99
+      },
+      "n_retained": 99,
+      "n_total": 128,
+      "switch": {
+       "ci": [
+        -0.030303030303030304,
+        0.030303030303030304
+       ],
+       "level": 0.95,
+       "mean": 0.0,
+       "n": 99
+      },
+      "to_correct": 1,
+      "to_wrong": 1
+     },
+     "access:competing:updated_other": {
+      "D": {
+       "ci": [
+        3.0517214988886594,
+        4.977772119470669
+       ],
+       "level": 0.95,
+       "mean": 3.9731025520896837,
+       "n": 95
+      },
+      "n_retained": 95,
+      "n_total": 128,
+      "switch": {
+       "ci": [
+        0.06315789473684211,
+        0.18947368421052632
+       ],
+       "level": 0.95,
+       "mean": 0.12631578947368421,
+       "n": 95
+      },
+      "to_correct": 0,
+      "to_wrong": 12
+     },
+     "access:entity_mention": {
+      "D": {
+       "ci": [
+        2.867980827923417,
+        3.9431149024790555
+       ],
+       "level": 0.95,
+       "mean": 3.394892348677607,
+       "n": 285
+      },
+      "n_retained": 285,
+      "n_total": 384,
+      "switch": {
+       "ci": [
+        0.03859649122807018,
+        0.10885964912280655
+       ],
+       "level": 0.95,
+       "mean": 0.07368421052631578,
+       "n": 285
+      },
+      "to_correct": 5,
+      "to_wrong": 26
+     },
+     "access:interleaved:entity_mention": {
+      "D": {
+       "ci": [
+        2.095930790859826,
+        4.173159629984459
+       ],
+       "level": 0.95,
+       "mean": 3.0602396647413737,
+       "n": 95
+      },
+      "n_retained": 95,
+      "n_total": 128,
+      "switch": {
+       "ci": [
+        -0.05263157894736842,
+        0.07368421052631578
+       ],
+       "level": 0.95,
+       "mean": 0.010526315789473684,
+       "n": 95
+      },
+      "to_correct": 4,
+      "to_wrong": 5
+     },
+     "access:interleaved:superseded": {
+      "D": {
+       "ci": [
+        3.481286348518648,
+        5.37483653880046
+       ],
+       "level": 0.95,
+       "mean": 4.3506946444356895,
+       "n": 104
+      },
+      "n_retained": 104,
+      "n_total": 128,
+      "switch": {
+       "ci": [
+        0.0,
+        0.09615384615384616
+       ],
+       "level": 0.95,
+       "mean": 0.04807692307692308,
+       "n": 104
+      },
+      "to_correct": 1,
+      "to_wrong": 6
+     },
+     "access:interleaved:unassigned": {
+      "D": {
+       "ci": [
+        2.053418879798202,
+        4.301161411054715
+       ],
+       "level": 0.95,
+       "mean": 3.15760377462701,
+       "n": 95
+      },
+      "n_retained": 95,
+      "n_total": 128,
+      "switch": {
+       "ci": [
+        0.031578947368421054,
+        0.17921052631578804
+       ],
+       "level": 0.95,
+       "mean": 0.10526315789473684,
+       "n": 95
+      },
+      "to_correct": 2,
+      "to_wrong": 12
+     },
+     "access:interleaved:updated_other": {
+      "D": {
+       "ci": [
+        3.3303524616427804,
+        5.274788599688364
+       ],
+       "level": 0.95,
+       "mean": 4.21997036458644,
+       "n": 102
+      },
+      "n_retained": 102,
+      "n_total": 128,
+      "switch": {
+       "ci": [
+        0.0784313725490196,
+        0.20588235294117646
+       ],
+       "level": 0.95,
+       "mean": 0.13725490196078433,
+       "n": 102
+      },
+      "to_correct": 0,
+      "to_wrong": 14
+     },
+     "access:sequential:entity_mention": {
+      "D": {
+       "ci": [
+        2.518629615578788,
+        4.205056123248133
+       ],
+       "level": 0.95,
+       "mean": 3.372919803492295,
+       "n": 90
+      },
+      "n_retained": 90,
+      "n_total": 128,
+      "switch": {
+       "ci": [
+        0.05555555555555555,
+        0.2
+       ],
+       "level": 0.95,
+       "mean": 0.12222222222222222,
+       "n": 90
+      },
+      "to_correct": 1,
+      "to_wrong": 12
+     },
+     "access:sequential:superseded": {
+      "D": {
+       "ci": [
+        2.952022265248262,
+        4.351587506984359
+       ],
+       "level": 0.95,
+       "mean": 3.624794740783033,
+       "n": 101
+      },
+      "n_retained": 101,
+      "n_total": 128,
+      "switch": {
+       "ci": [
+        0.0594059405940594,
+        0.18811881188118812
+       ],
+       "level": 0.95,
+       "mean": 0.1188118811881188,
+       "n": 101
+      },
+      "to_correct": 0,
+      "to_wrong": 12
+     },
+     "access:sequential:unassigned": {
+      "D": {
+       "ci": [
+        -0.41306437470690466,
+        1.0821636070822065
+       ],
+       "level": 0.95,
+       "mean": 0.3231772437619504,
+       "n": 89
+      },
+      "n_retained": 89,
+      "n_total": 128,
+      "switch": {
+       "ci": [
+        -0.02247191011235955,
+        0.056179775280898875
+       ],
+       "level": 0.95,
+       "mean": 0.011235955056179775,
+       "n": 89
+      },
+      "to_correct": 1,
+      "to_wrong": 2
+     },
+     "access:sequential:updated_other": {
+      "D": {
+       "ci": [
+        2.4148555929468825,
+        4.249057273893474
+       ],
+       "level": 0.95,
+       "mean": 3.316092982546338,
+       "n": 93
+      },
+      "n_retained": 93,
+      "n_total": 128,
+      "switch": {
+       "ci": [
+        0.053763440860215055,
+        0.21505376344086022
+       ],
+       "level": 0.95,
+       "mean": 0.12903225806451613,
+       "n": 93
+      },
+      "to_correct": 2,
+      "to_wrong": 14
+     },
+     "access:superseded": {
+      "D": {
+       "ci": [
+        3.344344507648688,
+        4.47173400807094
+       ],
+       "level": 0.95,
+       "mean": 3.9036265595169226,
+       "n": 310
+      },
+      "n_retained": 310,
+      "n_total": 384,
+      "switch": {
+       "ci": [
+        0.06774193548387097,
+        0.14193548387096774
+       ],
+       "level": 0.95,
+       "mean": 0.1032258064516129,
+       "n": 310
+      },
+      "to_correct": 3,
+      "to_wrong": 35
+     },
+     "access:unassigned": {
+      "D": {
+       "ci": [
+        1.2389528623357986,
+        2.208217607748986
+       ],
+       "level": 0.95,
+       "mean": 1.712804679067091,
+       "n": 283
+      },
+      "n_retained": 283,
+      "n_total": 384,
+      "switch": {
+       "ci": [
+        0.007067137809187279,
+        0.0706713780918728
+       ],
+       "level": 0.95,
+       "mean": 0.038869257950530034,
+       "n": 283
+      },
+      "to_correct": 4,
+      "to_wrong": 15
+     },
+     "access:updated_other": {
+      "D": {
+       "ci": [
+        3.3187920052910544,
+        4.425625672811134
+       ],
+       "level": 0.95,
+       "mean": 3.8492357483211936,
+       "n": 290
+      },
+      "n_retained": 290,
+      "n_total": 384,
+      "switch": {
+       "ci": [
+        0.09310344827586207,
+        0.1724137931034483
+       ],
+       "level": 0.95,
+       "mean": 0.1310344827586207,
+       "n": 290
+      },
+      "to_correct": 2,
+      "to_wrong": 40
+     },
+     "routing:competing:entity_mention": {
+      "D": {
+       "ci": [
+        3.204848158294202,
+        4.8520932602365505
+       ],
+       "level": 0.95,
+       "mean": 4.0049108321310865,
+       "n": 123
+      },
+      "n_retained": 123,
+      "n_total": 128,
+      "switch": {
+       "ci": [
+        0.08130081300813008,
+        0.2032520325203252
+       ],
+       "level": 0.95,
+       "mean": 0.13821138211382114,
+       "n": 123
+      },
+      "to_correct": 0,
+      "to_wrong": 17
+     },
+     "routing:competing:superseded": {
+      "D": {
+       "ci": [
+        3.330576300787156,
+        4.9902169664729525
+       ],
+       "level": 0.95,
+       "mean": 4.139707504621114,
+       "n": 127
+      },
+      "n_retained": 127,
+      "n_total": 128,
+      "switch": {
+       "ci": [
+        0.05511811023622047,
+        0.1968503937007874
+       ],
+       "level": 0.95,
+       "mean": 0.12598425196850394,
+       "n": 127
+      },
+      "to_correct": 3,
+      "to_wrong": 19
+     },
+     "routing:competing:unassigned": {
+      "D": {
+       "ci": [
+        0.8943774601239993,
+        2.2812536534996286
+       ],
+       "level": 0.95,
+       "mean": 1.5953827210914344,
+       "n": 127
+      },
+      "n_retained": 127,
+      "n_total": 128,
+      "switch": {
+       "ci": [
+        -0.015748031496062992,
+        0.07874015748031496
+       ],
+       "level": 0.95,
+       "mean": 0.031496062992125984,
+       "n": 127
+      },
+      "to_correct": 3,
+      "to_wrong": 7
+     },
+     "routing:competing:updated_other": {
+      "D": {
+       "ci": [
+        3.013604752559549,
+        4.375535787007994
+       ],
+       "level": 0.95,
+       "mean": 3.676740568964683,
+       "n": 127
+      },
+      "n_retained": 127,
+      "n_total": 128,
+      "switch": {
+       "ci": [
+        0.047244094488188976,
+        0.1732283464566929
+       ],
+       "level": 0.95,
+       "mean": 0.11023622047244094,
+       "n": 127
+      },
+      "to_correct": 2,
+      "to_wrong": 16
+     },
+     "routing:entity_mention": {
+      "D": {
+       "ci": [
+        4.0886610910133045,
+        4.938485758597779
+       ],
+       "level": 0.95,
+       "mean": 4.495454333013951,
+       "n": 363
+      },
+      "n_retained": 363,
+      "n_total": 384,
+      "switch": {
+       "ci": [
+        0.1322314049586777,
+        0.2066115702479339
+       ],
+       "level": 0.95,
+       "mean": 0.16804407713498623,
+       "n": 363
+      },
+      "to_correct": 0,
+      "to_wrong": 61
+     },
+     "routing:interleaved:entity_mention": {
+      "D": {
+       "ci": [
+        3.453773106257805,
+        4.911526882349142
+       ],
+       "level": 0.95,
+       "mean": 4.157617448296373,
+       "n": 123
+      },
+      "n_retained": 123,
+      "n_total": 128,
+      "switch": {
+       "ci": [
+        0.08130081300813008,
+        0.21138211382113822
+       ],
+       "level": 0.95,
+       "mean": 0.14634146341463414,
+       "n": 123
+      },
+      "to_correct": 0,
+      "to_wrong": 18
+     },
+     "routing:interleaved:superseded": {
+      "D": {
+       "ci": [
+        4.375701563037959,
+        6.497784419292051
+       ],
+       "level": 0.95,
+       "mean": 5.396325543813468,
+       "n": 123
+      },
+      "n_retained": 123,
+      "n_total": 128,
+      "switch": {
+       "ci": [
+        0.14634146341463414,
+        0.2926829268292683
+       ],
+       "level": 0.95,
+       "mean": 0.21951219512195122,
+       "n": 123
+      },
+      "to_correct": 0,
+      "to_wrong": 27
+     },
+     "routing:interleaved:unassigned": {
+      "D": {
+       "ci": [
+        2.1241726088942148,
+        3.092080808310831
+       ],
+       "level": 0.95,
+       "mean": 2.592869473154284,
+       "n": 122
+      },
+      "n_retained": 122,
+      "n_total": 128,
+      "switch": {
+       "ci": [
+        0.02459016393442623,
+        0.11475409836065574
+       ],
+       "level": 0.95,
+       "mean": 0.06557377049180328,
+       "n": 122
+      },
+      "to_correct": 0,
+      "to_wrong": 8
+     },
+     "routing:interleaved:updated_other": {
+      "D": {
+       "ci": [
+        2.964519923725209,
+        4.044177854365455
+       ],
+       "level": 0.95,
+       "mean": 3.5024197663050476,
+       "n": 120
+      },
+      "n_retained": 120,
+      "n_total": 128,
+      "switch": {
+       "ci": [
+        0.09166666666666666,
+        0.21666666666666667
+       ],
+       "level": 0.95,
+       "mean": 0.15,
+       "n": 120
+      },
+      "to_correct": 0,
+      "to_wrong": 18
+     },
+     "routing:sequential:entity_mention": {
+      "D": {
+       "ci": [
+        4.862523906253822,
+        5.924854624995153
+       ],
+       "level": 0.95,
+       "mean": 5.366315764029802,
+       "n": 117
+      },
+      "n_retained": 117,
+      "n_total": 128,
+      "switch": {
+       "ci": [
+        0.15384615384615385,
+        0.29914529914529914
+       ],
+       "level": 0.95,
+       "mean": 0.2222222222222222,
+       "n": 117
+      },
+      "to_correct": 0,
+      "to_wrong": 26
+     },
+     "routing:sequential:superseded": {
+      "D": {
+       "ci": [
+        4.195383170743493,
+        5.378182579675485
+       ],
+       "level": 0.95,
+       "mean": 4.795817876131493,
+       "n": 126
+      },
+      "n_retained": 126,
+      "n_total": 128,
+      "switch": {
+       "ci": [
+        0.0873015873015873,
+        0.21428571428571427
+       ],
+       "level": 0.95,
+       "mean": 0.15079365079365079,
+       "n": 126
+      },
+      "to_correct": 0,
+      "to_wrong": 19
+     },
+     "routing:sequential:unassigned": {
+      "D": {
+       "ci": [
+        1.8300667644901893,
+        2.657435806134031
+       ],
+       "level": 0.95,
+       "mean": 2.2495800291983494,
+       "n": 126
+      },
+      "n_retained": 126,
+      "n_total": 128,
+      "switch": {
+       "ci": [
+        -0.05555555555555555,
+        0.007936507936507936
+       ],
+       "level": 0.95,
+       "mean": -0.023809523809523808,
+       "n": 126
+      },
+      "to_correct": 4,
+      "to_wrong": 1
+     },
+     "routing:sequential:updated_other": {
+      "D": {
+       "ci": [
+        3.7941843126770745,
+        4.721375809135198
+       ],
+       "level": 0.95,
+       "mean": 4.249903189902436,
+       "n": 120
+      },
+      "n_retained": 120,
+      "n_total": 128,
+      "switch": {
+       "ci": [
+        0.09166666666666666,
+        0.21666666666666667
+       ],
+       "level": 0.95,
+       "mean": 0.15,
+       "n": 120
+      },
+      "to_correct": 0,
+      "to_wrong": 18
+     },
+     "routing:superseded": {
+      "D": {
+       "ci": [
+        4.320113669432356,
+        5.302322839259745
+       ],
+       "level": 0.95,
+       "mean": 4.770648796192836,
+       "n": 376
+      },
+      "n_retained": 376,
+      "n_total": 384,
+      "switch": {
+       "ci": [
+        0.1276595744680851,
+        0.2047872340425532
+       ],
+       "level": 0.95,
+       "mean": 0.16489361702127658,
+       "n": 376
+      },
+      "to_correct": 3,
+      "to_wrong": 65
+     },
+     "routing:unassigned": {
+      "D": {
+       "ci": [
+        1.8203807004883064,
+        2.4817167617402354
+       ],
+       "level": 0.95,
+       "mean": 2.139708706619805,
+       "n": 375
+      },
+      "n_retained": 375,
+      "n_total": 384,
+      "switch": {
+       "ci": [
+        0.0,
+        0.050666666666666665
+       ],
+       "level": 0.95,
+       "mean": 0.024,
+       "n": 375
+      },
+      "to_correct": 7,
+      "to_wrong": 16
+     },
+     "routing:updated_other": {
+      "D": {
+       "ci": [
+        3.459075309986184,
+        4.159839861746898
+       ],
+       "level": 0.95,
+       "mean": 3.8071520626795987,
+       "n": 367
+      },
+      "n_retained": 367,
+      "n_total": 384,
+      "switch": {
+       "ci": [
+        0.1008174386920981,
+        0.17438692098092642
+       ],
+       "level": 0.95,
+       "mean": 0.1362397820163488,
+       "n": 367
+      },
+      "to_correct": 2,
+      "to_wrong": 52
+     }
+    },
+    "member_accuracy": {
+     "access:competing:entity_mention": {
+      "old_implies_correct": {
+       "ci": [
+        0.7265625,
+        0.859375
+       ],
+       "level": 0.95,
+       "mean": 0.796875,
+       "n": 128
+      },
+      "old_implies_wrong": {
+       "ci": [
+        0.546875,
+        0.7109375
+       ],
+       "level": 0.95,
+       "mean": 0.6328125,
+       "n": 128
+      }
+     },
+     "access:competing:superseded": {
+      "old_implies_correct": {
+       "ci": [
+        0.7578125,
+        0.890625
+       ],
+       "level": 0.95,
+       "mean": 0.828125,
+       "n": 128
+      },
+      "old_implies_wrong": {
+       "ci": [
+        0.5546875,
+        0.71875
+       ],
+       "level": 0.95,
+       "mean": 0.640625,
+       "n": 128
+      }
+     },
+     "access:competing:unassigned": {
+      "old_implies_correct": {
+       "ci": [
+        0.765625,
+        0.8984375
+       ],
+       "level": 0.95,
+       "mean": 0.8359375,
+       "n": 128
+      },
+      "old_implies_wrong": {
+       "ci": [
+        0.75,
+        0.8828125
+       ],
+       "level": 0.95,
+       "mean": 0.8203125,
+       "n": 128
+      }
+     },
+     "access:competing:updated_other": {
+      "old_implies_correct": {
+       "ci": [
+        0.703125,
+        0.84375
+       ],
+       "level": 0.95,
+       "mean": 0.78125,
+       "n": 128
+      },
+      "old_implies_wrong": {
+       "ci": [
+        0.5546875,
+        0.71875
+       ],
+       "level": 0.95,
+       "mean": 0.640625,
+       "n": 128
+      }
+     },
+     "access:interleaved:entity_mention": {
+      "old_implies_correct": {
+       "ci": [
+        0.6875,
+        0.8359375
+       ],
+       "level": 0.95,
+       "mean": 0.765625,
+       "n": 128
+      },
+      "old_implies_wrong": {
+       "ci": [
+        0.6953125,
+        0.8359375
+       ],
+       "level": 0.95,
+       "mean": 0.765625,
+       "n": 128
+      }
+     },
+     "access:interleaved:superseded": {
+      "old_implies_correct": {
+       "ci": [
+        0.7265625,
+        0.8671875
+       ],
+       "level": 0.95,
+       "mean": 0.796875,
+       "n": 128
+      },
+      "old_implies_wrong": {
+       "ci": [
+        0.6015625,
+        0.765625
+       ],
+       "level": 0.95,
+       "mean": 0.6875,
+       "n": 128
+      }
+     },
+     "access:interleaved:unassigned": {
+      "old_implies_correct": {
+       "ci": [
+        0.8125,
+        0.9296875
+       ],
+       "level": 0.95,
+       "mean": 0.875,
+       "n": 128
+      },
+      "old_implies_wrong": {
+       "ci": [
+        0.734375,
+        0.8671875
+       ],
+       "level": 0.95,
+       "mean": 0.8046875,
+       "n": 128
+      }
+     },
+     "access:interleaved:updated_other": {
+      "old_implies_correct": {
+       "ci": [
+        0.7421875,
+        0.8828125
+       ],
+       "level": 0.95,
+       "mean": 0.8125,
+       "n": 128
+      },
+      "old_implies_wrong": {
+       "ci": [
+        0.625,
+        0.78125
+       ],
+       "level": 0.95,
+       "mean": 0.703125,
+       "n": 128
+      }
+     },
+     "access:sequential:entity_mention": {
+      "old_implies_correct": {
+       "ci": [
+        0.7421875,
+        0.875
+       ],
+       "level": 0.95,
+       "mean": 0.8125,
+       "n": 128
+      },
+      "old_implies_wrong": {
+       "ci": [
+        0.5546875,
+        0.7109375
+       ],
+       "level": 0.95,
+       "mean": 0.6328125,
+       "n": 128
+      }
+     },
+     "access:sequential:superseded": {
+      "old_implies_correct": {
+       "ci": [
+        0.7732421875000004,
+        0.8984375
+       ],
+       "level": 0.95,
+       "mean": 0.8359375,
+       "n": 128
+      },
+      "old_implies_wrong": {
+       "ci": [
+        0.5625,
+        0.7265625
+       ],
+       "level": 0.95,
+       "mean": 0.6484375,
+       "n": 128
+      }
+     },
+     "access:sequential:unassigned": {
+      "old_implies_correct": {
+       "ci": [
+        0.75,
+        0.8828125
+       ],
+       "level": 0.95,
+       "mean": 0.8203125,
+       "n": 128
+      },
+      "old_implies_wrong": {
+       "ci": [
+        0.71875,
+        0.859375
+       ],
+       "level": 0.95,
+       "mean": 0.7890625,
+       "n": 128
+      }
+     },
+     "access:sequential:updated_other": {
+      "old_implies_correct": {
+       "ci": [
+        0.7265625,
+        0.8595703124999989
+       ],
+       "level": 0.95,
+       "mean": 0.796875,
+       "n": 128
+      },
+      "old_implies_wrong": {
+       "ci": [
+        0.53125,
+        0.6953125
+       ],
+       "level": 0.95,
+       "mean": 0.6171875,
+       "n": 128
+      }
+     },
+     "routing:competing:entity_mention": {
+      "old_implies_correct": {
+       "ci": [
+        0.8046875,
+        0.921875
+       ],
+       "level": 0.95,
+       "mean": 0.8671875,
+       "n": 128
+      },
+      "old_implies_wrong": {
+       "ci": [
+        0.6560546875000004,
+        0.8125
+       ],
+       "level": 0.95,
+       "mean": 0.734375,
+       "n": 128
+      }
+     },
+     "routing:competing:superseded": {
+      "old_implies_correct": {
+       "ci": [
+        0.7890625,
+        0.90625
+       ],
+       "level": 0.95,
+       "mean": 0.8515625,
+       "n": 128
+      },
+      "old_implies_wrong": {
+       "ci": [
+        0.6484375,
+        0.8046875
+       ],
+       "level": 0.95,
+       "mean": 0.7265625,
+       "n": 128
+      }
+     },
+     "routing:competing:unassigned": {
+      "old_implies_correct": {
+       "ci": [
+        0.9140625,
+        0.984375
+       ],
+       "level": 0.95,
+       "mean": 0.953125,
+       "n": 128
+      },
+      "old_implies_wrong": {
+       "ci": [
+        0.8671875,
+        0.96875
+       ],
+       "level": 0.95,
+       "mean": 0.921875,
+       "n": 128
+      }
+     },
+     "routing:competing:updated_other": {
+      "old_implies_correct": {
+       "ci": [
+        0.84375,
+        0.9453125
+       ],
+       "level": 0.95,
+       "mean": 0.8984375,
+       "n": 128
+      },
+      "old_implies_wrong": {
+       "ci": [
+        0.7109375,
+        0.859375
+       ],
+       "level": 0.95,
+       "mean": 0.7890625,
+       "n": 128
+      }
+     },
+     "routing:interleaved:entity_mention": {
+      "old_implies_correct": {
+       "ci": [
+        0.84375,
+        0.9453125
+       ],
+       "level": 0.95,
+       "mean": 0.8984375,
+       "n": 128
+      },
+      "old_implies_wrong": {
+       "ci": [
+        0.671875,
+        0.828125
+       ],
+       "level": 0.95,
+       "mean": 0.75,
+       "n": 128
+      }
+     },
+     "routing:interleaved:superseded": {
+      "old_implies_correct": {
+       "ci": [
+        0.859375,
+        0.9609375
+       ],
+       "level": 0.95,
+       "mean": 0.9140625,
+       "n": 128
+      },
+      "old_implies_wrong": {
+       "ci": [
+        0.6171875,
+        0.7734375
+       ],
+       "level": 0.95,
+       "mean": 0.6953125,
+       "n": 128
+      }
+     },
+     "routing:interleaved:unassigned": {
+      "old_implies_correct": {
+       "ci": [
+        0.890625,
+        0.9765625
+       ],
+       "level": 0.95,
+       "mean": 0.9375,
+       "n": 128
+      },
+      "old_implies_wrong": {
+       "ci": [
+        0.8046875,
+        0.921875
+       ],
+       "level": 0.95,
+       "mean": 0.8671875,
+       "n": 128
+      }
+     },
+     "routing:interleaved:updated_other": {
+      "old_implies_correct": {
+       "ci": [
+        0.9140625,
+        0.984375
+       ],
+       "level": 0.95,
+       "mean": 0.953125,
+       "n": 128
+      },
+      "old_implies_wrong": {
+       "ci": [
+        0.71875,
+        0.859375
+       ],
+       "level": 0.95,
+       "mean": 0.7890625,
+       "n": 128
+      }
+     },
+     "routing:sequential:entity_mention": {
+      "old_implies_correct": {
+       "ci": [
+        0.90625,
+        0.984375
+       ],
+       "level": 0.95,
+       "mean": 0.9453125,
+       "n": 128
+      },
+      "old_implies_wrong": {
+       "ci": [
+        0.640625,
+        0.796875
+       ],
+       "level": 0.95,
+       "mean": 0.71875,
+       "n": 128
+      }
+     },
+     "routing:sequential:superseded": {
+      "old_implies_correct": {
+       "ci": [
+        0.8435546875000004,
+        0.9453125
+       ],
+       "level": 0.95,
+       "mean": 0.8984375,
+       "n": 128
+      },
+      "old_implies_wrong": {
+       "ci": [
+        0.6640625,
+        0.8125
+       ],
+       "level": 0.95,
+       "mean": 0.7421875,
+       "n": 128
+      }
+     },
+     "routing:sequential:unassigned": {
+      "old_implies_correct": {
+       "ci": [
+        0.9140625,
+        0.984375
+       ],
+       "level": 0.95,
+       "mean": 0.953125,
+       "n": 128
+      },
+      "old_implies_wrong": {
+       "ci": [
+        0.9375,
+        0.9921875
+       ],
+       "level": 0.95,
+       "mean": 0.96875,
+       "n": 128
+      }
+     },
+     "routing:sequential:updated_other": {
+      "old_implies_correct": {
+       "ci": [
+        0.9140625,
+        0.984375
+       ],
+       "level": 0.95,
+       "mean": 0.953125,
+       "n": 128
+      },
+      "old_implies_wrong": {
+       "ci": [
+        0.7109375,
+        0.859375
+       ],
+       "level": 0.95,
+       "mean": 0.7890625,
+       "n": 128
+      }
+     }
+    },
+    "primary": {
+     "access": {
+      "D_superseded": {
+       "ci": [
+        3.731336386913861,
+        5.037750763303973
+       ],
+       "level": 0.975,
+       "mean": 4.376741952511736,
+       "n": 384
+      },
+      "Delta_mention": {
+       "ci": [
+        0.42512951546969396,
+        1.2554133439074457
+       ],
+       "level": 0.95,
+       "mean": 0.8449924351562824,
+       "n": 384
+      },
+      "Delta_semantic": {
+       "ci": [
+        0.20608538732597984,
+        1.1981618953357354
+       ],
+       "level": 0.975,
+       "mean": 0.7025632762945854,
+       "n": 384
+      }
+     },
+     "routing": {
+      "D_superseded": {
+       "ci": [
+        4.243595861882353,
+        5.354404122644199
+       ],
+       "level": 0.975,
+       "mean": 4.785467757560348,
+       "n": 384
+      },
+      "Delta_mention": {
+       "ci": [
+        -0.11714031296857874,
+        0.6010989760062678
+       ],
+       "level": 0.95,
+       "mean": 0.2475871493388845,
+       "n": 384
+      },
+      "Delta_semantic": {
+       "ci": [
+        0.41729686197209614,
+        1.32772030189005
+       ],
+       "level": 0.975,
+       "mean": 0.8662918360088057,
+       "n": 384
+      }
+     }
+    },
+    "run": {
+     "gpu_hours": 4.475298578945092,
+     "mean_prompt_tokens": 199.03030303030303,
+     "seconds_per_record": 1.9070874626186471
+    },
+    "switches": {
+     "access:all": {
+      "switch_Delta_mention": {
+       "confidence_interval": [
+        0.0078125,
+        0.08333333333333333
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": 0.046875,
+       "n_histories": 384,
+       "seed": 81004
+      },
+      "switch_Delta_semantic": {
+       "confidence_interval": [
+        -0.026041666666666668,
+        0.0625
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": 0.018229166666666668,
+       "n_histories": 384,
+       "seed": 81004
+      },
+      "switch_counts": {
+       "entity_mention": {
+        "n_histories": 384,
+        "to_correct": 8,
+        "to_wrong": 52
+       },
+       "superseded": {
+        "n_histories": 384,
+        "to_correct": 3,
+        "to_wrong": 65
+       },
+       "unassigned": {
+        "n_histories": 384,
+        "to_correct": 11,
+        "to_wrong": 26
+       },
+       "updated_other": {
+        "n_histories": 384,
+        "to_correct": 3,
+        "to_wrong": 58
+       }
+      },
+      "switch_entity_mention": {
+       "confidence_interval": [
+        0.078125,
+        0.15364583333333334
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": 0.11458333333333333,
+       "n_histories": 384,
+       "seed": 81004
+      },
+      "switch_superseded": {
+       "confidence_interval": [
+        0.12493489583333345,
+        0.20052083333333334
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": 0.16145833333333334,
+       "n_histories": 384,
+       "seed": 81004
+      },
+      "switch_unassigned": {
+       "confidence_interval": [
+        0.010351562500000114,
+        0.0703125
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": 0.0390625,
+       "n_histories": 384,
+       "seed": 81004
+      },
+      "switch_updated_other": {
+       "confidence_interval": [
+        0.10677083333333333,
+        0.1796875
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": 0.14322916666666666,
+       "n_histories": 384,
+       "seed": 81004
+      }
+     },
+     "access:competing": {
+      "switch_Delta_mention": {
+       "confidence_interval": [
+        -0.046875,
+        0.09375
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": 0.0234375,
+       "n_histories": 128,
+       "seed": 81004
+      },
+      "switch_Delta_semantic": {
+       "confidence_interval": [
+        -0.03125,
+        0.1171875
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": 0.046875,
+       "n_histories": 128,
+       "seed": 81004
+      },
+      "switch_counts": {
+       "entity_mention": {
+        "n_histories": 128,
+        "to_correct": 0,
+        "to_wrong": 21
+       },
+       "superseded": {
+        "n_histories": 128,
+        "to_correct": 2,
+        "to_wrong": 26
+       },
+       "unassigned": {
+        "n_histories": 128,
+        "to_correct": 3,
+        "to_wrong": 5
+       },
+       "updated_other": {
+        "n_histories": 128,
+        "to_correct": 0,
+        "to_wrong": 18
+       }
+      },
+      "switch_entity_mention": {
+       "confidence_interval": [
+        0.1015625,
+        0.234375
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": 0.1640625,
+       "n_histories": 128,
+       "seed": 81004
+      },
+      "switch_superseded": {
+       "confidence_interval": [
+        0.1171875,
+        0.2578125
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": 0.1875,
+       "n_histories": 128,
+       "seed": 81004
+      },
+      "switch_unassigned": {
+       "confidence_interval": [
+        -0.0234375,
+        0.0625
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": 0.015625,
+       "n_histories": 128,
+       "seed": 81004
+      },
+      "switch_updated_other": {
+       "confidence_interval": [
+        0.0859375,
+        0.203125
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": 0.140625,
+       "n_histories": 128,
+       "seed": 81004
+      }
+     },
+     "access:interleaved": {
+      "switch_Delta_mention": {
+       "confidence_interval": [
+        0.046875,
+        0.171875
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": 0.109375,
+       "n_histories": 128,
+       "seed": 81004
+      },
+      "switch_Delta_semantic": {
+       "confidence_interval": [
+        -0.078125,
+        0.078125
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": 0.0,
+       "n_histories": 128,
+       "seed": 81004
+      },
+      "switch_counts": {
+       "entity_mention": {
+        "n_histories": 128,
+        "to_correct": 6,
+        "to_wrong": 6
+       },
+       "superseded": {
+        "n_histories": 128,
+        "to_correct": 1,
+        "to_wrong": 15
+       },
+       "unassigned": {
+        "n_histories": 128,
+        "to_correct": 6,
+        "to_wrong": 15
+       },
+       "updated_other": {
+        "n_histories": 128,
+        "to_correct": 1,
+        "to_wrong": 15
+       }
+      },
+      "switch_entity_mention": {
+       "confidence_interval": [
+        -0.0546875,
+        0.0546875
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": 0.0,
+       "n_histories": 128,
+       "seed": 81004
+      },
+      "switch_superseded": {
+       "confidence_interval": [
+        0.0546875,
+        0.171875
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": 0.109375,
+       "n_histories": 128,
+       "seed": 81004
+      },
+      "switch_unassigned": {
+       "confidence_interval": [
+        0.0,
+        0.140625
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": 0.0703125,
+       "n_histories": 128,
+       "seed": 81004
+      },
+      "switch_updated_other": {
+       "confidence_interval": [
+        0.0546875,
+        0.171875
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": 0.109375,
+       "n_histories": 128,
+       "seed": 81004
+      }
+     },
+     "access:sequential": {
+      "switch_Delta_mention": {
+       "confidence_interval": [
+        -0.0546875,
+        0.0703125
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": 0.0078125,
+       "n_histories": 128,
+       "seed": 81004
+      },
+      "switch_Delta_semantic": {
+       "confidence_interval": [
+        -0.0625,
+        0.0703125
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": 0.0078125,
+       "n_histories": 128,
+       "seed": 81004
+      },
+      "switch_counts": {
+       "entity_mention": {
+        "n_histories": 128,
+        "to_correct": 2,
+        "to_wrong": 25
+       },
+       "superseded": {
+        "n_histories": 128,
+        "to_correct": 0,
+        "to_wrong": 24
+       },
+       "unassigned": {
+        "n_histories": 128,
+        "to_correct": 2,
+        "to_wrong": 6
+       },
+       "updated_other": {
+        "n_histories": 128,
+        "to_correct": 2,
+        "to_wrong": 25
+       }
+      },
+      "switch_entity_mention": {
+       "confidence_interval": [
+        0.109375,
+        0.2578125
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": 0.1796875,
+       "n_histories": 128,
+       "seed": 81004
+      },
+      "switch_superseded": {
+       "confidence_interval": [
+        0.125,
+        0.2578125
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": 0.1875,
+       "n_histories": 128,
+       "seed": 81004
+      },
+      "switch_unassigned": {
+       "confidence_interval": [
+        -0.0078125,
+        0.078125
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": 0.03125,
+       "n_histories": 128,
+       "seed": 81004
+      },
+      "switch_updated_other": {
+       "confidence_interval": [
+        0.109375,
+        0.2578125
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": 0.1796875,
+       "n_histories": 128,
+       "seed": 81004
+      }
+     },
+     "routing:all": {
+      "switch_Delta_mention": {
+       "confidence_interval": [
+        -0.044270833333333336,
+        0.041666666666666664
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": -0.0026041666666666665,
+       "n_histories": 384,
+       "seed": 81004
+      },
+      "switch_Delta_semantic": {
+       "confidence_interval": [
+        -0.0234375,
+        0.0703125
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": 0.020833333333333332,
+       "n_histories": 384,
+       "seed": 81004
+      },
+      "switch_counts": {
+       "entity_mention": {
+        "n_histories": 384,
+        "to_correct": 0,
+        "to_wrong": 65
+       },
+       "superseded": {
+        "n_histories": 384,
+        "to_correct": 3,
+        "to_wrong": 67
+       },
+       "unassigned": {
+        "n_histories": 384,
+        "to_correct": 7,
+        "to_wrong": 18
+       },
+       "updated_other": {
+        "n_histories": 384,
+        "to_correct": 2,
+        "to_wrong": 58
+       }
+      },
+      "switch_entity_mention": {
+       "confidence_interval": [
+        0.1328125,
+        0.20833333333333334
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": 0.16927083333333334,
+       "n_histories": 384,
+       "seed": 81004
+      },
+      "switch_superseded": {
+       "confidence_interval": [
+        0.13020833333333334,
+        0.20572916666666666
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": 0.16666666666666666,
+       "n_histories": 384,
+       "seed": 81004
+      },
+      "switch_unassigned": {
+       "confidence_interval": [
+        0.0026041666666666665,
+        0.052083333333333336
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": 0.028645833333333332,
+       "n_histories": 384,
+       "seed": 81004
+      },
+      "switch_updated_other": {
+       "confidence_interval": [
+        0.109375,
+        0.18489583333333334
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": 0.14583333333333334,
+       "n_histories": 384,
+       "seed": 81004
+      }
+     },
+     "routing:competing": {
+      "switch_Delta_mention": {
+       "confidence_interval": [
+        -0.078125,
+        0.0625
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": -0.0078125,
+       "n_histories": 128,
+       "seed": 81004
+      },
+      "switch_Delta_semantic": {
+       "confidence_interval": [
+        -0.0546875,
+        0.09375
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": 0.015625,
+       "n_histories": 128,
+       "seed": 81004
+      },
+      "switch_counts": {
+       "entity_mention": {
+        "n_histories": 128,
+        "to_correct": 0,
+        "to_wrong": 17
+       },
+       "superseded": {
+        "n_histories": 128,
+        "to_correct": 3,
+        "to_wrong": 19
+       },
+       "unassigned": {
+        "n_histories": 128,
+        "to_correct": 3,
+        "to_wrong": 7
+       },
+       "updated_other": {
+        "n_histories": 128,
+        "to_correct": 2,
+        "to_wrong": 16
+       }
+      },
+      "switch_entity_mention": {
+       "confidence_interval": [
+        0.078125,
+        0.1953125
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": 0.1328125,
+       "n_histories": 128,
+       "seed": 81004
+      },
+      "switch_superseded": {
+       "confidence_interval": [
+        0.0546875,
+        0.1953125
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": 0.125,
+       "n_histories": 128,
+       "seed": 81004
+      },
+      "switch_unassigned": {
+       "confidence_interval": [
+        -0.015625,
+        0.078125
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": 0.03125,
+       "n_histories": 128,
+       "seed": 81004
+      },
+      "switch_updated_other": {
+       "confidence_interval": [
+        0.0546875,
+        0.171875
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": 0.109375,
+       "n_histories": 128,
+       "seed": 81004
+      }
+     },
+     "routing:interleaved": {
+      "switch_Delta_mention": {
+       "confidence_interval": [
+        0.0078125,
+        0.1328125
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": 0.0703125,
+       "n_histories": 128,
+       "seed": 81004
+      },
+      "switch_Delta_semantic": {
+       "confidence_interval": [
+        -0.0234375,
+        0.1328125
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": 0.0546875,
+       "n_histories": 128,
+       "seed": 81004
+      },
+      "switch_counts": {
+       "entity_mention": {
+        "n_histories": 128,
+        "to_correct": 0,
+        "to_wrong": 19
+       },
+       "superseded": {
+        "n_histories": 128,
+        "to_correct": 0,
+        "to_wrong": 28
+       },
+       "unassigned": {
+        "n_histories": 128,
+        "to_correct": 0,
+        "to_wrong": 9
+       },
+       "updated_other": {
+        "n_histories": 128,
+        "to_correct": 0,
+        "to_wrong": 21
+       }
+      },
+      "switch_entity_mention": {
+       "confidence_interval": [
+        0.0859375,
+        0.2109375
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": 0.1484375,
+       "n_histories": 128,
+       "seed": 81004
+      },
+      "switch_superseded": {
+       "confidence_interval": [
+        0.1484375,
+        0.2890625
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": 0.21875,
+       "n_histories": 128,
+       "seed": 81004
+      },
+      "switch_unassigned": {
+       "confidence_interval": [
+        0.03125,
+        0.1171875
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": 0.0703125,
+       "n_histories": 128,
+       "seed": 81004
+      },
+      "switch_updated_other": {
+       "confidence_interval": [
+        0.1015625,
+        0.2265625
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": 0.1640625,
+       "n_histories": 128,
+       "seed": 81004
+      }
+     },
+     "routing:sequential": {
+      "switch_Delta_mention": {
+       "confidence_interval": [
+        -0.1484375,
+        0.015625
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": -0.0703125,
+       "n_histories": 128,
+       "seed": 81004
+      },
+      "switch_Delta_semantic": {
+       "confidence_interval": [
+        -0.09375,
+        0.0703125
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": -0.0078125,
+       "n_histories": 128,
+       "seed": 81004
+      },
+      "switch_counts": {
+       "entity_mention": {
+        "n_histories": 128,
+        "to_correct": 0,
+        "to_wrong": 29
+       },
+       "superseded": {
+        "n_histories": 128,
+        "to_correct": 0,
+        "to_wrong": 20
+       },
+       "unassigned": {
+        "n_histories": 128,
+        "to_correct": 4,
+        "to_wrong": 2
+       },
+       "updated_other": {
+        "n_histories": 128,
+        "to_correct": 0,
+        "to_wrong": 21
+       }
+      },
+      "switch_entity_mention": {
+       "confidence_interval": [
+        0.15625,
+        0.296875
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": 0.2265625,
+       "n_histories": 128,
+       "seed": 81004
+      },
+      "switch_superseded": {
+       "confidence_interval": [
+        0.09375,
+        0.2265625
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": 0.15625,
+       "n_histories": 128,
+       "seed": 81004
+      },
+      "switch_unassigned": {
+       "confidence_interval": [
+        -0.0546875,
+        0.0234375
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": -0.015625,
+       "n_histories": 128,
+       "seed": 81004
+      },
+      "switch_updated_other": {
+       "confidence_interval": [
+        0.1015625,
+        0.2265625
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": 0.1640625,
+       "n_histories": 128,
+       "seed": 81004
+      }
+     }
+    }
+   },
+   "gate_cells": {
+    "access:competing": {
+     "behavior_eligible": false,
+     "current_only_accuracy": 0.828125,
+     "direct_accuracy": 0.9460227272727273,
+     "easy_invalid_rate": 0.0,
+     "historical_accuracy": 0.697265625,
+     "invalid_rate": 0.0,
+     "n": 704,
+     "n_current_only": 64,
+     "n_historical": 512,
+     "score_eligible": false
+    },
+    "access:interleaved": {
+     "behavior_eligible": false,
+     "current_only_accuracy": 0.828125,
+     "direct_accuracy": 0.9772727272727273,
+     "easy_invalid_rate": 0.0014204545454545455,
+     "historical_accuracy": 0.748046875,
+     "invalid_rate": 0.0,
+     "n": 704,
+     "n_current_only": 64,
+     "n_historical": 512,
+     "score_eligible": false
+    },
+    "access:sequential": {
+     "behavior_eligible": false,
+     "current_only_accuracy": 0.78125,
+     "direct_accuracy": 0.9914772727272727,
+     "easy_invalid_rate": 0.0014204545454545455,
+     "historical_accuracy": 0.728515625,
+     "invalid_rate": 0.0,
+     "n": 704,
+     "n_current_only": 64,
+     "n_historical": 512,
+     "score_eligible": false
+    },
+    "routing:competing": {
+     "behavior_eligible": true,
+     "current_only_accuracy": 1.0,
+     "direct_accuracy": 0.9971590909090909,
+     "easy_invalid_rate": 0.0,
+     "historical_accuracy": 0.814453125,
+     "invalid_rate": 0.0,
+     "n": 704,
+     "n_current_only": 64,
+     "n_historical": 512,
+     "score_eligible": true
+    },
+    "routing:interleaved": {
+     "behavior_eligible": true,
+     "current_only_accuracy": 1.0,
+     "direct_accuracy": 1.0,
+     "easy_invalid_rate": 0.0,
+     "historical_accuracy": 0.845703125,
+     "invalid_rate": 0.0,
+     "n": 704,
+     "n_current_only": 64,
+     "n_historical": 512,
+     "score_eligible": true
+    },
+    "routing:sequential": {
+     "behavior_eligible": true,
+     "current_only_accuracy": 0.921875,
+     "direct_accuracy": 0.9957386363636364,
+     "easy_invalid_rate": 0.0,
+     "historical_accuracy": 0.853515625,
+     "invalid_rate": 0.0,
+     "n": 704,
+     "n_current_only": 64,
+     "n_historical": 512,
+     "score_eligible": true
+    }
+   }
+  },
+  "Qwen3-8B": {
+   "any_score_pass": true,
+   "competent_cells": [
+    "access:interleaved",
+    "routing:interleaved",
+    "routing:sequential"
+   ],
+   "confirmation": {
+    "H3": {
+     "access": {
+      "R_incremental_log_loss_improvement": {
+       "confidence_interval": [
+        -0.0019666540201165933,
+        0.0008409837937299451
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": -0.0006318706742568741,
+       "n_histories": 384,
+       "seed": 81004
+      },
+      "available": true,
+      "contemporaneous_action_confidence": {
+       "auroc": 1.0,
+       "average_precision": 1.0,
+       "brier": 0.0023022974088785825,
+       "log_loss": 0.010265991246570091,
+       "prevalence": 0.14778645833333334
+      },
+      "events": 454,
+      "method": "fixed C=1 L2 logistic; 5-fold history-grouped CV; no tuning; paired history bootstrap",
+      "n": 3072,
+      "note": "contemporaneous_action_confidence uses the downstream forward pass and is a comparison, not a predictor available before the downstream question",
+      "outcome": "failure",
+      "pre_downstream": {
+       "auroc": 0.8336861376508954,
+       "average_precision": 0.42203298516207766,
+       "brier": 0.1002677595523993,
+       "log_loss": 0.3229420844641151,
+       "prevalence": 0.14778645833333334
+      },
+      "pre_downstream_plus_R": {
+       "auroc": 0.8327000804326536,
+       "average_precision": 0.4221431966005264,
+       "brier": 0.10031643937575241,
+       "log_loss": 0.323573955138372,
+       "prevalence": 0.14778645833333334
+      }
+     },
+     "overall": {
+      "R_incremental_log_loss_improvement": {
+       "confidence_interval": [
+        -0.0011484401798731757,
+        0.00189690534026428
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": 0.000424775154206308,
+       "n_histories": 768,
+       "seed": 81004
+      },
+      "available": true,
+      "contemporaneous_action_confidence": {
+       "auroc": 0.9999989327149341,
+       "average_precision": 0.9999937229679615,
+       "brier": 0.0024526216951966076,
+       "log_loss": 0.010606218874333315,
+       "prevalence": 0.14518229166666666
+      },
+      "events": 892,
+      "method": "fixed C=1 L2 logistic; 5-fold history-grouped CV; no tuning; paired history bootstrap",
+      "n": 6144,
+      "note": "contemporaneous_action_confidence uses the downstream forward pass and is a comparison, not a predictor available before the downstream question",
+      "outcome": "failure",
+      "pre_downstream": {
+       "auroc": 0.7799136523690313,
+       "average_precision": 0.4404753564559738,
+       "brier": 0.10235113674998446,
+       "log_loss": 0.34631015938511506,
+       "prevalence": 0.14518229166666666
+      },
+      "pre_downstream_plus_R": {
+       "auroc": 0.7790246039091664,
+       "average_precision": 0.4375997686178687,
+       "brier": 0.10256922164531973,
+       "log_loss": 0.3458853842309087,
+       "prevalence": 0.14518229166666666
+      }
+     },
+     "routing": {
+      "R_incremental_log_loss_improvement": {
+       "confidence_interval": [
+        -0.0022205131814745215,
+        0.004732429377811082
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": 0.0012791768225015852,
+       "n_histories": 384,
+       "seed": 81004
+      },
+      "available": true,
+      "contemporaneous_action_confidence": {
+       "auroc": 1.0,
+       "average_precision": 1.0,
+       "brier": 0.0036167403788984255,
+       "log_loss": 0.015556070413397126,
+       "prevalence": 0.142578125
+      },
+      "events": 438,
+      "method": "fixed C=1 L2 logistic; 5-fold history-grouped CV; no tuning; paired history bootstrap",
+      "n": 3072,
+      "note": "contemporaneous_action_confidence uses the downstream forward pass and is a comparison, not a predictor available before the downstream question",
+      "outcome": "failure",
+      "pre_downstream": {
+       "auroc": 0.7293159699469183,
+       "average_precision": 0.4295607372157834,
+       "brier": 0.10399030763863104,
+       "log_loss": 0.3580471585809771,
+       "prevalence": 0.142578125
+      },
+      "pre_downstream_plus_R": {
+       "auroc": 0.7296652832818464,
+       "average_precision": 0.4300707125781476,
+       "brier": 0.10375286422850966,
+       "log_loss": 0.3567679817584756,
+       "prevalence": 0.142578125
+      }
+     }
+    },
+    "competence": {
+     "access:competing": {
+      "behavior_eligible": false,
+      "current_only_accuracy": 0.859375,
+      "direct_accuracy": 0.9076704545454546,
+      "easy_invalid_rate": 0.049005681818181816,
+      "historical_accuracy": 0.8671875,
+      "invalid_rate": 0.0,
+      "n": 1408,
+      "n_current_only": 128,
+      "n_historical": 1024,
+      "score_eligible": false
+     },
+     "access:interleaved": {
+      "behavior_eligible": false,
+      "current_only_accuracy": 0.875,
+      "direct_accuracy": 0.9446022727272727,
+      "easy_invalid_rate": 0.026278409090909092,
+      "historical_accuracy": 0.8583984375,
+      "invalid_rate": 0.0,
+      "n": 1408,
+      "n_current_only": 128,
+      "n_historical": 1024,
+      "score_eligible": false
+     },
+     "access:sequential": {
+      "behavior_eligible": false,
+      "current_only_accuracy": 0.8671875,
+      "direct_accuracy": 0.9161931818181818,
+      "easy_invalid_rate": 0.049005681818181816,
+      "historical_accuracy": 0.8310546875,
+      "invalid_rate": 0.0,
+      "n": 1408,
+      "n_current_only": 128,
+      "n_historical": 1024,
+      "score_eligible": false
+     },
+     "routing:competing": {
+      "behavior_eligible": true,
+      "current_only_accuracy": 0.953125,
+      "direct_accuracy": 0.9815340909090909,
+      "easy_invalid_rate": 0.0,
+      "historical_accuracy": 0.845703125,
+      "invalid_rate": 0.0,
+      "n": 1408,
+      "n_current_only": 128,
+      "n_historical": 1024,
+      "score_eligible": true
+     },
+     "routing:interleaved": {
+      "behavior_eligible": true,
+      "current_only_accuracy": 0.9609375,
+      "direct_accuracy": 0.9857954545454546,
+      "easy_invalid_rate": 0.0,
+      "historical_accuracy": 0.8681640625,
+      "invalid_rate": 0.0,
+      "n": 1408,
+      "n_current_only": 128,
+      "n_historical": 1024,
+      "score_eligible": true
+     },
+     "routing:sequential": {
+      "behavior_eligible": true,
+      "current_only_accuracy": 0.953125,
+      "direct_accuracy": 0.9879261363636364,
+      "easy_invalid_rate": 0.0,
+      "historical_accuracy": 0.8583984375,
+      "invalid_rate": 0.0,
+      "n": 1408,
+      "n_current_only": 128,
+      "n_historical": 1024,
+      "score_eligible": true
+     }
+    },
+    "competent": {
+     "access": {
+      "D_superseded": {
+       "ci": [
+        3.4699333281683162,
+        5.062751611830375
+       ],
+       "level": 0.975,
+       "mean": 4.2214997637802325,
+       "n": 128
+      },
+      "Delta_mention": {
+       "ci": [
+        -1.303261522944245,
+        -0.1218510613095053
+       ],
+       "level": 0.95,
+       "mean": -0.7396274756202107,
+       "n": 128
+      },
+      "Delta_semantic": {
+       "ci": [
+        -0.7749608566086257,
+        0.536104912801744
+       ],
+       "level": 0.975,
+       "mean": -0.131643365437508,
+       "n": 128
+      },
+      "cells": [
+       "interleaved"
+      ],
+      "n": 128,
+      "switch_entity_mention": {
+       "ci": [
+        0.1484375,
+        0.296875
+       ],
+       "level": 0.95,
+       "mean": 0.21875,
+       "n": 128
+      },
+      "switch_superseded": {
+       "ci": [
+        0.1953125,
+        0.3515625
+       ],
+       "level": 0.95,
+       "mean": 0.2734375,
+       "n": 128
+      }
+     },
+     "routing": {
+      "D_superseded": {
+       "ci": [
+        2.7676993958300993,
+        3.75072647484395
+       ],
+       "level": 0.975,
+       "mean": 3.248461200675518,
+       "n": 256
+      },
+      "Delta_mention": {
+       "ci": [
+        -1.9783623818470562,
+        -1.4061892541732877
+       ],
+       "level": 0.95,
+       "mean": -1.7015988990591724,
+       "n": 256
+      },
+      "Delta_semantic": {
+       "ci": [
+        0.977603283708774,
+        1.6683081756351659
+       ],
+       "level": 0.975,
+       "mean": 1.3298168168212863,
+       "n": 256
+      },
+      "cells": [
+       "interleaved",
+       "sequential"
+      ],
+      "n": 256,
+      "switch_entity_mention": {
+       "ci": [
+        0.2578125,
+        0.37109375
+       ],
+       "level": 0.95,
+       "mean": 0.3125,
+       "n": 256
+      },
+      "switch_superseded": {
+       "ci": [
+        0.14453125,
+        0.25
+       ],
+       "level": 0.95,
+       "mean": 0.1953125,
+       "n": 256
+      }
+     }
+    },
+    "competent_confirmation": {
+     "access": null,
+     "routing": {
+      "D_superseded": {
+       "ci": [
+        2.7426179245704563,
+        3.5157770783905447
+       ],
+       "level": 0.975,
+       "mean": 3.1325265414285854,
+       "n": 384
+      },
+      "Delta_mention": {
+       "ci": [
+        -1.8963363434373035,
+        -1.4405278158106105
+       ],
+       "level": 0.95,
+       "mean": -1.674653124908744,
+       "n": 384
+      },
+      "Delta_semantic": {
+       "ci": [
+        0.9730716174280066,
+        1.4847011596289537
+       ],
+       "level": 0.975,
+       "mean": 1.2238404656566733,
+       "n": 384
+      },
+      "cells": [
+       "competing",
+       "interleaved",
+       "sequential"
+      ],
+      "n": 384,
+      "switch_entity_mention": {
+       "ci": [
+        0.25,
+        0.3411458333333333
+       ],
+       "level": 0.95,
+       "mean": 0.2942708333333333,
+       "n": 384
+      },
+      "switch_superseded": {
+       "ci": [
+        0.14322916666666666,
+        0.2265625
+       ],
+       "level": 0.95,
+       "mean": 0.18489583333333334,
+       "n": 384
+      }
+     }
+    },
+    "confirmation_competent_cells": [
+     "routing:competing",
+     "routing:interleaved",
+     "routing:sequential"
+    ],
+    "constructions": {
+     "access:competing:entity_mention": {
+      "ci": [
+       4.636689786138182,
+       6.188741906446735
+      ],
+      "level": 0.95,
+      "mean": 5.38395049636629,
+      "n": 128
+     },
+     "access:competing:live": {
+      "ci": [
+       -10.313248337003557,
+       -7.730831368293491
+      ],
+      "level": 0.95,
+      "mean": -8.999093615323082,
+      "n": 128
+     },
+     "access:competing:superseded": {
+      "ci": [
+       2.8274378859333087,
+       4.076354842900417
+      ],
+      "level": 0.95,
+      "mean": 3.421008334957329,
+      "n": 128
+     },
+     "access:competing:unassigned": {
+      "ci": [
+       1.7493156904276124,
+       3.180294944236664
+      ],
+      "level": 0.95,
+      "mean": 2.4393153411643778,
+      "n": 128
+     },
+     "access:competing:updated_other": {
+      "ci": [
+       3.384017447336764,
+       4.827651468104416
+      ],
+      "level": 0.95,
+      "mean": 4.0765352451105175,
+      "n": 128
+     },
+     "access:entity_mention": {
+      "ci": [
+       4.778353992600079,
+       5.602059251748043
+      ],
+      "level": 0.95,
+      "mean": 5.181909678273031,
+      "n": 384
+     },
+     "access:interleaved:entity_mention": {
+      "ci": [
+       4.226503926111432,
+       5.690558296739559
+      ],
+      "level": 0.95,
+      "mean": 4.961127239400442,
+      "n": 128
+     },
+     "access:interleaved:live": {
+      "ci": [
+       -11.240103252452693,
+       -8.88758421899391
+      ],
+      "level": 0.95,
+      "mean": -10.05098225231551,
+      "n": 128
+     },
+     "access:interleaved:superseded": {
+      "ci": [
+       3.5580954072382527,
+       4.958287103785216
+      ],
+      "level": 0.95,
+      "mean": 4.2214997637802325,
+      "n": 128
+     },
+     "access:interleaved:unassigned": {
+      "ci": [
+       2.7021078195654162,
+       3.9798510594900764
+      ],
+      "level": 0.95,
+      "mean": 3.2876550686954293,
+      "n": 128
+     },
+     "access:interleaved:updated_other": {
+      "ci": [
+       3.7932007020038494,
+       4.9340798222833575
+      ],
+      "level": 0.95,
+      "mean": 4.35314312921774,
+      "n": 128
+     },
+     "access:live": {
+      "ci": [
+       -10.896422249498887,
+       -9.300912190853435
+      ],
+      "level": 0.95,
+      "mean": -10.100064215048947,
+      "n": 384
+     },
+     "access:sequential:entity_mention": {
+      "ci": [
+       4.528937973787794,
+       5.896698699572119
+      ],
+      "level": 0.95,
+      "mean": 5.200651299052357,
+      "n": 128
+     },
+     "access:sequential:live": {
+      "ci": [
+       -12.829681669405652,
+       -9.707168677394161
+      ],
+      "level": 0.95,
+      "mean": -11.250116777508254,
+      "n": 128
+     },
+     "access:sequential:superseded": {
+      "ci": [
+       3.4041462855908238,
+       4.787843008811183
+      ],
+      "level": 0.95,
+      "mean": 4.070282047754713,
+      "n": 128
+     },
+     "access:sequential:unassigned": {
+      "ci": [
+       2.7618624148432276,
+       4.0911102321163755
+      ],
+      "level": 0.95,
+      "mean": 3.4016604692710017,
+      "n": 128
+     },
+     "access:sequential:updated_other": {
+      "ci": [
+       2.528809404222919,
+       3.8465323154872726
+      ],
+      "level": 0.95,
+      "mean": 3.1774956256249176,
+      "n": 128
+     },
+     "access:superseded": {
+      "ci": [
+       3.5192491252212337,
+       4.305769756766692
+      ],
+      "level": 0.95,
+      "mean": 3.9042633821640913,
+      "n": 384
+     },
+     "access:unassigned": {
+      "ci": [
+       2.6468944189365664,
+       3.4185711997336234
+      ],
+      "level": 0.95,
+      "mean": 3.04287695971027,
+      "n": 384
+     },
+     "access:updated_other": {
+      "ci": [
+       3.4941206541031935,
+       4.253648974280708
+      ],
+      "level": 0.95,
+      "mean": 3.869057999984392,
+      "n": 384
+     },
+     "routing:competing:entity_mention": {
+      "ci": [
+       3.9029915123464183,
+       5.129351239622378
+      ],
+      "level": 0.95,
+      "mean": 4.521418799542608,
+      "n": 128
+     },
+     "routing:competing:live": {
+      "ci": [
+       -8.307240527911205,
+       -6.84432267670375
+      ],
+      "level": 0.95,
+      "mean": -7.569938998822153,
+      "n": 128
+     },
+     "routing:competing:superseded": {
+      "ci": [
+       2.400202373751053,
+       3.434671543394595
+      ],
+      "level": 0.95,
+      "mean": 2.900657222934721,
+      "n": 128
+     },
+     "routing:competing:unassigned": {
+      "ci": [
+       1.51964542925384,
+       2.5789763839616495
+      ],
+      "level": 0.95,
+      "mean": 2.0470171055860815,
+      "n": 128
+     },
+     "routing:competing:updated_other": {
+      "ci": [
+       1.4467391709722377,
+       2.357701033969461
+      ],
+      "level": 0.95,
+      "mean": 1.8887694596072735,
+      "n": 128
+     },
+     "routing:entity_mention": {
+      "ci": [
+       4.4551695884236455,
+       5.185860233408594
+      ],
+      "level": 0.95,
+      "mean": 4.807179666337329,
+      "n": 384
+     },
+     "routing:interleaved:entity_mention": {
+      "ci": [
+       4.050555678473026,
+       5.132596607690396
+      ],
+      "level": 0.95,
+      "mean": 4.561016112403638,
+      "n": 128
+     },
+     "routing:interleaved:live": {
+      "ci": [
+       -8.591796630655455,
+       -6.757248959299646
+      ],
+      "level": 0.95,
+      "mean": -7.637745189760867,
+      "n": 128
+     },
+     "routing:interleaved:superseded": {
+      "ci": [
+       2.826019071331538,
+       4.055816497429041
+      ],
+      "level": 0.95,
+      "mean": 3.404361640881183,
+      "n": 128
+     },
+     "routing:interleaved:unassigned": {
+      "ci": [
+       1.788300596719741,
+       2.728650914385041
+      ],
+      "level": 0.95,
+      "mean": 2.2623494585680444,
+      "n": 128
+     },
+     "routing:interleaved:updated_other": {
+      "ci": [
+       1.502271928085245,
+       2.2600850628814295
+      ],
+      "level": 0.95,
+      "mean": 1.8539227227459516,
+      "n": 128
+     },
+     "routing:live": {
+      "ci": [
+       -8.723937830943244,
+       -7.7142639646742674
+      ],
+      "level": 0.95,
+      "mean": -8.19677904555928,
+      "n": 384
+     },
+     "routing:sequential:entity_mention": {
+      "ci": [
+       4.696761608689112,
+       6.001281225601053
+      ],
+      "level": 0.95,
+      "mean": 5.339104087065741,
+      "n": 128
+     },
+     "routing:sequential:live": {
+      "ci": [
+       -10.263105952083395,
+       -8.46730426086412
+      ],
+      "level": 0.95,
+      "mean": -9.382652948094817,
+      "n": 128
+     },
+     "routing:sequential:superseded": {
+      "ci": [
+       2.5163487577000154,
+       3.694146444949585
+      ],
+      "level": 0.95,
+      "mean": 3.0925607604698526,
+      "n": 128
+     },
+     "routing:sequential:unassigned": {
+      "ci": [
+       2.6450376697864857,
+       3.6733309908630196
+      ],
+      "level": 0.95,
+      "mean": 3.1776931003793636,
+      "n": 128
+     },
+     "routing:sequential:updated_other": {
+      "ci": [
+       1.511019003977139,
+       2.446825744654073
+      ],
+      "level": 0.95,
+      "mean": 1.9833660449625112,
+      "n": 128
+     },
+     "routing:superseded": {
+      "ci": [
+       2.7938420443969556,
+       3.4780668862127513
+      ],
+      "level": 0.95,
+      "mean": 3.1325265414285854,
+      "n": 384
+     },
+     "routing:unassigned": {
+      "ci": [
+       2.201114364579319,
+       2.8051002731009227
+      ],
+      "level": 0.95,
+      "mean": 2.4956865548444966,
+      "n": 384
+     },
+     "routing:updated_other": {
+      "ci": [
+       1.66119758519915,
+       2.160851795806137
+      ],
+      "level": 0.95,
+      "mean": 1.908686075771912,
+      "n": 384
+     }
+    },
+    "historical_retrieval": {
+     "access": {
+      "ci": [
+       0.9609375,
+       0.9830729166666666
+      ],
+      "level": 0.95,
+      "mean": 0.97265625,
+      "n": 384
+     },
+     "routing": {
+      "ci": [
+       0.9817708333333334,
+       0.99609375
+      ],
+      "level": 0.95,
+      "mean": 0.9895833333333334,
+      "n": 384
+     }
+    },
+    "joint_correctness": {
+     "access:competing:entity_mention": {
+      "D": {
+       "ci": [
+        4.413471461280033,
+        5.954129353947038
+       ],
+       "level": 0.95,
+       "mean": 5.175883790266328,
+       "n": 84
+      },
+      "n_retained": 84,
+      "n_total": 128,
+      "switch": {
+       "ci": [
+        0.11904761904761904,
+        0.27380952380952384
+       ],
+       "level": 0.95,
+       "mean": 0.19047619047619047,
+       "n": 84
+      },
+      "to_correct": 0,
+      "to_wrong": 16
+     },
+     "access:competing:superseded": {
+      "D": {
+       "ci": [
+        2.547125822542816,
+        3.9066598731271114
+       ],
+       "level": 0.95,
+       "mean": 3.22870469783594,
+       "n": 93
+      },
+      "n_retained": 93,
+      "n_total": 128,
+      "switch": {
+       "ci": [
+        0.03225806451612903,
+        0.15053763440860216
+       ],
+       "level": 0.95,
+       "mean": 0.08602150537634409,
+       "n": 93
+      },
+      "to_correct": 0,
+      "to_wrong": 8
+     },
+     "access:competing:unassigned": {
+      "D": {
+       "ci": [
+        2.04770126437462,
+        3.483313795108434
+       ],
+       "level": 0.95,
+       "mean": 2.7667406562721126,
+       "n": 90
+      },
+      "n_retained": 90,
+      "n_total": 128,
+      "switch": {
+       "ci": [
+        0.0,
+        0.03333333333333333
+       ],
+       "level": 0.95,
+       "mean": 0.011111111111111112,
+       "n": 90
+      },
+      "to_correct": 0,
+      "to_wrong": 1
+     },
+     "access:competing:updated_other": {
+      "D": {
+       "ci": [
+        3.2162972880324188,
+        4.468831174285664
+       ],
+       "level": 0.95,
+       "mean": 3.810707146926825,
+       "n": 89
+      },
+      "n_retained": 89,
+      "n_total": 128,
+      "switch": {
+       "ci": [
+        0.011235955056179775,
+        0.11235955056179775
+       ],
+       "level": 0.95,
+       "mean": 0.056179775280898875,
+       "n": 89
+      },
+      "to_correct": 0,
+      "to_wrong": 5
+     },
+     "access:entity_mention": {
+      "D": {
+       "ci": [
+        4.774899526062366,
+        5.736617717480374
+       ],
+       "level": 0.95,
+       "mean": 5.239559356496074,
+       "n": 274
+      },
+      "n_retained": 274,
+      "n_total": 384,
+      "switch": {
+       "ci": [
+        0.12408759124087591,
+        0.21532846715328466
+       ],
+       "level": 0.95,
+       "mean": 0.1678832116788321,
+       "n": 274
+      },
+      "to_correct": 1,
+      "to_wrong": 47
+     },
+     "access:interleaved:entity_mention": {
+      "D": {
+       "ci": [
+        4.139890899399847,
+        5.918560471298119
+       ],
+       "level": 0.95,
+       "mean": 5.013556791155063,
+       "n": 97
+      },
+      "n_retained": 97,
+      "n_total": 128,
+      "switch": {
+       "ci": [
+        0.08247422680412371,
+        0.2268041237113402
+       ],
+       "level": 0.95,
+       "mean": 0.15463917525773196,
+       "n": 97
+      },
+      "to_correct": 1,
+      "to_wrong": 16
+     },
+     "access:interleaved:superseded": {
+      "D": {
+       "ci": [
+        3.786107635485725,
+        5.48862881281841
+       ],
+       "level": 0.95,
+       "mean": 4.623058234653589,
+       "n": 98
+      },
+      "n_retained": 98,
+      "n_total": 128,
+      "switch": {
+       "ci": [
+        0.19387755102040816,
+        0.3673469387755102
+       ],
+       "level": 0.95,
+       "mean": 0.2755102040816326,
+       "n": 98
+      },
+      "to_correct": 0,
+      "to_wrong": 27
+     },
+     "access:interleaved:unassigned": {
+      "D": {
+       "ci": [
+        2.411178368385279,
+        3.9224163876001383
+       ],
+       "level": 0.95,
+       "mean": 3.175753640675487,
+       "n": 99
+      },
+      "n_retained": 99,
+      "n_total": 128,
+      "switch": {
+       "ci": [
+        0.0,
+        0.050505050505050504
+       ],
+       "level": 0.95,
+       "mean": 0.020202020202020204,
+       "n": 99
+      },
+      "to_correct": 0,
+      "to_wrong": 2
+     },
+     "access:interleaved:updated_other": {
+      "D": {
+       "ci": [
+        3.807127960726417,
+        5.1103426236961935
+       ],
+       "level": 0.95,
+       "mean": 4.434466092734948,
+       "n": 99
+      },
+      "n_retained": 99,
+      "n_total": 128,
+      "switch": {
+       "ci": [
+        0.08080808080808081,
+        0.2222222222222222
+       ],
+       "level": 0.95,
+       "mean": 0.15151515151515152,
+       "n": 99
+      },
+      "to_correct": 0,
+      "to_wrong": 15
+     },
+     "access:sequential:entity_mention": {
+      "D": {
+       "ci": [
+        4.730886464129256,
+        6.381963023775088
+       ],
+       "level": 0.95,
+       "mean": 5.532795876940986,
+       "n": 93
+      },
+      "n_retained": 93,
+      "n_total": 128,
+      "switch": {
+       "ci": [
+        0.0967741935483871,
+        0.23655913978494625
+       ],
+       "level": 0.95,
+       "mean": 0.16129032258064516,
+       "n": 93
+      },
+      "to_correct": 0,
+      "to_wrong": 15
+     },
+     "access:sequential:superseded": {
+      "D": {
+       "ci": [
+        3.449649191966042,
+        5.192999697515809
+       ],
+       "level": 0.95,
+       "mean": 4.295561096801239,
+       "n": 93
+      },
+      "n_retained": 93,
+      "n_total": 128,
+      "switch": {
+       "ci": [
+        0.0965053763440865,
+        0.23655913978494625
+       ],
+       "level": 0.95,
+       "mean": 0.16129032258064516,
+       "n": 93
+      },
+      "to_correct": 0,
+      "to_wrong": 15
+     },
+     "access:sequential:unassigned": {
+      "D": {
+       "ci": [
+        2.8841232241693655,
+        4.555053125798697
+       ],
+       "level": 0.95,
+       "mean": 3.700751495012787,
+       "n": 97
+      },
+      "n_retained": 97,
+      "n_total": 128,
+      "switch": {
+       "ci": [
+        0.05154639175257732,
+        0.16494845360824742
+       ],
+       "level": 0.95,
+       "mean": 0.10309278350515463,
+       "n": 97
+      },
+      "to_correct": 0,
+      "to_wrong": 10
+     },
+     "access:sequential:updated_other": {
+      "D": {
+       "ci": [
+        2.3312700645248854,
+        3.8624642749586546
+       ],
+       "level": 0.95,
+       "mean": 3.1042282353554564,
+       "n": 101
+      },
+      "n_retained": 101,
+      "n_total": 128,
+      "switch": {
+       "ci": [
+        -0.019801980198019802,
+        0.09900990099009901
+       ],
+       "level": 0.95,
+       "mean": 0.039603960396039604,
+       "n": 101
+      },
+      "to_correct": 3,
+      "to_wrong": 7
+     },
+     "access:superseded": {
+      "D": {
+       "ci": [
+        3.5787782231384457,
+        4.554992279223734
+       ],
+       "level": 0.95,
+       "mean": 4.0592127672440474,
+       "n": 284
+      },
+      "n_retained": 284,
+      "n_total": 384,
+      "switch": {
+       "ci": [
+        0.13380281690140844,
+        0.21830985915492956
+       ],
+       "level": 0.95,
+       "mean": 0.176056338028169,
+       "n": 284
+      },
+      "to_correct": 0,
+      "to_wrong": 50
+     },
+     "access:unassigned": {
+      "D": {
+       "ci": [
+        2.78628632836806,
+        3.6591677957707156
+       ],
+       "level": 0.95,
+       "mean": 3.22510197380281,
+       "n": 286
+      },
+      "n_retained": 286,
+      "n_total": 384,
+      "switch": {
+       "ci": [
+        0.024475524475524476,
+        0.06993006993006994
+       ],
+       "level": 0.95,
+       "mean": 0.045454545454545456,
+       "n": 286
+      },
+      "to_correct": 0,
+      "to_wrong": 13
+     },
+     "access:updated_other": {
+      "D": {
+       "ci": [
+        3.37685685753992,
+        4.174559011635107
+       ],
+       "level": 0.95,
+       "mean": 3.7774814222427273,
+       "n": 289
+      },
+      "n_retained": 289,
+      "n_total": 384,
+      "switch": {
+       "ci": [
+        0.04844290657439446,
+        0.12110726643598616
+       ],
+       "level": 0.95,
+       "mean": 0.08304498269896193,
+       "n": 289
+      },
+      "to_correct": 3,
+      "to_wrong": 27
+     },
+     "routing:competing:entity_mention": {
+      "D": {
+       "ci": [
+        3.658935430374509,
+        4.925766968163741
+       ],
+       "level": 0.95,
+       "mean": 4.278229854817089,
+       "n": 118
+      },
+      "n_retained": 118,
+      "n_total": 128,
+      "switch": {
+       "ci": [
+        0.16101694915254236,
+        0.3135593220338983
+       ],
+       "level": 0.95,
+       "mean": 0.23728813559322035,
+       "n": 118
+      },
+      "to_correct": 0,
+      "to_wrong": 28
+     },
+     "routing:competing:superseded": {
+      "D": {
+       "ci": [
+        2.2227073736545133,
+        3.291437196286303
+       ],
+       "level": 0.95,
+       "mean": 2.7644002125619522,
+       "n": 116
+      },
+      "n_retained": 116,
+      "n_total": 128,
+      "switch": {
+       "ci": [
+        0.06896551724137931,
+        0.1896551724137931
+       ],
+       "level": 0.95,
+       "mean": 0.12931034482758622,
+       "n": 116
+      },
+      "to_correct": 0,
+      "to_wrong": 15
+     },
+     "routing:competing:unassigned": {
+      "D": {
+       "ci": [
+        1.4547510587911092,
+        2.5710031085891076
+       ],
+       "level": 0.95,
+       "mean": 1.996294294711741,
+       "n": 117
+      },
+      "n_retained": 117,
+      "n_total": 128,
+      "switch": {
+       "ci": [
+        -0.042735042735042736,
+        0.042735042735042736
+       ],
+       "level": 0.95,
+       "mean": 0.0,
+       "n": 117
+      },
+      "to_correct": 3,
+      "to_wrong": 3
+     },
+     "routing:competing:updated_other": {
+      "D": {
+       "ci": [
+        1.2930050248464124,
+        2.243858593875311
+       ],
+       "level": 0.95,
+       "mean": 1.7646101615856316,
+       "n": 119
+      },
+      "n_retained": 119,
+      "n_total": 128,
+      "switch": {
+       "ci": [
+        -0.025210084033613446,
+        0.09243697478991597
+       ],
+       "level": 0.95,
+       "mean": 0.03361344537815126,
+       "n": 119
+      },
+      "to_correct": 4,
+      "to_wrong": 8
+     },
+     "routing:entity_mention": {
+      "D": {
+       "ci": [
+        4.2926301445571875,
+        5.027293463891726
+       ],
+       "level": 0.95,
+       "mean": 4.649139056246681,
+       "n": 349
+      },
+      "n_retained": 349,
+      "n_total": 384,
+      "switch": {
+       "ci": [
+        0.23209169054441262,
+        0.32664756446991405
+       ],
+       "level": 0.95,
+       "mean": 0.27793696275071633,
+       "n": 349
+      },
+      "to_correct": 0,
+      "to_wrong": 97
+     },
+     "routing:interleaved:entity_mention": {
+      "D": {
+       "ci": [
+        3.9719590837567864,
+        5.154218860585593
+       ],
+       "level": 0.95,
+       "mean": 4.524389338927057,
+       "n": 116
+      },
+      "n_retained": 116,
+      "n_total": 128,
+      "switch": {
+       "ci": [
+        0.20689655172413793,
+        0.3620689655172414
+       ],
+       "level": 0.95,
+       "mean": 0.28448275862068967,
+       "n": 116
+      },
+      "to_correct": 0,
+      "to_wrong": 33
+     },
+     "routing:interleaved:superseded": {
+      "D": {
+       "ci": [
+        2.622289357873466,
+        3.909519344801682
+       ],
+       "level": 0.95,
+       "mean": 3.2521228044531174,
+       "n": 114
+      },
+      "n_retained": 114,
+      "n_total": 128,
+      "switch": {
+       "ci": [
+        0.13157894736842105,
+        0.2807017543859649
+       ],
+       "level": 0.95,
+       "mean": 0.20175438596491227,
+       "n": 114
+      },
+      "to_correct": 1,
+      "to_wrong": 24
+     },
+     "routing:interleaved:unassigned": {
+      "D": {
+       "ci": [
+        1.7830672931535119,
+        2.7885188372199843
+       ],
+       "level": 0.95,
+       "mean": 2.2987542286119647,
+       "n": 114
+      },
+      "n_retained": 114,
+      "n_total": 128,
+      "switch": {
+       "ci": [
+        0.017543859649122806,
+        0.09649122807017543
+       ],
+       "level": 0.95,
+       "mean": 0.05263157894736842,
+       "n": 114
+      },
+      "to_correct": 0,
+      "to_wrong": 6
+     },
+     "routing:interleaved:updated_other": {
+      "D": {
+       "ci": [
+        1.4125053023406007,
+        2.148497287743728
+       ],
+       "level": 0.95,
+       "mean": 1.7755890750655154,
+       "n": 116
+      },
+      "n_retained": 116,
+      "n_total": 128,
+      "switch": {
+       "ci": [
+        -0.008620689655172414,
+        0.1206896551724138
+       ],
+       "level": 0.95,
+       "mean": 0.05172413793103448,
+       "n": 116
+      },
+      "to_correct": 4,
+      "to_wrong": 10
+     },
+     "routing:sequential:entity_mention": {
+      "D": {
+       "ci": [
+        4.482702573640266,
+        5.821405489278425
+       ],
+       "level": 0.95,
+       "mean": 5.155558647357707,
+       "n": 115
+      },
+      "n_retained": 115,
+      "n_total": 128,
+      "switch": {
+       "ci": [
+        0.22608695652173913,
+        0.4
+       ],
+       "level": 0.95,
+       "mean": 0.3130434782608696,
+       "n": 115
+      },
+      "to_correct": 0,
+      "to_wrong": 36
+     },
+     "routing:sequential:superseded": {
+      "D": {
+       "ci": [
+        2.3619310150348447,
+        3.568303692114963
+       ],
+       "level": 0.95,
+       "mean": 2.9587301398822214,
+       "n": 118
+      },
+      "n_retained": 118,
+      "n_total": 128,
+      "switch": {
+       "ci": [
+        0.07627118644067797,
+        0.22033898305084745
+       ],
+       "level": 0.95,
+       "mean": 0.1440677966101695,
+       "n": 118
+      },
+      "to_correct": 2,
+      "to_wrong": 19
+     },
+     "routing:sequential:unassigned": {
+      "D": {
+       "ci": [
+        2.55260390263953,
+        3.6817115663042093
+       ],
+       "level": 0.95,
+       "mean": 3.123794825802176,
+       "n": 120
+      },
+      "n_retained": 120,
+      "n_total": 128,
+      "switch": {
+       "ci": [
+        0.0,
+        0.1
+       ],
+       "level": 0.95,
+       "mean": 0.05,
+       "n": 120
+      },
+      "to_correct": 2,
+      "to_wrong": 8
+     },
+     "routing:sequential:updated_other": {
+      "D": {
+       "ci": [
+        1.5125524121942975,
+        2.4910602277978025
+       ],
+       "level": 0.95,
+       "mean": 2.011068795762437,
+       "n": 122
+      },
+      "n_retained": 122,
+      "n_total": 128,
+      "switch": {
+       "ci": [
+        -0.00020491803278652415,
+        0.11475409836065574
+       ],
+       "level": 0.95,
+       "mean": 0.05737704918032787,
+       "n": 122
+      },
+      "to_correct": 4,
+      "to_wrong": 11
+     },
+     "routing:superseded": {
+      "D": {
+       "ci": [
+        2.660804581108452,
+        3.3421410281855737
+       ],
+       "level": 0.95,
+       "mean": 2.990064887560184,
+       "n": 348
+      },
+      "n_retained": 348,
+      "n_total": 384,
+      "switch": {
+       "ci": [
+        0.11781609195402298,
+        0.19827586206896552
+       ],
+       "level": 0.95,
+       "mean": 0.15804597701149425,
+       "n": 348
+      },
+      "to_correct": 3,
+      "to_wrong": 58
+     },
+     "routing:unassigned": {
+      "D": {
+       "ci": [
+        2.165101524912682,
+        2.7937582091962616
+       ],
+       "level": 0.95,
+       "mean": 2.479999412077774,
+       "n": 351
+      },
+      "n_retained": 351,
+      "n_total": 384,
+      "switch": {
+       "ci": [
+        0.008547008547008548,
+        0.05982905982905983
+       ],
+       "level": 0.95,
+       "mean": 0.03418803418803419,
+       "n": 351
+      },
+      "to_correct": 5,
+      "to_wrong": 17
+     },
+     "routing:updated_other": {
+      "D": {
+       "ci": [
+        1.596997938571265,
+        2.122484307120211
+       ],
+       "level": 0.95,
+       "mean": 1.8524014986535218,
+       "n": 357
+      },
+      "n_retained": 357,
+      "n_total": 384,
+      "switch": {
+       "ci": [
+        0.014005602240896359,
+        0.08403361344537816
+       ],
+       "level": 0.95,
+       "mean": 0.047619047619047616,
+       "n": 357
+      },
+      "to_correct": 12,
+      "to_wrong": 29
+     }
+    },
+    "member_accuracy": {
+     "access:competing:entity_mention": {
+      "old_implies_correct": {
+       "ci": [
+        0.890625,
+        0.9765625
+       ],
+       "level": 0.95,
+       "mean": 0.9375,
+       "n": 128
+      },
+      "old_implies_wrong": {
+       "ci": [
+        0.640625,
+        0.796875
+       ],
+       "level": 0.95,
+       "mean": 0.71875,
+       "n": 128
+      }
+     },
+     "access:competing:superseded": {
+      "old_implies_correct": {
+       "ci": [
+        0.8125,
+        0.9296875
+       ],
+       "level": 0.95,
+       "mean": 0.875,
+       "n": 128
+      },
+      "old_implies_wrong": {
+       "ci": [
+        0.7109375,
+        0.8515625
+       ],
+       "level": 0.95,
+       "mean": 0.78125,
+       "n": 128
+      }
+     },
+     "access:competing:unassigned": {
+      "old_implies_correct": {
+       "ci": [
+        0.890625,
+        0.9765625
+       ],
+       "level": 0.95,
+       "mean": 0.9375,
+       "n": 128
+      },
+      "old_implies_wrong": {
+       "ci": [
+        0.890625,
+        0.9765625
+       ],
+       "level": 0.95,
+       "mean": 0.9375,
+       "n": 128
+      }
+     },
+     "access:competing:updated_other": {
+      "old_implies_correct": {
+       "ci": [
+        0.8828125,
+        0.9689453124999989
+       ],
+       "level": 0.95,
+       "mean": 0.9296875,
+       "n": 128
+      },
+      "old_implies_wrong": {
+       "ci": [
+        0.75,
+        0.8830078124999989
+       ],
+       "level": 0.95,
+       "mean": 0.8203125,
+       "n": 128
+      }
+     },
+     "access:interleaved:entity_mention": {
+      "old_implies_correct": {
+       "ci": [
+        0.90625,
+        0.984375
+       ],
+       "level": 0.95,
+       "mean": 0.9453125,
+       "n": 128
+      },
+      "old_implies_wrong": {
+       "ci": [
+        0.6484375,
+        0.8046875
+       ],
+       "level": 0.95,
+       "mean": 0.7265625,
+       "n": 128
+      }
+     },
+     "access:interleaved:superseded": {
+      "old_implies_correct": {
+       "ci": [
+        0.921875,
+        0.9921875
+       ],
+       "level": 0.95,
+       "mean": 0.9609375,
+       "n": 128
+      },
+      "old_implies_wrong": {
+       "ci": [
+        0.6015625,
+        0.765625
+       ],
+       "level": 0.95,
+       "mean": 0.6875,
+       "n": 128
+      }
+     },
+     "access:interleaved:unassigned": {
+      "old_implies_correct": {
+       "ci": [
+        0.9609375,
+        1.0
+       ],
+       "level": 0.95,
+       "mean": 0.984375,
+       "n": 128
+      },
+      "old_implies_wrong": {
+       "ci": [
+        0.8359375,
+        0.9453125
+       ],
+       "level": 0.95,
+       "mean": 0.890625,
+       "n": 128
+      }
+     },
+     "access:interleaved:updated_other": {
+      "old_implies_correct": {
+       "ci": [
+        0.9140625,
+        0.984375
+       ],
+       "level": 0.95,
+       "mean": 0.953125,
+       "n": 128
+      },
+      "old_implies_wrong": {
+       "ci": [
+        0.640625,
+        0.796875
+       ],
+       "level": 0.95,
+       "mean": 0.71875,
+       "n": 128
+      }
+     },
+     "access:sequential:entity_mention": {
+      "old_implies_correct": {
+       "ci": [
+        0.8671875,
+        0.9609375
+       ],
+       "level": 0.95,
+       "mean": 0.9140625,
+       "n": 128
+      },
+      "old_implies_wrong": {
+       "ci": [
+        0.6875,
+        0.8359375
+       ],
+       "level": 0.95,
+       "mean": 0.765625,
+       "n": 128
+      }
+     },
+     "access:sequential:superseded": {
+      "old_implies_correct": {
+       "ci": [
+        0.7890625,
+        0.9064453124999989
+       ],
+       "level": 0.95,
+       "mean": 0.8515625,
+       "n": 128
+      },
+      "old_implies_wrong": {
+       "ci": [
+        0.640625,
+        0.796875
+       ],
+       "level": 0.95,
+       "mean": 0.71875,
+       "n": 128
+      }
+     },
+     "access:sequential:unassigned": {
+      "old_implies_correct": {
+       "ci": [
+        0.875,
+        0.96875
+       ],
+       "level": 0.95,
+       "mean": 0.921875,
+       "n": 128
+      },
+      "old_implies_wrong": {
+       "ci": [
+        0.7578125,
+        0.890625
+       ],
+       "level": 0.95,
+       "mean": 0.828125,
+       "n": 128
+      }
+     },
+     "access:sequential:updated_other": {
+      "old_implies_correct": {
+       "ci": [
+        0.796875,
+        0.9140625
+       ],
+       "level": 0.95,
+       "mean": 0.859375,
+       "n": 128
+      },
+      "old_implies_wrong": {
+       "ci": [
+        0.7109375,
+        0.8515625
+       ],
+       "level": 0.95,
+       "mean": 0.7890625,
+       "n": 128
+      }
+     },
+     "routing:competing:entity_mention": {
+      "old_implies_correct": {
+       "ci": [
+        0.8203125,
+        0.9375
+       ],
+       "level": 0.95,
+       "mean": 0.8828125,
+       "n": 128
+      },
+      "old_implies_wrong": {
+       "ci": [
+        0.5390625,
+        0.7109375
+       ],
+       "level": 0.95,
+       "mean": 0.625,
+       "n": 128
+      }
+     },
+     "routing:competing:superseded": {
+      "old_implies_correct": {
+       "ci": [
+        0.8515625,
+        0.953125
+       ],
+       "level": 0.95,
+       "mean": 0.90625,
+       "n": 128
+      },
+      "old_implies_wrong": {
+       "ci": [
+        0.6640625,
+        0.8125
+       ],
+       "level": 0.95,
+       "mean": 0.7421875,
+       "n": 128
+      }
+     },
+     "routing:competing:unassigned": {
+      "old_implies_correct": {
+       "ci": [
+        0.890625,
+        0.9765625
+       ],
+       "level": 0.95,
+       "mean": 0.9375,
+       "n": 128
+      },
+      "old_implies_wrong": {
+       "ci": [
+        0.875,
+        0.96875
+       ],
+       "level": 0.95,
+       "mean": 0.9296875,
+       "n": 128
+      }
+     },
+     "routing:competing:updated_other": {
+      "old_implies_correct": {
+       "ci": [
+        0.84375,
+        0.9453125
+       ],
+       "level": 0.95,
+       "mean": 0.8984375,
+       "n": 128
+      },
+      "old_implies_wrong": {
+       "ci": [
+        0.7734375,
+        0.90625
+       ],
+       "level": 0.95,
+       "mean": 0.84375,
+       "n": 128
+      }
+     },
+     "routing:interleaved:entity_mention": {
+      "old_implies_correct": {
+       "ci": [
+        0.921875,
+        0.9921875
+       ],
+       "level": 0.95,
+       "mean": 0.9609375,
+       "n": 128
+      },
+      "old_implies_wrong": {
+       "ci": [
+        0.6091796875000004,
+        0.765625
+       ],
+       "level": 0.95,
+       "mean": 0.6875,
+       "n": 128
+      }
+     },
+     "routing:interleaved:superseded": {
+      "old_implies_correct": {
+       "ci": [
+        0.9140625,
+        0.984375
+       ],
+       "level": 0.95,
+       "mean": 0.953125,
+       "n": 128
+      },
+      "old_implies_wrong": {
+       "ci": [
+        0.6484375,
+        0.8046875
+       ],
+       "level": 0.95,
+       "mean": 0.7265625,
+       "n": 128
+      }
+     },
+     "routing:interleaved:unassigned": {
+      "old_implies_correct": {
+       "ci": [
+        0.8984375,
+        0.984375
+       ],
+       "level": 0.95,
+       "mean": 0.9453125,
+       "n": 128
+      },
+      "old_implies_wrong": {
+       "ci": [
+        0.8359375,
+        0.9375
+       ],
+       "level": 0.95,
+       "mean": 0.890625,
+       "n": 128
+      }
+     },
+     "routing:interleaved:updated_other": {
+      "old_implies_correct": {
+       "ci": [
+        0.8828125,
+        0.96875
+       ],
+       "level": 0.95,
+       "mean": 0.9296875,
+       "n": 128
+      },
+      "old_implies_wrong": {
+       "ci": [
+        0.7890625,
+        0.9140625
+       ],
+       "level": 0.95,
+       "mean": 0.8515625,
+       "n": 128
+      }
+     },
+     "routing:sequential:entity_mention": {
+      "old_implies_correct": {
+       "ci": [
+        0.9375,
+        0.9921875
+       ],
+       "level": 0.95,
+       "mean": 0.96875,
+       "n": 128
+      },
+      "old_implies_wrong": {
+       "ci": [
+        0.5390625,
+        0.703125
+       ],
+       "level": 0.95,
+       "mean": 0.6171875,
+       "n": 128
+      }
+     },
+     "routing:sequential:superseded": {
+      "old_implies_correct": {
+       "ci": [
+        0.8671875,
+        0.953125
+       ],
+       "level": 0.95,
+       "mean": 0.9140625,
+       "n": 128
+      },
+      "old_implies_wrong": {
+       "ci": [
+        0.6794921875000004,
+        0.828125
+       ],
+       "level": 0.95,
+       "mean": 0.75,
+       "n": 128
+      }
+     },
+     "routing:sequential:unassigned": {
+      "old_implies_correct": {
+       "ci": [
+        0.9140625,
+        0.984375
+       ],
+       "level": 0.95,
+       "mean": 0.953125,
+       "n": 128
+      },
+      "old_implies_wrong": {
+       "ci": [
+        0.84375,
+        0.9453125
+       ],
+       "level": 0.95,
+       "mean": 0.8984375,
+       "n": 128
+      }
+     },
+     "routing:sequential:updated_other": {
+      "old_implies_correct": {
+       "ci": [
+        0.859375,
+        0.9609375
+       ],
+       "level": 0.95,
+       "mean": 0.9140625,
+       "n": 128
+      },
+      "old_implies_wrong": {
+       "ci": [
+        0.7890625,
+        0.90625
+       ],
+       "level": 0.95,
+       "mean": 0.8515625,
+       "n": 128
+      }
+     }
+    },
+    "primary": {
+     "access": {
+      "D_superseded": {
+       "ci": [
+        3.474318066074876,
+        4.346413675938563
+       ],
+       "level": 0.975,
+       "mean": 3.9042633821640913,
+       "n": 384
+      },
+      "Delta_mention": {
+       "ci": [
+        -1.579405664766545,
+        -0.9768107923499662
+       ],
+       "level": 0.95,
+       "mean": -1.277646296108939,
+       "n": 384
+      },
+      "Delta_semantic": {
+       "ci": [
+        -0.3179970554338163,
+        0.3999649731282761
+       ],
+       "level": 0.975,
+       "mean": 0.035205382179699686,
+       "n": 384
+      }
+     },
+     "routing": {
+      "D_superseded": {
+       "ci": [
+        2.7426179245704563,
+        3.5157770783905447
+       ],
+       "level": 0.975,
+       "mean": 3.1325265414285854,
+       "n": 384
+      },
+      "Delta_mention": {
+       "ci": [
+        -1.8963363434373035,
+        -1.4405278158106105
+       ],
+       "level": 0.95,
+       "mean": -1.674653124908744,
+       "n": 384
+      },
+      "Delta_semantic": {
+       "ci": [
+        0.9730716174280066,
+        1.4847011596289537
+       ],
+       "level": 0.975,
+       "mean": 1.2238404656566733,
+       "n": 384
+      }
+     }
+    },
+    "run": {
+     "gpu_hours": 6.27198857433473,
+     "mean_prompt_tokens": 199.03030303030303,
+     "seconds_per_record": 2.672722403835823
+    },
+    "switches": {
+     "access:all": {
+      "switch_Delta_mention": {
+       "confidence_interval": [
+        -0.07298177083333322,
+        0.020833333333333332
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": -0.028645833333333332,
+       "n_histories": 384,
+       "seed": 81004
+      },
+      "switch_Delta_semantic": {
+       "confidence_interval": [
+        -0.015625,
+        0.07291666666666667
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": 0.028645833333333332,
+       "n_histories": 384,
+       "seed": 81004
+      },
+      "switch_counts": {
+       "entity_mention": {
+        "n_histories": 384,
+        "to_correct": 1,
+        "to_wrong": 76
+       },
+       "superseded": {
+        "n_histories": 384,
+        "to_correct": 1,
+        "to_wrong": 65
+       },
+       "unassigned": {
+        "n_histories": 384,
+        "to_correct": 5,
+        "to_wrong": 29
+       },
+       "updated_other": {
+        "n_histories": 384,
+        "to_correct": 3,
+        "to_wrong": 56
+       }
+      },
+      "switch_entity_mention": {
+       "confidence_interval": [
+        0.15625,
+        0.234375
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": 0.1953125,
+       "n_histories": 384,
+       "seed": 81004
+      },
+      "switch_superseded": {
+       "confidence_interval": [
+        0.13020833333333334,
+        0.20572916666666666
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": 0.16666666666666666,
+       "n_histories": 384,
+       "seed": 81004
+      },
+      "switch_unassigned": {
+       "confidence_interval": [
+        0.033854166666666664,
+        0.09114583333333333
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": 0.0625,
+       "n_histories": 384,
+       "seed": 81004
+      },
+      "switch_updated_other": {
+       "confidence_interval": [
+        0.10410156250000012,
+        0.17447916666666666
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": 0.13802083333333334,
+       "n_histories": 384,
+       "seed": 81004
+      }
+     },
+     "access:competing": {
+      "switch_Delta_mention": {
+       "confidence_interval": [
+        -0.1953125,
+        -0.0546875
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": -0.125,
+       "n_histories": 128,
+       "seed": 81004
+      },
+      "switch_Delta_semantic": {
+       "confidence_interval": [
+        -0.078125,
+        0.046875
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": -0.015625,
+       "n_histories": 128,
+       "seed": 81004
+      },
+      "switch_counts": {
+       "entity_mention": {
+        "n_histories": 128,
+        "to_correct": 0,
+        "to_wrong": 28
+       },
+       "superseded": {
+        "n_histories": 128,
+        "to_correct": 0,
+        "to_wrong": 12
+       },
+       "unassigned": {
+        "n_histories": 128,
+        "to_correct": 5,
+        "to_wrong": 5
+       },
+       "updated_other": {
+        "n_histories": 128,
+        "to_correct": 0,
+        "to_wrong": 14
+       }
+      },
+      "switch_entity_mention": {
+       "confidence_interval": [
+        0.1484375,
+        0.2890625
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": 0.21875,
+       "n_histories": 128,
+       "seed": 81004
+      },
+      "switch_superseded": {
+       "confidence_interval": [
+        0.046875,
+        0.1484375
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": 0.09375,
+       "n_histories": 128,
+       "seed": 81004
+      },
+      "switch_unassigned": {
+       "confidence_interval": [
+        -0.046875,
+        0.046875
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": 0.0,
+       "n_histories": 128,
+       "seed": 81004
+      },
+      "switch_updated_other": {
+       "confidence_interval": [
+        0.0625,
+        0.171875
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": 0.109375,
+       "n_histories": 128,
+       "seed": 81004
+      }
+     },
+     "access:interleaved": {
+      "switch_Delta_mention": {
+       "confidence_interval": [
+        -0.046875,
+        0.15625
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": 0.0546875,
+       "n_histories": 128,
+       "seed": 81004
+      },
+      "switch_Delta_semantic": {
+       "confidence_interval": [
+        -0.0390625,
+        0.125
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": 0.0390625,
+       "n_histories": 128,
+       "seed": 81004
+      },
+      "switch_counts": {
+       "entity_mention": {
+        "n_histories": 128,
+        "to_correct": 1,
+        "to_wrong": 29
+       },
+       "superseded": {
+        "n_histories": 128,
+        "to_correct": 0,
+        "to_wrong": 35
+       },
+       "unassigned": {
+        "n_histories": 128,
+        "to_correct": 0,
+        "to_wrong": 12
+       },
+       "updated_other": {
+        "n_histories": 128,
+        "to_correct": 0,
+        "to_wrong": 30
+       }
+      },
+      "switch_entity_mention": {
+       "confidence_interval": [
+        0.1484375,
+        0.296875
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": 0.21875,
+       "n_histories": 128,
+       "seed": 81004
+      },
+      "switch_superseded": {
+       "confidence_interval": [
+        0.1953125,
+        0.3515625
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": 0.2734375,
+       "n_histories": 128,
+       "seed": 81004
+      },
+      "switch_unassigned": {
+       "confidence_interval": [
+        0.046875,
+        0.1484375
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": 0.09375,
+       "n_histories": 128,
+       "seed": 81004
+      },
+      "switch_updated_other": {
+       "confidence_interval": [
+        0.1640625,
+        0.3046875
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": 0.234375,
+       "n_histories": 128,
+       "seed": 81004
+      }
+     },
+     "access:sequential": {
+      "switch_Delta_mention": {
+       "confidence_interval": [
+        -0.0859375,
+        0.0546875
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": -0.015625,
+       "n_histories": 128,
+       "seed": 81004
+      },
+      "switch_Delta_semantic": {
+       "confidence_interval": [
+        -0.015625,
+        0.140625
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": 0.0625,
+       "n_histories": 128,
+       "seed": 81004
+      },
+      "switch_counts": {
+       "entity_mention": {
+        "n_histories": 128,
+        "to_correct": 0,
+        "to_wrong": 19
+       },
+       "superseded": {
+        "n_histories": 128,
+        "to_correct": 1,
+        "to_wrong": 18
+       },
+       "unassigned": {
+        "n_histories": 128,
+        "to_correct": 0,
+        "to_wrong": 12
+       },
+       "updated_other": {
+        "n_histories": 128,
+        "to_correct": 3,
+        "to_wrong": 12
+       }
+      },
+      "switch_entity_mention": {
+       "confidence_interval": [
+        0.09375,
+        0.2109375
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": 0.1484375,
+       "n_histories": 128,
+       "seed": 81004
+      },
+      "switch_superseded": {
+       "confidence_interval": [
+        0.0703125,
+        0.1953125
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": 0.1328125,
+       "n_histories": 128,
+       "seed": 81004
+      },
+      "switch_unassigned": {
+       "confidence_interval": [
+        0.046875,
+        0.1484375
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": 0.09375,
+       "n_histories": 128,
+       "seed": 81004
+      },
+      "switch_updated_other": {
+       "confidence_interval": [
+        0.015625,
+        0.12519531249999893
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": 0.0703125,
+       "n_histories": 128,
+       "seed": 81004
+      }
+     },
+     "routing:all": {
+      "switch_Delta_mention": {
+       "confidence_interval": [
+        -0.15625,
+        -0.06510416666666667
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": -0.109375,
+       "n_histories": 384,
+       "seed": 81004
+      },
+      "switch_Delta_semantic": {
+       "confidence_interval": [
+        0.07552083333333333,
+        0.1640625
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": 0.11979166666666667,
+       "n_histories": 384,
+       "seed": 81004
+      },
+      "switch_counts": {
+       "entity_mention": {
+        "n_histories": 384,
+        "to_correct": 0,
+        "to_wrong": 113
+       },
+       "superseded": {
+        "n_histories": 384,
+        "to_correct": 4,
+        "to_wrong": 75
+       },
+       "unassigned": {
+        "n_histories": 384,
+        "to_correct": 8,
+        "to_wrong": 23
+       },
+       "updated_other": {
+        "n_histories": 384,
+        "to_correct": 12,
+        "to_wrong": 37
+       }
+      },
+      "switch_entity_mention": {
+       "confidence_interval": [
+        0.25,
+        0.3411458333333333
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": 0.2942708333333333,
+       "n_histories": 384,
+       "seed": 81004
+      },
+      "switch_superseded": {
+       "confidence_interval": [
+        0.14322916666666666,
+        0.2265625
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": 0.18489583333333334,
+       "n_histories": 384,
+       "seed": 81004
+      },
+      "switch_unassigned": {
+       "confidence_interval": [
+        0.013020833333333334,
+        0.06770833333333333
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": 0.0390625,
+       "n_histories": 384,
+       "seed": 81004
+      },
+      "switch_updated_other": {
+       "confidence_interval": [
+        0.028645833333333332,
+        0.09895833333333333
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": 0.06510416666666667,
+       "n_histories": 384,
+       "seed": 81004
+      }
+     },
+     "routing:competing": {
+      "switch_Delta_mention": {
+       "confidence_interval": [
+        -0.171875,
+        -0.015625
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": -0.09375,
+       "n_histories": 128,
+       "seed": 81004
+      },
+      "switch_Delta_semantic": {
+       "confidence_interval": [
+        0.046875,
+        0.1796875
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": 0.109375,
+       "n_histories": 128,
+       "seed": 81004
+      },
+      "switch_counts": {
+       "entity_mention": {
+        "n_histories": 128,
+        "to_correct": 0,
+        "to_wrong": 33
+       },
+       "superseded": {
+        "n_histories": 128,
+        "to_correct": 0,
+        "to_wrong": 21
+       },
+       "unassigned": {
+        "n_histories": 128,
+        "to_correct": 4,
+        "to_wrong": 5
+       },
+       "updated_other": {
+        "n_histories": 128,
+        "to_correct": 4,
+        "to_wrong": 11
+       }
+      },
+      "switch_entity_mention": {
+       "confidence_interval": [
+        0.1796875,
+        0.3359375
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": 0.2578125,
+       "n_histories": 128,
+       "seed": 81004
+      },
+      "switch_superseded": {
+       "confidence_interval": [
+        0.1015625,
+        0.234375
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": 0.1640625,
+       "n_histories": 128,
+       "seed": 81004
+      },
+      "switch_unassigned": {
+       "confidence_interval": [
+        -0.0390625,
+        0.0546875
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": 0.0078125,
+       "n_histories": 128,
+       "seed": 81004
+      },
+      "switch_updated_other": {
+       "confidence_interval": [
+        0.0,
+        0.109375
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": 0.0546875,
+       "n_histories": 128,
+       "seed": 81004
+      }
+     },
+     "routing:interleaved": {
+      "switch_Delta_mention": {
+       "confidence_interval": [
+        -0.12519531249999966,
+        0.03125
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": -0.046875,
+       "n_histories": 128,
+       "seed": 81004
+      },
+      "switch_Delta_semantic": {
+       "confidence_interval": [
+        0.0625,
+        0.234375
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": 0.1484375,
+       "n_histories": 128,
+       "seed": 81004
+      },
+      "switch_counts": {
+       "entity_mention": {
+        "n_histories": 128,
+        "to_correct": 0,
+        "to_wrong": 35
+       },
+       "superseded": {
+        "n_histories": 128,
+        "to_correct": 1,
+        "to_wrong": 30
+       },
+       "unassigned": {
+        "n_histories": 128,
+        "to_correct": 1,
+        "to_wrong": 8
+       },
+       "updated_other": {
+        "n_histories": 128,
+        "to_correct": 4,
+        "to_wrong": 14
+       }
+      },
+      "switch_entity_mention": {
+       "confidence_interval": [
+        0.203125,
+        0.3515625
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": 0.2734375,
+       "n_histories": 128,
+       "seed": 81004
+      },
+      "switch_superseded": {
+       "confidence_interval": [
+        0.15625,
+        0.3046875
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": 0.2265625,
+       "n_histories": 128,
+       "seed": 81004
+      },
+      "switch_unassigned": {
+       "confidence_interval": [
+        0.015625,
+        0.1015625
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": 0.0546875,
+       "n_histories": 128,
+       "seed": 81004
+      },
+      "switch_updated_other": {
+       "confidence_interval": [
+        0.015625,
+        0.140625
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": 0.078125,
+       "n_histories": 128,
+       "seed": 81004
+      }
+     },
+     "routing:sequential": {
+      "switch_Delta_mention": {
+       "confidence_interval": [
+        -0.2734375,
+        -0.1015625
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": -0.1875,
+       "n_histories": 128,
+       "seed": 81004
+      },
+      "switch_Delta_semantic": {
+       "confidence_interval": [
+        0.0234375,
+        0.1796875
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": 0.1015625,
+       "n_histories": 128,
+       "seed": 81004
+      },
+      "switch_counts": {
+       "entity_mention": {
+        "n_histories": 128,
+        "to_correct": 0,
+        "to_wrong": 45
+       },
+       "superseded": {
+        "n_histories": 128,
+        "to_correct": 3,
+        "to_wrong": 24
+       },
+       "unassigned": {
+        "n_histories": 128,
+        "to_correct": 3,
+        "to_wrong": 10
+       },
+       "updated_other": {
+        "n_histories": 128,
+        "to_correct": 4,
+        "to_wrong": 12
+       }
+      },
+      "switch_entity_mention": {
+       "confidence_interval": [
+        0.2734375,
+        0.4375
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": 0.3515625,
+       "n_histories": 128,
+       "seed": 81004
+      },
+      "switch_superseded": {
+       "confidence_interval": [
+        0.09375,
+        0.2421875
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": 0.1640625,
+       "n_histories": 128,
+       "seed": 81004
+      },
+      "switch_unassigned": {
+       "confidence_interval": [
+        0.0,
+        0.109375
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": 0.0546875,
+       "n_histories": 128,
+       "seed": 81004
+      },
+      "switch_updated_other": {
+       "confidence_interval": [
+        0.0,
+        0.125
+       ],
+       "confidence_level": 0.95,
+       "draws": 2000,
+       "mean": 0.0625,
+       "n_histories": 128,
+       "seed": 81004
+      }
+     }
+    }
+   },
+   "gate_cells": {
+    "access:competing": {
+     "behavior_eligible": false,
+     "current_only_accuracy": 0.859375,
+     "direct_accuracy": 0.953125,
+     "easy_invalid_rate": 0.008522727272727272,
+     "historical_accuracy": 0.8828125,
+     "invalid_rate": 0.0,
+     "n": 704,
+     "n_current_only": 64,
+     "n_historical": 512,
+     "score_eligible": false
+    },
+    "access:interleaved": {
+     "behavior_eligible": true,
+     "current_only_accuracy": 0.9375,
+     "direct_accuracy": 0.953125,
+     "easy_invalid_rate": 0.01278409090909091,
+     "historical_accuracy": 0.876953125,
+     "invalid_rate": 0.0,
+     "n": 704,
+     "n_current_only": 64,
+     "n_historical": 512,
+     "score_eligible": true
+    },
+    "access:sequential": {
+     "behavior_eligible": false,
+     "current_only_accuracy": 0.90625,
+     "direct_accuracy": 0.8892045454545454,
+     "easy_invalid_rate": 0.05539772727272727,
+     "historical_accuracy": 0.822265625,
+     "invalid_rate": 0.0,
+     "n": 704,
+     "n_current_only": 64,
+     "n_historical": 512,
+     "score_eligible": false
+    },
+    "routing:competing": {
+     "behavior_eligible": false,
+     "current_only_accuracy": 0.9375,
+     "direct_accuracy": 0.9446022727272727,
+     "easy_invalid_rate": 0.0,
+     "historical_accuracy": 0.751953125,
+     "invalid_rate": 0.0,
+     "n": 704,
+     "n_current_only": 64,
+     "n_historical": 512,
+     "score_eligible": false
+    },
+    "routing:interleaved": {
+     "behavior_eligible": true,
+     "current_only_accuracy": 0.9375,
+     "direct_accuracy": 0.9857954545454546,
+     "easy_invalid_rate": 0.0014204545454545455,
+     "historical_accuracy": 0.779296875,
+     "invalid_rate": 0.0,
+     "n": 704,
+     "n_current_only": 64,
+     "n_historical": 512,
+     "score_eligible": true
+    },
+    "routing:sequential": {
+     "behavior_eligible": true,
+     "current_only_accuracy": 0.9375,
+     "direct_accuracy": 0.9772727272727273,
+     "easy_invalid_rate": 0.0,
+     "historical_accuracy": 0.779296875,
+     "invalid_rate": 0.0,
+     "n": 704,
+     "n_current_only": 64,
+     "n_historical": 512,
+     "score_eligible": true
+    }
+   }
   }
  },
  "replication": {

@@ -47,7 +47,8 @@ assignment adds anything to an incidental mention.
 
 \paragraph{Generated switches.} With greedy decoding, a history scores $+1$ for construction $c$ if the
 model answers wrongly under $x^{-}$ and not under $x^{+}$, $-1$ for the reverse, and $0$ otherwise. The
-mean over histories is the net switch rate.
+mean over histories is the \emph{net switch rate}, a value in $[-1, 1]$. The counts of histories with
+$+1$ and $-1$ are reported as \emph{histories switched} to the wrong and to the correct action.
 
 \paragraph{Retrieval checks.} On each record we also ask \emph{easy} queries for the current state of the
 queried entity and of the other entity. For superseded items we ask for the \emph{initial} state, under an

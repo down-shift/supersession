@@ -1,0 +1,23 @@
+{
+  "protocol": "stale_decision_v2r",
+  "model": {
+    "id": "Qwen/Qwen3-14B",
+    "tokenizer_id": "Qwen/Qwen3-14B",
+    "revision": "40c069824f4251a91eefaf281ebe4c544efd3e18",
+    "tokenizer_revision": "40c069824f4251a91eefaf281ebe4c544efd3e18",
+    "dtype": "float32",
+    "quantization": "none",
+    "device_map": 0,
+    "attn_implementation": "sdpa",
+    "require_full_gpu": true,
+    "end_token": "<|im_end|>",
+    "end_suffix": ""
+  },
+  "max_new_tokens": 16,
+  "bootstrap_draws": 2000,
+  "development_replicates": 1,
+  "gate_replicates": 2,
+  "confirmation_replicates": 4,
+  "status": "v2r: Qwen/Qwen3-14B (docs/stale_decision_v2_replication.md)",
+  "scorer": "kv_cache"
+}

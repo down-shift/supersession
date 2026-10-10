@@ -5,7 +5,7 @@ Agents and assistants increasingly act on records that change: a user's clearanc
 rerouted, a preference is replaced. The record usually keeps the history, and the model is told that only
 the latest entry counts. Retrieval benchmarks ask whether the model can then report the current value, and
 recent work shows that old values do intrude on such reports, especially after many overwrites
-\citep{wang2025unable,guo2026context,chattaraj2026dual}. A deployed system, however, rarely asks the model
+\citep{wang2026unable,guo2026context,chattaraj2026dual}. A deployed system, however, rarely asks the model
 to restate a value. It asks the model to \emph{use} it. Two questions follow that retrieval accuracy does
 not answer. When a model can state the current value correctly, does the obsolete value still change the
 decision it takes? And if it does, is the obsolete value acting as a superseded assignment of the queried
@@ -15,8 +15,9 @@ The second question matters because the remedies differ. If the interference is 
 is a failure of state tracking, and update-aware memory, historical marking or attention routing toward the
 current entry \citep{guo2026context} are the natural fixes. If any nearby mention of a decision-relevant
 word does the same, the problem is contextual entrainment \citep{niu2025entrainment} reaching decisions.
-Removing or marking stale entries would then leave most of it in place, and evaluations that only vary
-update histories would misattribute it.
+Removing or marking stale entries would then leave much of it in place, and evaluations that only vary
+update histories would misattribute it. The two accounts are not exclusive, and our design estimates
+both.
 
 \paragraph{Design.} We hold everything that should determine the decision fixed: the current state, the
 policy that maps states to actions, the query, and the correct action. We edit one obsolete state. In one
@@ -29,27 +30,32 @@ a word the entity only mentioned, and a word attached to no entity. Before testi
 the same records that the model reports the current and the initial state correctly when asked.
 
 \paragraph{Findings.} The experiment ran under a protocol frozen before the confirmation data were
-generated, on a held-out prompt template, with one model (Qwen3-8B) that passed a task-competence gate.
-A second model, Gemma 3 4B, did not pass it. Three conclusions hold for the confirmed model:
+generated, on a held-out prompt template, with Qwen3-8B. A larger model from the same family,
+Qwen3-14B, was run on identical rows under a dated amendment, and Gemma 3 4B was attempted. The routing
+task meets every competence criterion on the confirmation data in both Qwen models; the access task does not, and its estimates
+are reported second and labeled. Three conclusions hold for both confirmed models, with one
+model-specific difference:
 \begin{enumerate}
-  \item \textbf{Obsolete states change current decisions in a model that tracks them correctly.} Making
-  the obsolete state imply the wrong action raised the wrong action's log-odds by 3--4 nats and flipped
-  roughly one generated decision in six toward it. Reverse flips were rare. In routing, this happened in
-  every condition where the model reported the current and initial states with 0.98--0.99 accuracy and
-  decided correctly without history (\S\ref{sec:results-h1}).
-  \item \textbf{The interference does not require supersession.} The same word mentioned in passing by the
-  same entity moved decisions at least as much as a superseded assignment, and more in routing. Whether a
-  superseded assignment exceeded the mention control at the score level changed with the prompt template
+  \item \textbf{Obsolete states change current decisions in models that track them correctly.} In the
+  routing histories where the model retrieved the current and initial states and decided correctly without
+  history, making the obsolete state imply the wrong action gave a net switch rate toward the wrong action
+  of 0.158 (Qwen3-8B) and 0.165 (Qwen3-14B), almost never in reverse (\S\ref{sec:results-h1},
+  \S\ref{sec:results-replication}).
+  \item \textbf{Supersession adds decision pressure, and an incidental mention adds pressure of the same
+  order.} In routing, a superseded assignment moved preference more than an updated assignment of an
+  unrelated attribute, by 1.224 and 0.866 nats. The same word mentioned in passing by the same entity moved
+  decisions as much as the superseded assignment in Qwen3-14B, and more in Qwen3-8B. Whether a mention
+  \emph{exceeds} a superseded assignment therefore depends on the model, and in Qwen3-8B also on wording
   (\S\ref{sec:results-h2}).
   \item \textbf{A score-level sensitivity measure does not identify vulnerable items.} The edit's effect on
-  easy retrieval queries was large but did not predict which decisions would fail beyond simple
-  pre-decision features (\S\ref{sec:results-h3}).
+  easy retrieval queries was large, but in both models it added nothing beyond the pre-decision features
+  under the specified logistic model (\S\ref{sec:results-h3}).
 \end{enumerate}
 
 \paragraph{What is and is not new.} That stale context interferes with answers is established
-\citep{wang2025unable,guo2026context,qian2026forget,chao2026stale}, as is the fact that mentioned tokens
+\citep{wang2026unable,guo2026context,qian2026forget,chao2026stale}, as is the fact that mentioned tokens
 gain probability \citep{niu2025entrainment}. Our contribution is a controlled test that connects the two at
-the level of decisions. We measure interference on policy decisions in an open model, on items whose
+the level of decisions. We measure interference on policy decisions in open models, on items whose
 current and historical states the model retrieves correctly. We use minimal-pair edits that hold the
 correct action fixed, report both scores and generated answers, and include the matched controls needed
 to ask whether supersession is the operative factor. We also report the negative result for a

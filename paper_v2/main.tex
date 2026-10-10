@@ -22,7 +22,15 @@
 \newcommand{\lit}[1]{\texttt{#1}}
 \DefineVerbatimEnvironment{prompt}{Verbatim}{frame=single,fontsize=\footnotesize,xleftmargin=0.3em,xrightmargin=0.3em}
 
-\title{Do Superseded States Change Language-Model Decisions?\\A Controlled Test Against Incidental Mentions}
+% Model count: single source of truth, updated when the replication models (Appendix A) finish.
+\newcommand{\modelcountsentence}{A larger model from the same family, Qwen3-14B, replicated the
+obsolete-state effect and the supersession contrast; its mention effect matched the superseded one (net
+switch rates 0.169 and 0.167) rather than exceeding it. Gemma 3 4B did not meet the competence gate.}
+\newcommand{\modelcount}{two models}
+\newcommand{\modelcountconclusion}{Both confirmed models come from one family. Gemma 3 4B could not perform
+the base task reliably enough to be evaluated, and other families remain untested.}
+
+\title{Obsolete States Change Language-Model Decisions,\\and So Do Incidental Mentions}
 
 \author{Anonymous ACL submission}
 
@@ -38,6 +46,7 @@
 \input{sections/06-discussion}
 \input{sections/07-conclusion}
 \input{sections/08-limitations}
+\input{sections/09-ethics}
 
 \bibliography{references}
 

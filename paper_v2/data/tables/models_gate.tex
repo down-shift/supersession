@@ -1,0 +1,33 @@
+\begin{table}[h]
+\centering
+\small
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}llcccc@{}}
+\toprule
+Model & Cell & Direct & No hist. & History & Comp. \\
+\midrule
+Qwen3-8B & routing seq. & 0.977 & 0.938 & 0.779 & yes \\
+ & routing int. & 0.986 & 0.938 & 0.779 & yes \\
+ & routing comp. & 0.945 & 0.938 & 0.752 & no \\
+ & access seq. & 0.889 & 0.906 & 0.822 & no \\
+ & access int. & 0.953 & 0.938 & 0.877 & yes \\
+ & access comp. & 0.953 & 0.859 & 0.883 & no \\
+\midrule
+Qwen3-14B & routing seq. & 0.996 & 0.922 & 0.854 & yes \\
+ & routing int. & 1.000 & 1.000 & 0.846 & yes \\
+ & routing comp. & 0.997 & 1.000 & 0.814 & yes \\
+ & access seq. & 0.991 & 0.781 & 0.729 & no \\
+ & access int. & 0.977 & 0.828 & 0.748 & no \\
+ & access comp. & 0.946 & 0.828 & 0.697 & no \\
+\midrule
+Gemma 3 4B & routing seq. & 0.939 & 0.688 & 0.645 & no \\
+ & routing int. & 0.964 & 0.609 & 0.488 & no \\
+ & routing comp. & 0.916 & 0.625 & 0.533 & no \\
+ & access seq. & 0.945 & 0.719 & 0.678 & no \\
+ & access int. & 0.936 & 0.609 & 0.676 & no \\
+ & access comp. & 0.946 & 0.672 & 0.641 & no \\
+\bottomrule
+\end{tabular}
+\caption{Frozen gate split (384 histories, identical rows for every model): strict direct current-state retrieval, current-only decision accuracy, decision accuracy with history, and whether the cell is competent (direct $\ge 0.95$, no history $\ge 0.90$, invalid $\le 0.05$). This gate decided eligibility to generate confirmation data. Labels computed on the confirmation data (Table~\ref{tab:competence}, Table~\ref{tab:cross-model}) can differ: Qwen3-8B access int. is competent here and not competent on the confirmation data; Qwen3-8B routing comp. is not competent here and competent on the confirmation data.}
+\label{tab:models-gate}
+\end{table}

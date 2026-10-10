@@ -13,6 +13,7 @@ HERE = Path(__file__).resolve().parent
 D = json.loads((HERE.parent / 'data/derived.json').read_text())
 C = D['confirmation']
 TASKS = ('access', 'routing')
+PLOT_TASKS = ('routing', 'access')  # routing (competent) first
 FAMILIES = ('superseded', 'updated_other', 'entity_mention', 'unassigned')
 LABELS = {'superseded': 'Superseded assignment', 'updated_other': 'Other attribute, updated',
           'entity_mention': 'Mentioned by entity', 'unassigned': 'Unattached word'}
@@ -24,33 +25,35 @@ def err(b):
     return [[b['mean'] - b['ci'][0]], [b['ci'][1] - b['mean']]]
 
 
-def constructions():
+def constructions(conf=None, path='constructions.pdf'):
+    conf = conf or C
     fig, axes = plt.subplots(1, 2, figsize=(6.6, 2.6))
     for ax, (title, get, xlabel) in zip(axes, [
             ('(a) Decision preference shift $D_c$',
-             lambda t, f: C['constructions'][f'{t}:{f}'], 'nats (wrong minus correct action log-odds shift)'),
+             lambda t, f: conf['constructions'][f'{t}:{f}'], 'nats (wrong minus correct action log-odds shift)'),
             ('(b) Generated wrong-action switches',
-             lambda t, f: {'mean': C['switches'][f'{t}:all'][f'switch_{f}']['mean'],
-                           'ci': C['switches'][f'{t}:all'][f'switch_{f}']['confidence_interval']},
-             'net switches per history')]):
-        for i, t in enumerate(TASKS):
+             lambda t, f: {'mean': conf['switches'][f'{t}:all'][f'switch_{f}']['mean'],
+                           'ci': conf['switches'][f'{t}:all'][f'switch_{f}']['confidence_interval']},
+             'net switch rate')]):
+        for i, t in enumerate(PLOT_TASKS):
             for j, f in enumerate(FAMILIES):
                 y = i * 5 + j
                 b = get(t, f)
                 ax.barh(y, b['mean'], color=COLORS[f], height=0.8, label=LABELS[f] if i == 0 else None)
                 ax.errorbar(b['mean'], y, xerr=err(b), color='black', lw=0.8, capsize=1.5)
-        ax.set_yticks([1.5, 6.5], ['Access', 'Routing'])
+        ax.set_yticks([1.5, 6.5], ['Routing', 'Access\n(not competent)'])
         ax.invert_yaxis()
         ax.axvline(0, color='black', lw=0.6)
         ax.set_title(title, loc='left')
         ax.set_xlabel(xlabel)
+    axes[1].set_yticklabels([])  # task labels shown once, on the left panel
     fig.legend(*axes[0].get_legend_handles_labels(), frameon=False, loc='lower center', ncol=4, fontsize=7)
     fig.tight_layout(rect=(0, 0.08, 1, 1))
-    fig.savefig(HERE / 'constructions.pdf')
+    fig.savefig(HERE / path)
 
 
 def competence():
-    cells = [(t, c) for t in TASKS for c in ('sequential', 'interleaved', 'competing')]
+    cells = [(t, c) for t in PLOT_TASKS for c in ('sequential', 'interleaved', 'competing')]
     fig, ax = plt.subplots(figsize=(6.6, 2.9))
     xs = range(len(cells))
     comp = C['competence']
@@ -66,8 +69,8 @@ def competence():
     ]
     for k, (label, ys, m, col) in enumerate(series):
         ax.plot([x + (k - 2) * 0.08 for x in xs], ys, m, color=col, label=label, ms=4)
-    ax.axhline(0.95, color='black', lw=0.4, ls=':')
-    ax.axhline(0.90, color='#2e75b6', lw=0.4, ls=':')
+    ax.axhline(0.95, color='black', lw=0.6, ls=':', label='Threshold, retrieval (0.95)')
+    ax.axhline(0.90, color='#2e75b6', lw=0.6, ls=':', label='Threshold, decision (0.90)')
     ax.axvline(2.5, color='black', lw=0.4)
     ax.set_xticks(list(xs), [f'{t}\n{c}' for t, c in cells])
     ax.set_ylabel('strict accuracy')
@@ -103,5 +106,8 @@ def replication():
 
 if __name__ == '__main__':
     constructions()
+    for m, entry in D['models'].items():  # per-model appendix figures for every other confirmed model
+        if m != 'Qwen3-8B' and 'confirmation' in entry:
+            constructions(entry['confirmation'], f"constructions_{m.lower().replace(' ', '_').replace('-', '_')}.pdf")
     competence()
     replication()

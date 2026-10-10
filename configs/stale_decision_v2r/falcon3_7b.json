@@ -1,0 +1,23 @@
+{
+  "protocol": "stale_decision_v2r",
+  "model": {
+    "id": "tiiuae/Falcon3-7B-Instruct",
+    "tokenizer_id": "tiiuae/Falcon3-7B-Instruct",
+    "revision": "1e57a0ecd176c7c139f289c60a74e57f887c3dfb",
+    "tokenizer_revision": "1e57a0ecd176c7c139f289c60a74e57f887c3dfb",
+    "dtype": "float32",
+    "quantization": "none",
+    "device_map": 0,
+    "attn_implementation": "sdpa",
+    "require_full_gpu": true,
+    "end_token": "<|endoftext|>",
+    "end_suffix": ""
+  },
+  "max_new_tokens": 16,
+  "bootstrap_draws": 2000,
+  "development_replicates": 1,
+  "gate_replicates": 2,
+  "confirmation_replicates": 4,
+  "status": "v2r: tiiuae/Falcon3-7B-Instruct (docs/stale_decision_v2_replication.md)",
+  "scorer": "kv_cache"
+}
