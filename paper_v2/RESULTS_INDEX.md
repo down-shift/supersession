@@ -18,7 +18,7 @@ All data keys below refer to [`data/derived.json`](data/derived.json). Source-ar
 | Failed gates and all attempted models with gate data | `models.<model>.gate_cells`, `gates` | [Gate table](data/tables/models_gate.tex) |
 | H3 grouped prediction and easy-query sensitivity | `confirmation.H3`, `confirmation.R_easy_local_superseded`, `models.<model>.confirmation.H3` | H3 table in [Appendix B](sections/B-tables.tex), [main results](sections/05-results.tex) |
 | Template dependence across non-confirmatory splits | `replication`, `replication_switches`, `confirmation.primary` | [Split-replication figure](figures/replication.pdf) |
-| Vocabulary/order-cell strata and access error diagnosis | `confirmation.strata`, `models.<model>.confirmation.access_diagnosis` | [Discussion](sections/06-discussion.tex), [limitations](sections/08-limitations.tex), [Appendix B](sections/B-tables.tex) |
+| Vocabulary/order-cell strata and access error diagnosis | `confirmation.strata`, `models.<model>.confirmation.access_diagnosis` | [Results](sections/05-results.tex), [Discussion](sections/06-discussion.tex), [Appendix B](sections/B-tables.tex) |
 | Runtime and total recorded compute | `models.<model>.confirmation.run`, `think`, `compute` | [Reproducibility appendix](sections/C-reproducibility.tex) |
 
 [`data/tables.py`](data/tables.py) regenerates the external table files, and [`figures/make_figures.py`](figures/make_figures.py) regenerates all figure PDFs from the committed derived data. Some tables and estimates are written directly in the section sources; [`data/check_numbers.py`](data/check_numbers.py) provides numeric traces for review. A matching rounded number alone does not establish that a sentence refers to the correct estimand.

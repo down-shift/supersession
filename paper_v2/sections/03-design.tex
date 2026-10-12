@@ -33,7 +33,7 @@ not isolated semantic features.
 \paragraph{Decision effect.} For a prompt $x$, let
 $L(x) = \log P(a_{\mathrm{wrong}} \mid x) - \log P(a_{\mathrm{correct}} \mid x)$, where each action event
 is the label exactly as the model writes it at the start of its turn, followed by the end-of-turn token.
-For construction $c$ and history $h$, the two members differ only in the obsolete word: in member
+For construction $c$ and history $h$, the two members differ only in the edited word: in member
 $x^{-}_{h,c}$ it implies the wrong action, and in $x^{+}_{h,c}$ the correct one. The decision effect is
 \begin{equation}
 D_c = \frac{1}{|H|}\sum_{h \in H} \bigl[L(x^{-}_{h,c}) - L(x^{+}_{h,c})\bigr].

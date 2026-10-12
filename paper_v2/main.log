@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.10.6)  12 OCT 2026 22:53
+This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.10.6)  12 OCT 2026 23:38
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -605,50 +605,52 @@ File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 (/usr/local/texlive/2026basic/texmf-dist/tex/latex/microtype/mt-msb.cfg
 File: mt-msb.cfg 2005/06/01 v1.0 microtype config. file: AMS symbols (b) (RS)
 )
-(./sections/00-abstract.tex) (./sections/01-introduction.tex [1{/tmp/arr-texmf-
-var/fonts/map/pdftex/updmap/pdftex.map}{/usr/local/texlive/2026basic/texmf-dist
-/fonts/enc/dvips/base/8r.enc}
-
-
-
-]
-LaTeX Font Info:    Trying to load font information for T1+zi4 on input line 57
+(./sections/00-abstract.tex
+LaTeX Font Info:    Trying to load font information for T1+zi4 on input line 15
 .
  (/tmp/arr-texmf/tex/latex/inconsolata/t1zi4.fd
 File: t1zi4.fd 2018/01/14 T1/zi4 (Inconsolata)
 )
 LaTeX Font Info:    Font shape `T1/zi4/m/n' will be
-(Font)              scaled to size 9.0pt on input line 57.
+(Font)              scaled to size 9.0pt on input line 15.
 Package microtype Info: Loading generic protrusion settings for font family
 (microtype)             `zi4' (encoding: T1).
 (microtype)             For optimal results, create family-specific settings.
 (microtype)             See the microtype manual for details.
+
+Underfull \hbox (badness 10000) in paragraph at lines 15--15
+[][][]\T1/ptm/m/n/9 (+20) Code is avail-able at [][]$\T1/zi4/m/n/9 https : / /
+anonymous . 4open .
+ []
+
+) (./sections/01-introduction.tex [1{/tmp/arr-texmf-var/fonts/map/pdftex/updmap
+/pdftex.map}{/usr/local/texlive/2026basic/texmf-dist/fonts/enc/dvips/base/8r.en
+c}
+
+
+
+{/tmp/arr-texmf/fonts/enc/dvips/inconsolata/i4-t1-0.enc}]
 LaTeX Font Info:    Font shape `T1/zi4/m/n' will be
-(Font)              scaled to size 10.0pt on input line 84.
-) (./sections/02-related-work.tex) (./sections/03-design.tex
+(Font)              scaled to size 10.0pt on input line 81.
+)
+(./sections/02-related-work.tex) (./sections/03-design.tex
 LaTeX Font Info:    Font shape `T1/zi4/m/n' will be
 (Font)              scaled to size 10.95pt on input line 7.
- [2{/tmp/arr-texmf/fonts/enc/dvips/inconsolata/i4-t1-0.enc}]
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
-
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [3])
+ [2] [3])
 (./sections/04-protocol.tex) (./sections/05-results.tex [4] [5]
 (./data/tables/tracked.tex)
-<figures/conditions.pdf, id=261, 238.49101pt x 126.4725pt>
+<figures/conditions.pdf, id=273, 238.49101pt x 148.1535pt>
 File: figures/conditions.pdf Graphic file (type pdf)
 <use figures/conditions.pdf>
 Package pdftex.def Info: figures/conditions.pdf  used on input line 131.
-(pdftex.def)             Requested size: 219.08614pt x 116.18434pt.
+(pdftex.def)             Requested size: 219.08614pt x 136.10167pt.
  [6 <./figures/conditions.pdf>]
 (./data/tables/cross_model.tex)
-<figures/models.pdf, id=300, 238.49101pt x 122.85901pt>
+<figures/models.pdf, id=307, 238.49101pt x 140.9265pt>
 File: figures/models.pdf Graphic file (type pdf)
 <use figures/models.pdf>
 Package pdftex.def Info: figures/models.pdf  used on input line 163.
-(pdftex.def)             Requested size: 219.08614pt x 112.86479pt.
+(pdftex.def)             Requested size: 219.08614pt x 129.46255pt.
 ) (./sections/06-discussion.tex [7 <./figures/models.pdf>]) (./sections/07-conc
 lusion.tex) (./sections/08-limitations.tex
 [8]
@@ -657,7 +659,12 @@ Underfull \hbox (badness 4608) in paragraph at lines 28--30
 cross-validation
  []
 
-) (./sections/09-ethics.tex) (./main.bbl
+) (./sections/09-ethics.tex)
+Underfull \hbox (badness 1789) in paragraph at lines 11--50
+\T1/ptm/m/n/10.95 (+20) as-sisted with ex-per-i-ment im-ple-men-ta-tion and
+ []
+
+(./main.bbl
 Underfull \hbox (badness 1184) in paragraph at lines 5--9
 []\T1/ptm/m/n/10 (+20) H. Chao, Y. Bai, R. Sheng, T. Li, and Y. Sun.
  []
@@ -683,17 +690,12 @@ Underfull \hbox (badness 1748) in paragraph at lines 89--97
  []
 
 ) (./sections/B-tables.tex
-Underfull \vbox (badness 1231) has occurred while \output is active []
-
-
-Underfull \vbox (badness 1231) has occurred while \output is active []
-
-<figures/constructions.pdf, id=493, 476.98201pt x 209.58301pt>
+<figures/constructions.pdf, id=499, 476.98201pt x 209.58301pt>
 File: figures/constructions.pdf Graphic file (type pdf)
 <use figures/constructions.pdf>
 Package pdftex.def Info: figures/constructions.pdf  used on input line 15.
 (pdftex.def)             Requested size: 455.24411pt x 200.03653pt.
-<figures/competence.pdf, id=494, 476.98201pt x 209.58301pt>
+<figures/competence.pdf, id=500, 476.98201pt x 209.58301pt>
 File: figures/competence.pdf Graphic file (type pdf)
 <use figures/competence.pdf>
 Package pdftex.def Info: figures/competence.pdf  used on input line 22.
@@ -704,47 +706,32 @@ Underfull \hbox (badness 2790) in paragraph at lines 27--30
 nt-state re-trieval is
  []
 
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-[12]
-Underfull \vbox (badness 1112) has occurred while \output is active []
-
-
-Underfull \vbox (badness 1112) has occurred while \output is active []
-
-<figures/replication.pdf, id=508, 476.98201pt x 158.99399pt>
+<figures/replication.pdf, id=504, 476.98201pt x 158.99399pt>
 File: figures/replication.pdf Graphic file (type pdf)
 <use figures/replication.pdf>
-Package pdftex.def Info: figures/replication.pdf  used on input line 119.
+Package pdftex.def Info: figures/replication.pdf  used on input line 117.
 (pdftex.def)             Requested size: 455.24411pt x 151.75183pt.
-
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
 (./data/tables/conditions.tex) (./data/tables/static_other.tex)
-(./data/tables/models_gate.tex
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-)
+(./data/tables/models_gate.tex) [12]
 Underfull \vbox (badness 1112) has occurred while \output is active []
 
 
 Underfull \vbox (badness 1112) has occurred while \output is active []
+
+
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+
+Underfull \vbox (badness 10000) has occurred while \output is active []
 
  [13 <./figures/constructions.pdf> <./figures/competence.pdf>]
-(./data/tables/joint_by_model.tex
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-) (./data/tables/tracked_models.tex) (./data/tables/cross_model_ci.tex)
-(./data/tables/cross_model_confirmation.tex)
-<figures/constructions_qwen3_14b.pdf, id=561, 476.98201pt x 209.58301pt>
+(./data/tables/joint_by_model.tex) (./data/tables/tracked_models.tex)
+(./data/tables/cross_model_ci.tex) (./data/tables/cross_model_confirmation.tex)
+<figures/constructions_qwen3_14b.pdf, id=571, 476.98201pt x 209.58301pt>
 File: figures/constructions_qwen3_14b.pdf Graphic file (type pdf)
 <use figures/constructions_qwen3_14b.pdf>
 Package pdftex.def Info: figures/constructions_qwen3_14b.pdf  used on input lin
-e 178.
+e 176.
 (pdftex.def)             Requested size: 455.24411pt x 200.03653pt.
 ) (./sections/C-reproducibility.tex
 Underfull \hbox (badness 2735) in paragraph at lines 4--14
@@ -828,7 +815,7 @@ Underfull \hbox (badness 2698) in paragraph at lines 4--14
 \T1/ptm/m/n/10.95 (+20) at-ten-tion, on one 80GB H100 GPU, us-ing
  []
 
-[14 <./figures/replication.pdf>]
+
 Underfull \hbox (badness 1308) in paragraph at lines 15--23
  []\T1/ptm/b/n/10.95 (+20) Artifacts.[] \T1/ptm/m/n/10.95 (+20) Each dataset is
  re-gen-er-ated de-ter-
@@ -850,7 +837,17 @@ Underfull \hbox (badness 2326) in paragraph at lines 24--57
 r-ma-tion scor-ing
  []
 
-[15 <./figures/constructions_qwen3_14b.pdf>] [16] [17] (./main.aux)
+
+Underfull \vbox (badness 3623) has occurred while \output is active []
+
+
+Underfull \vbox (badness 3623) has occurred while \output is active []
+
+ [14]
+[15
+
+ <./figures/replication.pdf>] [16] [17] [18 <./figures/constructions_qwen3_14b.
+pdf>] [19] [20] [21] (./main.aux)
  ***********
 LaTeX2e <2025-11-01>
 L3 programming layer <2026-01-19>
@@ -859,13 +856,13 @@ Package rerunfilecheck Info: File `main.out' has not changed.
 (rerunfilecheck)             Checksum: 6A6C552F6B6D43B908E686E0DA63DD35;2863.
  )
 Here is how much of TeX's memory you used:
- 16789 strings out of 469006
- 267708 string characters out of 5454813
- 776789 words of memory out of 5000000
- 44676 multiletter control sequences out of 15000+600000
- 688371 words of font info for 350 fonts, out of 8000000 for 9000
+ 16824 strings out of 469006
+ 268094 string characters out of 5454813
+ 804720 words of memory out of 5000000
+ 44678 multiletter control sequences out of 15000+600000
+ 694174 words of font info for 367 fonts, out of 8000000 for 9000
  319 hyphenation exceptions out of 8191
- 84i,12n,93p,1001b,624s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 84i,11n,93p,1001b,624s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </tmp/arr-texmf/fonts/type1/public/inconsolata/Inconsolata-zi4r.pfb></usr/loc
 al/texlive/2026basic/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></usr
 /local/texlive/2026basic/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb><
@@ -880,16 +877,15 @@ onts/cm/cmr8.pfb></usr/local/texlive/2026basic/texmf-dist/fonts/type1/public/am
 sfonts/cm/cmr9.pfb></usr/local/texlive/2026basic/texmf-dist/fonts/type1/public/
 amsfonts/cm/cmsy10.pfb></usr/local/texlive/2026basic/texmf-dist/fonts/type1/pub
 lic/amsfonts/cm/cmsy6.pfb></usr/local/texlive/2026basic/texmf-dist/fonts/type1/
-public/amsfonts/cm/cmsy7.pfb></usr/local/texlive/2026basic/texmf-dist/fonts/typ
-e1/public/amsfonts/cm/cmsy8.pfb></usr/local/texlive/2026basic/texmf-dist/fonts/
-type1/public/amsfonts/cm/cmsy9.pfb></tmp/arr-texmf/fonts/type1/urw/helvetic/uhv
-b8a.pfb></usr/local/texlive/2026basic/texmf-dist/fonts/type1/urw/times/utmb8a.p
-fb></usr/local/texlive/2026basic/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></
-usr/local/texlive/2026basic/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on main.pdf (17 pages, 521864 bytes).
+public/amsfonts/cm/cmsy8.pfb></usr/local/texlive/2026basic/texmf-dist/fonts/typ
+e1/public/amsfonts/cm/cmsy9.pfb></tmp/arr-texmf/fonts/type1/urw/helvetic/uhvb8a
+.pfb></usr/local/texlive/2026basic/texmf-dist/fonts/type1/urw/times/utmb8a.pfb>
+</usr/local/texlive/2026basic/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr
+/local/texlive/2026basic/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
+Output written on main.pdf (21 pages, 512087 bytes).
 PDF statistics:
- 758 PDF objects out of 1000 (max. 8388607)
- 625 compressed objects within 7 object streams
- 134 named destinations out of 1000 (max. 500000)
- 48807 words of extra memory for PDF output out of 51595 (max. 10000000)
+ 780 PDF objects out of 1000 (max. 8388607)
+ 647 compressed objects within 7 object streams
+ 141 named destinations out of 1000 (max. 500000)
+ 56999 words of extra memory for PDF output out of 61914 (max. 10000000)
 

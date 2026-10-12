@@ -23,7 +23,7 @@ def num(x, signed=False):
 
 def est(b, signed=True):
     lo, hi = b['ci']
-    return f"${num(b['mean'], signed)}$ {{\\scriptsize $[{num(lo, signed)}, {num(hi, signed)}]$}}"
+    return f"${num(b['mean'], signed)}$ $[{num(lo, signed)}, {num(hi, signed)}]$"
 
 
 def pt(b, signed=True):
@@ -37,9 +37,59 @@ def models():
     return [m for m in ORDER if m in D['models']]
 
 
+
+def bounds(b, signed=True):
+    lo, hi = b['ci']
+    return f"$[{num(lo, signed)}, {num(hi, signed)}]$"
+
+
+def interval_tables(confirmation_selected=False):
+    rule = 'competent_confirmation' if confirmation_selected else 'competent'
+    base = 'tab:cross-model-confirmation' if confirmation_selected else 'tab:cross-model-ci'
+    groups = [
+        ('scores', [('D_superseded', r'$D_{\mathrm{S}}$'), ('Delta_semantic', r'$\Delta_{\mathrm{SO}}$'),
+                    ('Delta_mention', r'$\Delta_{\mathrm{SM}}$')]),
+        ('switches', [('switch_superseded', 'S'), ('switch_diff_attribute', 'S $-$ O'),
+                      ('switch_diff_mention_minus_superseded', 'M $-$ S')])]
+    blocks = []
+    for kind, metrics in groups:
+        lines = [r'\begin{table*}[t]', r'\centering', r'\small', r'\setlength{\tabcolsep}{5pt}',
+                 r'\begin{tabular}{@{}llrlrr@{}}', r'\toprule',
+                 r'Model & Task / cells & $n$ & Quantity & Estimate & Interval \\', r'\midrule']
+        for m in models():
+            conf = D['models'][m].get('confirmation')
+            if not conf:
+                continue
+            first_model = True
+            for task in ('routing', 'access'):
+                c = conf[rule][task]
+                if c is None:
+                    continue
+                cells = ','.join({'sequential': 's', 'interleaved': 'i', 'competing': 'c'}[k] for k in c['cells'])
+                for i, (key, label) in enumerate(metrics):
+                    b = c[key]
+                    lines.append(' & '.join([m if first_model else '', f'{task} {cells}' if i == 0 else '',
+                                             str(c['n']) if i == 0 else '', label,
+                                             f"${num(b['mean'], True)}$", bounds(b)]) + r' \\')
+                    first_model = False
+            lines.append(r'\midrule')
+        lines[-1] = r'\bottomrule'
+        label = base if kind == 'scores' else base + '-switches'
+        selection = ('Post hoc confirmation-selected robustness estimates' if confirmation_selected
+                     else r'Primary confirmation estimates on frozen-gate-selected cells (Table~\ref{tab:cross-model})')
+        caption = selection + (r': score shifts in nats. Intervals are 97.5\% for $D_{\mathrm{S}}$ and '
+                               r'$\Delta_{\mathrm{SO}}$, 95\% for $\Delta_{\mathrm{SM}}$.' if kind == 'scores'
+                               else r': net switch rates and paired differences, with 95\% intervals.')
+        caption += r' Cells: s = sequential, i = interleaved, c = competing; $n$ counts histories.'
+        lines += [r'\end{tabular}', r'\caption{' + caption + '}', r'\label{' + label + '}', r'\end{table*}']
+        blocks.append('\n'.join(lines))
+    return '\n\n'.join(blocks) + '\n'
+
 def cross_model(ci=False, confirmation_selected=False):
     """Gate-selected primary estimates; optional post hoc confirmation selection. ci=True adds intervals."""
-    f = est if ci else pt
+    if ci:
+        return interval_tables(confirmation_selected)
+    f = pt
     lines = [r'\begin{table*}[t]', r'\centering', r'\small', r'\setlength{\tabcolsep}{4pt}']
     if ci:
         lines.append(r'\resizebox{\textwidth}{!}{%')
@@ -73,7 +123,7 @@ def cross_model(ci=False, confirmation_selected=False):
     else:
         lines.append(r'\caption{Primary confirmation estimates on cells selected by each model\textquoteright s '
                      r'frozen gate. Access in Qwen3-8B fails confirmation competence. Grey: interval includes zero '
-                     r'(Table~\ref{tab:cross-model-ci}); post hoc confirmation selection: '
+                     r'(Tables~\ref{tab:cross-model-ci} and~\ref{tab:cross-model-ci-switches}); post hoc confirmation selection: '
                      r'Table~\ref{tab:cross-model-confirmation}.}')
         lines += [r'\label{tab:cross-model}', r'\end{table*}']
     return '\n'.join(lines) + '\n'
@@ -95,8 +145,7 @@ def diff_note():
 
 
 def models_gate():
-    lines = [r'\begin{table}[h]', r'\centering', r'\small', r'\setlength{\tabcolsep}{3pt}',
-             r'\resizebox{\columnwidth}{!}{%', r'\begin{tabular}{@{}llcccc@{}}', r'\toprule',
+    lines = [r'\begin{table*}[t]', r'\centering', r'\small', r'\setlength{\tabcolsep}{5pt}', r'\begin{tabular}{@{}llcccc@{}}', r'\toprule',
              r'Model & Cell & Direct & No hist. & History & Comp. \\', r'\midrule']
     for m in models():
         cells = D['models'][m]['gate_cells']
@@ -107,16 +156,15 @@ def models_gate():
                          f"{'yes' if x['score_eligible'] else 'no'} \\\\")
         lines.append(r'\midrule')
     lines.pop()
-    lines += [r'\bottomrule', r'\end{tabular}}',
+    lines += [r'\bottomrule', r'\end{tabular}',
               r'\caption{Frozen gate split (384 histories, the same rows for every model): accuracy and competence '
               r'per cell. This gate decided eligibility for confirmation.}',
-              r'\label{tab:models-gate}', r'\end{table}']
+              r'\label{tab:models-gate}', r'\end{table*}']
     return '\n'.join(lines) + '\n'
 
 
 def joint_by_model():
-    lines = [r'\begin{table}[h]', r'\centering', r'\small', r'\setlength{\tabcolsep}{3pt}',
-             r'\resizebox{\columnwidth}{!}{%', r'\begin{tabular}{@{}llccc@{}}', r'\toprule', r'Model & Construction & Kept & Net switch rate & Switched \\',
+    lines = [r'\begin{table*}[t]', r'\centering', r'\small', r'\setlength{\tabcolsep}{5pt}', r'\begin{tabular}{@{}llccc@{}}', r'\toprule', r'Model & Construction & Kept & Net switch rate & Switched \\',
              r'\midrule']
     labels = {'superseded': 'superseded', 'updated_other': 'other attr.', 'entity_mention': 'mention',
               'unassigned': 'unattached'}
@@ -130,10 +178,10 @@ def joint_by_model():
                          f"{est(j['switch'])} & {j['to_wrong']} / {j['to_correct']} \\\\")
         lines.append(r'\midrule')
     lines.pop()
-    lines += [r'\bottomrule', r'\end{tabular}}',
+    lines += [r'\bottomrule', r'\end{tabular}',
               r'\caption{Routing histories each model tracks (criteria of \S\ref{sec:results-h1}), with 95\% intervals. '
               r'Retained sets differ by construction; Table~\ref{tab:tracked-models} uses a common set.}',
-              r'\label{tab:joint-by-model}', r'\end{table}']
+              r'\label{tab:joint-by-model}', r'\end{table*}']
     return '\n'.join(lines) + '\n'
 
 
@@ -171,75 +219,91 @@ def tracked():
     return '\n'.join(lines) + '\n'
 
 
+
 def tracked_models():
-    """The same comparison for every confirmed model (Appendix B)."""
-    ms = [m for m in models() if D['models'][m].get('confirmation')]
-    J = {m: D['models'][m]['confirmation']['joint_intersection']['routing'] for m in ms}
-    lines = [r'\begin{table*}[t]', r'\centering', r'\small', r'\setlength{\tabcolsep}{4pt}',
-             r'\resizebox{\textwidth}{!}{%', r'\begin{tabular}{@{}l' + 'c' * len(ms) + '@{}}', r'\toprule',
-             ' & '.join([''] + ms) + r' \\',
-             ' & '.join([''] + [f"$n={J[m]['n_retained']}/{J[m]['n_total']}$" for m in ms]) + r' \\', r'\midrule']
-    for f, label in TRACKED_ROWS:
-        lines.append(' & '.join([label] + [est(J[m]['constructions'][f]['switch']) for m in ms]) + r' \\')
-    lines.append(r'\midrule')
-    for k, label in TRACKED_DIFFS:
-        lines.append(' & '.join([label] + [est(J[m]['differences'][k]['switch']) for m in ms]) + r' \\')
-    lines += [r'\bottomrule', r'\end{tabular}}', r'\caption{' + TRACKED_CAPTION + '}',
+    """Common tracked sets, with models arranged vertically to retain readable intervals."""
+    lines = [r'\begin{table*}[t]', r'\centering', r'\small', r'\setlength{\tabcolsep}{8pt}',
+             r'\begin{tabular}{@{}llrr@{}}', r'\toprule',
+             r'Model / retained histories & Construction or difference & Net switch & 95\% interval \\', r'\midrule']
+    for m in models():
+        conf = D['models'][m].get('confirmation')
+        if not conf:
+            continue
+        j = conf['joint_intersection']['routing']
+        rows = [(label, j['constructions'][key]['switch']) for key, label in TRACKED_ROWS]
+        rows += [(label, j['differences'][key]['switch']) for key, label in TRACKED_DIFFS]
+        for i, (label, b) in enumerate(rows):
+            model = m if i == 0 else (f"$n={j['n_retained']}/{j['n_total']}$" if i == 1 else '')
+            lines.append(' & '.join([model, label, f"${num(b['mean'], True)}$", bounds(b)]) + r' \\')
+        lines.append(r'\midrule')
+    lines[-1] = r'\bottomrule'
+    lines += [r'\end{tabular}', r'\caption{' + TRACKED_CAPTION + '}',
               r'\label{tab:tracked-models}', r'\end{table*}']
     return '\n'.join(lines) + '\n'
 
 
 def static_other():
-    """Five constructions on the confirmation routing histories (paper_v2/sections/A-protocol-history.tex, part B)."""
-    S = D.get('static_other', {})
-    ms = [m for m in models() if m in S]
-    lines = [r'\begin{table}[t]', r'\centering', r'\small', r'\setlength{\tabcolsep}{3pt}',
-             r'\resizebox{\columnwidth}{!}{%', r'\begin{tabular}{@{}l' + 'cc' * len(ms) + '@{}}', r'\toprule',
-             ' & '.join([''] + [f'\\multicolumn{{2}}{{c}}{{{m}}}' for m in ms]) + r' \\',
-             ' & '.join([''] + ['$D$', 'Net switch'] * len(ms)) + r' \\', r'\midrule']
-    for f, label in [('superseded', 'Superseded'), ('updated_other', 'Other attr., updated'),
-                     ('static_other', 'Other attr., not updated'), ('entity_mention', 'Mention'), ('unassigned', 'Unattached')]:
-        lines.append(' & '.join([label] + [x for m in ms for x in (est(S[m]['constructions'][f]['D']),
-                                                                    est(S[m]['constructions'][f]['switch']))]) + r' \\')
-    lines.append(r'\midrule')
-    for k, label in [('Delta_update', '$\\Delta_{\\mathrm{ON}}$ (updated $-$ not updated)'),
-                     ('Delta_attribute', '$\\Delta_{\\mathrm{SO}}$ (superseded $-$ updated)'),
-                     ('superseded_minus_static', '$\\Delta_{\\mathrm{SN}}$ (superseded $-$ not updated)')]:
-        lines.append(' & '.join([label] + [x for m in ms for x in (est(S[m]['contrasts'][k]['D']),
-                                                                    est(S[m]['contrasts'][k]['switch']))]) + r' \\')
-    lines += [r'\bottomrule', r'\end{tabular}}',
-              r'\caption{Never-updated other attribute (N) on the routing confirmation histories ($n=384$), with 95\% '
-              r'intervals. Prediction recorded before scoring: $\Delta_{\mathrm{ON}} \le 0$.}',
-              r'\label{tab:static-other}', r'\end{table}']
+    """Never-updated controls: models form row groups, with separate estimate and CI columns."""
+    data = D.get('static_other', {})
+    lines = [r'\begin{table*}[t]', r'\centering', r'\small', r'\setlength{\tabcolsep}{5pt}',
+             r'\begin{tabular}{@{}lrrrr@{}}', r'\toprule',
+             r'Construction / contrast & $D$ (nats) & 95\% interval & Net switch & 95\% interval \\', r'\midrule']
+    for m in models():
+        if m not in data:
+            continue
+        lines.append(r'\multicolumn{5}{@{}l}{\textbf{' + m + r'}} \\')
+        rows = [(label, data[m]['constructions'][key]) for key, label in [
+            ('superseded', 'Superseded'), ('updated_other', 'Other attribute, updated'),
+            ('static_other', 'Other attribute, not updated'), ('entity_mention', 'Mention'), ('unassigned', 'Unattached')]]
+        rows += [(label, data[m]['contrasts'][key]) for key, label in [
+            ('Delta_update', r'$\Delta_{\mathrm{ON}}$ (O $-$ N)'),
+            ('Delta_attribute', r'$\Delta_{\mathrm{SO}}$ (S $-$ O)'),
+            ('superseded_minus_static', r'$\Delta_{\mathrm{SN}}$ (S $-$ N)')]]
+        for label, b in rows:
+            lines.append(' & '.join([label, f"${num(b['D']['mean'], True)}$", bounds(b['D']),
+                                     f"${num(b['switch']['mean'], True)}$", bounds(b['switch'])]) + r' \\')
+        lines.append(r'\midrule')
+    lines[-1] = r'\bottomrule'
+    lines += [r'\end{tabular}', r'\caption{Never-updated other attribute (N) on the routing confirmation '
+              r'histories ($n=384$), with 95\% intervals. Prediction recorded before scoring: '
+              r'$\Delta_{\mathrm{ON}} \le 0$.}', r'\label{tab:static-other}', r'\end{table*}']
     return '\n'.join(lines) + '\n'
 
 
 def conditions():
-    """Qwen3-8B routing: sealed confirmation, balanced subset (paper_v2/sections/A-protocol-history.tex) and thinking mode
-    (paper_v2/sections/A-protocol-history.tex), per construction."""
-    B, T = D.get('balanced'), D.get('think', {}).get('Qwen3-8B')
-    if not B or not T:
+    """One row group per generation condition, without scaling the table."""
+    b, t = D.get('balanced'), D.get('think', {}).get('Qwen3-8B')
+    if not b or not t:
         return ''
-    C, S = D['confirmation']['constructions'], D['confirmation']['switches']['routing:all']
-    sw = lambda b: {'mean': b['mean'], 'ci': b['confidence_interval']}
-    cnt = lambda c: f"{c['to_wrong']}/{c['to_correct']}"
-    lines = [r'\begin{table*}[t]', r'\centering', r'\small', r'\setlength{\tabcolsep}{4pt}',
-             r'\resizebox{\textwidth}{!}{%', r'\begin{tabular}{@{}lccccccccc@{}}', r'\toprule',
-             r' & \multicolumn{3}{c}{Main design, no thinking ($n=384$)} & \multicolumn{3}{c}{Balanced, no thinking '
-             r'($n=192$)} & \multicolumn{2}{c}{Main design, thinking ($n=384$)} \\',
-             r'\cmidrule(lr){2-4}\cmidrule(lr){5-7}\cmidrule(lr){8-9}',
-             r'Construction & $D$ & Net switch & W/C & $D$ & Net switch & W/C & Net switch & W/C \\', r'\midrule']
-    for f, label in [('superseded', 'Superseded'), ('updated_other', 'Other attr., updated'),
-                     ('entity_mention', 'Mention'), ('unassigned', 'Unattached')]:
-        b, t = B['constructions'][f], T['constructions'][f]
-        lines.append(' & '.join([label, est(C[f'routing:{f}']), est(sw(S[f'switch_{f}'])), cnt(S['switch_counts'][f]),
-                                 est(b['D']), est(b['switch']), cnt(b), est(t['switch']), cnt(t)]) + r' \\')
-    lines += [r'\bottomrule', r'\end{tabular}}',
-              r'\caption{Values behind Figure~\ref{fig:conditions} (Qwen3-8B, routing), with 95\% intervals. W/C: '
-              r'histories switched to the wrong / to the correct action.}',
+    constructions = D['confirmation']['constructions']
+    switches = D['confirmation']['switches']['routing:all']
+    labels = [('superseded', 'Superseded'), ('updated_other', 'Other attribute, updated'),
+              ('entity_mention', 'Mention'), ('unassigned', 'Unattached')]
+    lines = [r'\begin{table*}[t]', r'\centering', r'\small', r'\setlength{\tabcolsep}{5pt}',
+             r'\begin{tabular}{@{}lrrrrr@{}}', r'\toprule',
+             r'Construction & $D$ (nats) & 95\% interval & Net switch & 95\% interval & W/C \\', r'\midrule']
+    for group, n in [('Main design, no thinking', 384), ('Balanced, no thinking', 192), ('Main design, thinking', 384)]:
+        lines.append(r'\multicolumn{6}{@{}l}{\textbf{' + group + f'}} ($n={n}$)' + r'} \\')
+        for key, label in labels:
+            if group == 'Main design, no thinking':
+                d = constructions[f'routing:{key}']
+                w = switches[f'switch_{key}']
+                sw = {'mean': w['mean'], 'ci': w['confidence_interval']}
+                counts = switches['switch_counts'][key]
+            else:
+                c = (b if group == 'Balanced, no thinking' else t)['constructions'][key]
+                d = c.get('D')
+                sw, counts = c['switch'], c
+            lines.append(' & '.join([label, f"${num(d['mean'], True)}$" if d else '--', bounds(d) if d else '--',
+                                     f"${num(sw['mean'], True)}$", bounds(sw),
+                                     f"{counts['to_wrong']}/{counts['to_correct']}"]) + r' \\')
+        lines.append(r'\midrule')
+    lines[-1] = r'\bottomrule'
+    lines += [r'\end{tabular}', r'\caption{Values behind Figure~\ref{fig:conditions} (Qwen3-8B, routing), '
+              r'with 95\% intervals. W/C: histories switched to wrong / correct. Thinking has no scores; '
+              r'balanced and original histories differ, so their comparison is descriptive.}',
               r'\label{tab:conditions}', r'\end{table*}']
     return '\n'.join(lines) + '\n'
-
 
 def main():
     out = HERE / 'tables'

@@ -26,7 +26,7 @@ J.~Feng and J.~Steinhardt. 2024.
 \newblock \href {https://doi.org/10.48550/arXiv.2310.17191} {How do language
   models bind entities in context?}
 \newblock In \emph{International Conference on Learning Representations
-  (ICLR)}, pages 36391--36413.
+  (ICLR)}.
 
 \bibitem[{Guo et~al.(2026)Guo, Fang, Gu, Spanos, Demmel, and
   Lavaei}]{guo2026context}
@@ -41,7 +41,7 @@ Y.~Gur-Arieh, M.~Geva, and A.~Geiger. 2026.
 \newblock \href {https://doi.org/10.48550/arXiv.2510.06182} {Mixing mechanisms:
   How language models retrieve bound entities in-context}.
 \newblock In \emph{International Conference on Learning Representations
-  (ICLR)}, pages 27757--27786.
+  (ICLR)}.
 
 \bibitem[{Kim and Schuster(2023)}]{kim2023entity}
 N.~Kim and S.~Schuster. 2023.
@@ -87,7 +87,7 @@ N.~Prakash, N.~Shapira, A.~Sen~Sharma, C.~Riedl, Y.~Belinkov, T.~Rott~Shaham,
 \newblock \href {https://doi.org/10.48550/arXiv.2505.14685} {Language models
   use lookbacks to track beliefs}.
 \newblock In \emph{International Conference on Learning Representations
-  (ICLR)}, pages 7657--7694.
+  (ICLR)}.
 
 \bibitem[{Qian et~al.(2026)Qian, Yang, Ding, Li, and Xie}]{qian2026forget}
 Y.~Qian, Z.~Yang, W.~Ding, H.~Li, and Y.~Xie. 2026.
@@ -96,7 +96,7 @@ Y.~Qian, Z.~Yang, W.~Ding, H.~Li, and Y.~Xie. 2026.
   {Do {LLMs} forget what they should? evaluating in-context forgetting in large
   language models}.
 \newblock In \emph{International Conference on Learning Representations
-  (ICLR)}, pages 108956--108983.
+  (ICLR)}.
 
 \bibitem[{Qiao et~al.(2026)Qiao, Guo, Yang, Li, Zhou, Hu, and
   Song}]{qiao2026retrieval}

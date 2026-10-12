@@ -5,21 +5,25 @@
 and errors are mostly earlier values of the same key \citep{wang2026unable}. Models retrieve the first value
 of a key more reliably than the latest \citep{chattaraj2026dual,qiao2026retrieval}. \citet{guo2026context}
 name the failure \emph{stale binding}. They find that the current value stays linearly recoverable on
-failures, that historical wording reduces errors, and that attention routing repairs most of them. Their
-decision scenarios, with closed reasoning models, showed no difference between full histories and
-resolved snapshots. Benchmarks of forgetting and stale memory evaluate dialogue and agent settings by
-accuracy \citep{qian2026forget,chao2026stale}. STALE separates recognizing an update from applying it. We
-use a single update, decisions fixed by an explicit policy, and matched minimal pairs with lexical
-controls, below the interference loads at which retrieval breaks.
+failures, that historical wording reduces errors, and that attention routing repairs most of them. In
+their tested full-history decision conditions, reasoning models produced no interpretable nonoptimal
+actions, although output validity and control-condition performance varied (their Appendix F.4).
+Forgetting benchmarks evaluate dialogue and agent settings \citep{qian2026forget,chao2026stale}; STALE
+explicitly tests downstream use through implicit policy adaptation. Our contribution is the contrast
+between superseded assignments and matched other-attribute and incidental-mention controls, with the
+correct policy action held fixed.
 
-\paragraph{Entrainment and distraction.} Tokens that appear in the context gain probability whether or
-not they are relevant \citep{niu2025entrainment}, and irrelevant context degrades reasoning
-\citep{shi2023distracted}. Our mention and unattached-word constructions measure this in the update
-setting. Counterfactual edits are compound treatments that need matched alternative edits as baselines
-\citep{yang2026compared}, which is how our contrasts are built.
+\paragraph{Entrainment and distraction.} Tokens already present in a prompt gain probability even when
+irrelevant \citep{niu2025entrainment}; irrelevant context also degrades reasoning \citep{shi2023distracted}.
+Our controls concern policy-derived action labels, rather than direct repetition of the edited word.
+Counterfactual edits can bundle an intended manipulation with incidental surface-form changes
+\citep{yang2026compared}. Their benign-perturbation baselines motivate comparisons with alternative edits;
+our constructions instead change the word's semantic role, and their syntactic differences prevent
+attributing the contrasts solely to supersession.
 
-\paragraph{Binding, state tracking and conflicts.} Mechanistic accounts of entity binding
-\citep{feng2024bind,gurarieh2026mixing,prakash2026lookbacks} and state tracking
-\citep{tang2026entities,kim2023entity} may explain why lexical identity matters; we do not test them. Our records contain an intra-context
-conflict with an explicit temporal resolution \citep{xu2024conflicts}. Questions about the value valid at a
-given time \citep{yang2026conflicts} correspond to our historical retrieval check, not to our decision task.
+\paragraph{Binding, state tracking and conflicts.} Mechanistic studies of binding and belief tracking
+\citep{feng2024bind,gurarieh2026mixing,prakash2026lookbacks} and state tracking \citep{tang2026entities}
+complement behavioral entity-tracking studies \citep{kim2023entity}. These offer candidate explanations,
+which we do not test. Our records contain an intra-context conflict with explicit temporal resolution
+\citep{xu2024conflicts}. The temporal-conflict subset of \citet{yang2026conflicts} tests time-dependent
+claim validity, corresponding most closely to our historical retrieval check.

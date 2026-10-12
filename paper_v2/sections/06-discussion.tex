@@ -1,25 +1,23 @@
 \section{Discussion}
 \label{sec:discussion}
 
-\paragraph{What the evidence supports.} In five models that report both the current and the initial state
-correctly, an obsolete state still shifts the preference between routing actions toward the action it
-implies. Generated decisions also changed in the main design, where the other entity's current state
-implied the wrong action: net switch rates were 0.143--0.233 in post hoc tracked histories. In an
-exploratory Qwen3-8B run where that state supported the correct action, the superseded rate was 0.031,
-against 0.185 on the original full routing grid. Because the histories differ and equal current states
-may simplify the task, this comparison does not establish that cue agreement causes the difference or
-that the pattern generalizes across models. A second cue contributing to a decision-boundary crossing
-is a hypothesis consistent with these observations. Stale-value interference, documented for value
-queries \citep{guo2026context,wang2026unable}, thus also reaches single-step policy decisions after a
-single update, including histories with correct retrieval. The zero switch rate with thinking agrees with
-\citet{guo2026context}, whose reasoning models showed no difference between full histories and resolved
-snapshots. The interference does not require supersession, nor assignment to the queried attribute: an
-incidental mention of the same word shifts preferences in every model, and in Qwen3-8B it changed decisions
-in the balanced run (0.177) and, a few times, with thinking. It behaves like entrainment by
-decision-relevant words attached to the queried entity \citep{niu2025entrainment}; how it compares with the
-superseded assignment differs between models. An unattached word likewise shifted preferences by
-2.5--3.0 nats but changed few decisions (0.039 and 0.062): large changes in scored preference need not
-change greedy generation.
+\paragraph{What the evidence supports.} In five models, obsolete states shift routing preferences,
+including histories with correct current and initial retrieval. Net switch rates were 0.143--0.233 in
+post hoc tracked histories under the main design, where the other entity's state implies the wrong
+action. In Qwen3-8B, the superseded rate was 0.031 on balanced histories, against 0.185 on the original
+full grid. Different histories and potentially easier equal-state decisions prevent isolating cue
+agreement or generalizing that comparison across models. A second cue helping cross the decision
+boundary remains a hypothesis.
+
+Our zero superseded-switch result with thinking is consistent with the absence of semantic decision
+failures in \citet{guo2026context}'s tested full-history decision conditions, although tasks, models and
+comparisons differ. Interference requires neither supersession nor assignment to the queried attribute:
+incidental mentions shift preferences in every model, and in Qwen3-8B change decisions in the balanced
+run (0.177) and occasionally with thinking. This resembles contextual entrainment
+\citep{niu2025entrainment}, but concerns policy-derived action labels rather than direct repetition of
+prompt tokens; a shared mechanism is not established. The mention-versus-superseded comparison differs
+by model. An unattached word shifted preferences by 2.5--3.0 nats but changed few decisions (0.039 and
+0.062), further illustrating that score shifts need not change greedy generation.
 
 \paragraph{Consequences for evaluation and mitigation.} Three practical points follow. First, stale-state
 benchmarks that vary only update histories cannot tell supersession from incidental mention; a matched

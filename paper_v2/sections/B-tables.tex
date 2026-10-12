@@ -28,11 +28,10 @@ analysis per model (Tables~\ref{tab:joint-by-model} and~\ref{tab:tracked-models}
 differ slightly across constructions. Initial-state retrieval is asked only on superseded members and is
 applied at the history level to every construction.
 
-\begin{table}[h]
+\begin{table*}[t]
 \centering
 \small
 \setlength{\tabcolsep}{3pt}
-\resizebox{\columnwidth}{!}{%
 \begin{tabular}{@{}lcccc@{}}
 \toprule
 & Kept & $D_{\mathrm{S}}$ & Net switch rate & Switched \\
@@ -44,16 +43,15 @@ routing, all  & 348/384 & 2.990 & 0.158 $[0.118, 0.198]$ & 58 / 3 \\
 \midrule
 access, all   & 284/384 & 4.059 & 0.176 $[0.134, 0.218]$ & 50 / 0 \\
 \bottomrule
-\end{tabular}}
+\end{tabular}
 \caption{Qwen3-8B, histories the model tracks (\S\ref{sec:results-h1}), with 95\% intervals. Kept: retained of those in the cell. Switched: to wrong / correct.}
 \label{tab:joint}
-\end{table}
+\end{table*}
 
-\begin{table}[h]
+\begin{table*}[t]
 \centering
 \small
 \setlength{\tabcolsep}{3pt}
-\resizebox{\columnwidth}{!}{%
 \begin{tabular}{@{}lcccc@{}}
 \toprule
 Cell & Superseded & Other attr. & Mention & Unattached \\
@@ -66,13 +64,13 @@ access seq.   & 0.133 & 0.070 & 0.148 & 0.094 \\
 access int.   & 0.273 & 0.234 & 0.219 & 0.094 \\
 access comp.  & 0.094 & 0.109 & 0.219 & 0.000 \\
 \bottomrule
-\end{tabular}}
+\end{tabular}
 \caption{Net switch rate toward the wrong action, per cell and construction (confirmation, $n = 128$
-histories per cell). Intervals are in the released analysis.}
+histories per cell). Intervals are in the analysis reports.}
 \label{tab:switch-cells}
-\end{table}
+\end{table*}
 
-\begin{table}[h]
+\begin{table*}[t]
 \centering
 \small
 \setlength{\tabcolsep}{3pt}
@@ -97,10 +95,10 @@ access comp.  & opaque  & 3.20 & $-1.72$ \\
 \end{tabular}
 \caption{Qwen3-8B, effects (nats) by task, cell and vocabulary (64 histories each). Every $D_{\mathrm{S}}$ interval excludes zero; the $\Delta_{\mathrm{SM}}$ interval includes zero only for access, interleaved, natural ($[-1.01, 0.96]$).}
 \label{tab:strata}
-\end{table}
+\end{table*}
 
 \paragraph{Replication across splits.} Four earlier, non-confirmatory splits of the same protocol family
-(development and gate of the first redesign and of the confirmed protocol, on the standard template) show
+(development and gate of v1b and v2, on the standard template) show
 which conclusions depend on wording (Figure~\ref{fig:replication}). $D_{\mathrm{S}}$ was
 positive in all ten split-by-task estimates (3.133 to 6.599 nats), and $\Delta_{\mathrm{SO}}$ in
 nine of ten. $\Delta_{\mathrm{SM}}$ never favored the superseded assignment. On the standard template,
@@ -121,11 +119,10 @@ per-history differences (2{,}000 draws, fixed seed).
 \label{fig:replication}
 \end{figure*}
 
-\begin{table}[h]
+\begin{table*}[t]
 \centering
 \small
 \setlength{\tabcolsep}{3pt}
-\resizebox{\columnwidth}{!}{%
 \begin{tabular}{@{}lccc@{}}
 \toprule
 & Overall & Access & Routing \\
@@ -137,10 +134,10 @@ AUROC, pre-decision & 0.780 & 0.834 & 0.729 \\
 AUROC, $+R_{\mathrm{easy}}$ & 0.779 & 0.833 & 0.730 \\
 Gain from $R_{\mathrm{easy}}$ & $+0.0004$ & $-0.0006$ & $+0.0013$ \\
 \bottomrule
-\end{tabular}}
+\end{tabular}
 \caption{H3, Qwen3-8B: out-of-fold prediction of strict failure. 95\% intervals for the gain: overall $[-0.0011, 0.0019]$, access $[-0.0020, 0.0008]$, routing $[-0.0022, 0.0047]$.}
 \label{tab:h3}
-\end{table}
+\end{table*}
 
 \input{data/tables/conditions}
 
@@ -161,8 +158,9 @@ preference more than the mention ($\Delta_{\mathrm{SM}} = +0.845$ $[0.425, 1.255
 $R_{\mathrm{easy}}$, log-loss gain $-0.0001$ $[-0.0027, 0.0022]$.
 
 \paragraph{Confirmation-selection robustness comparison.} \gateConfDiffs{}
-Table~\ref{tab:cross-model-confirmation} gives the post hoc confirmation-selected estimates alongside the
-primary gate-selected intervals in Table~\ref{tab:cross-model-ci}. The populations differ for four
+Tables~\ref{tab:cross-model-confirmation} and~\ref{tab:cross-model-confirmation-switches} give the post hoc
+confirmation-selected scores and switches alongside the primary gate-selected intervals in
+Tables~\ref{tab:cross-model-ci} and~\ref{tab:cross-model-ci-switches}. The populations differ for four
 models, but the routing obsolete-state score shift remains positive in all five.
 
 \input{data/tables/joint_by_model}

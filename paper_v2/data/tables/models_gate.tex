@@ -1,8 +1,7 @@
-\begin{table}[h]
+\begin{table*}[t]
 \centering
 \small
-\setlength{\tabcolsep}{3pt}
-\resizebox{\columnwidth}{!}{%
+\setlength{\tabcolsep}{5pt}
 \begin{tabular}{@{}llcccc@{}}
 \toprule
 Model & Cell & Direct & No hist. & History & Comp. \\
@@ -56,7 +55,7 @@ Granite 4.1 8B & routing seq. & 0.967 & 0.984 & 0.799 & yes \\
  & access int. & 0.960 & 0.812 & 0.793 & no \\
  & access comp. & 0.962 & 0.828 & 0.865 & no \\
 \bottomrule
-\end{tabular}}
+\end{tabular}
 \caption{Frozen gate split (384 histories, the same rows for every model): accuracy and competence per cell. This gate decided eligibility for confirmation.}
 \label{tab:models-gate}
-\end{table}
+\end{table*}

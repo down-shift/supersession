@@ -149,8 +149,8 @@ def conditions():
             'Balanced': ({f: B['constructions'][f]['D'] for f in FAMILIES},
                          {f: B['constructions'][f]['switch'] for f in FAMILIES}),
             'Thinking': (None, {f: T['constructions'][f]['switch'] for f in FAMILIES})}
-    fig, axes = plt.subplots(1, 2, figsize=(3.3, 1.75))
-    for k, (ax, title) in enumerate(zip(axes, ['(a) Score shift $D$ (nats)', '(b) Net switch rate'])):
+    fig, axes = plt.subplots(1, 2, figsize=(3.3, 2.05))
+    for k, (ax, title) in enumerate(zip(axes, ['(a) Score shift (nats)', '(b) Net switch rate'])):
         conds = [c for c in rows if rows[c][k] is not None]
         for i, c in enumerate(conds):
             for j, f in enumerate(FAMILIES):
@@ -160,13 +160,14 @@ def conditions():
         ax.set_xlim(-0.5, len(FAMILIES) - 0.5)
         ax.axhline(0, color=INK, lw=0.6, zorder=1)
         ax.spines['bottom'].set_visible(False)
-        ax.set_title(title, loc='left', fontsize=7.5, color=INK)
+        ax.set_title(title, loc='left', fontsize=10, color=INK)
         tidy(ax)
+        ax.tick_params(axis='both', labelsize=9.5)
     axes[0].set_ylim(bottom=0)
     axes[1].set_ylim(-0.035, None)
     handles, labels = axes[1].get_legend_handles_labels()
-    fig.legend(handles, labels, frameon=False, fontsize=7, loc='upper center', ncol=3, handletextpad=0.2,
-               columnspacing=1.2, borderaxespad=0.1)
+    fig.legend(handles, labels, frameon=False, fontsize=9.5, loc='upper center', ncol=3, handlelength=1.0, handletextpad=0.2,
+               columnspacing=0.8, borderaxespad=0.1)
     fig.tight_layout(pad=0.2, w_pad=1.0, rect=(0, 0, 1, 0.9))
     fig.savefig(HERE / 'conditions.pdf')
 
@@ -178,7 +179,7 @@ def models():
     """Routing, each confirmed model's competent cells: D_S and net switch rates S and M (main-text figure)."""
     ms = [m for m in MODEL_ORDER if D['models'].get(m, {}).get('confirmation', {}).get('competent', {}).get('routing')]
     get = lambda m: D['models'][m]['confirmation']['competent']['routing']
-    fig, axes = plt.subplots(1, 2, figsize=(3.3, 1.7), sharey=True)
+    fig, axes = plt.subplots(1, 2, figsize=(3.3, 1.95), sharey=True)
     for i, m in enumerate(ms):
         c = get(m)
         dot(axes[0], None, i, c['D_superseded'], COLORS['superseded'], 'o', horizontal=True)
@@ -189,13 +190,15 @@ def models():
     for ax, title in zip(axes, ['(a) $D_{\\mathrm{S}}$ (nats)', '(b) Net switch rate']):
         ax.axvline(0, color=INK, lw=0.6, zorder=1)
         ax.spines['left'].set_visible(False)
-        ax.set_title(title, loc='left', fontsize=7.5, color=INK)
+        ax.set_title(title, loc='left', fontsize=9, color=INK)
         tidy(ax, axis='x')
-    axes[0].set_yticks(range(len(ms)), ms)
+    for ax in axes:
+        ax.tick_params(axis='both', labelsize=9)
+    axes[0].set_yticks(range(len(ms)), ms, fontsize=9)
     axes[0].set_ylim(len(ms) - 0.5, -0.5)
     axes[0].set_xlim(left=0)
     axes[1].set_xlim(left=-0.01)
-    fig.legend(*axes[1].get_legend_handles_labels(), frameon=False, fontsize=7, loc='upper center', ncol=2,
+    fig.legend(*axes[1].get_legend_handles_labels(), frameon=False, fontsize=9, loc='upper center', ncol=2,
                handletextpad=0.2, columnspacing=1.2, borderaxespad=0.1)
     fig.tight_layout(pad=0.2, w_pad=0.8, rect=(0, 0, 1, 0.88))
     fig.savefig(HERE / 'models.pdf')

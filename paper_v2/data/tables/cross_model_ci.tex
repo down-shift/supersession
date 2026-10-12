@@ -1,23 +1,77 @@
 \begin{table*}[t]
 \centering
 \small
-\setlength{\tabcolsep}{4pt}
-\resizebox{\textwidth}{!}{%
-\begin{tabular}{@{}llrcccccc@{}}
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{@{}llrlrr@{}}
 \toprule
- & & & \multicolumn{3}{c}{Scores (nats)} & \multicolumn{3}{c}{Net switch rate} \\
-\cmidrule(lr){4-6}\cmidrule(lr){7-9}
-Model & Cells & $n$ & $D_{\mathrm{S}}$ & $\Delta_{\mathrm{SO}}$ & $\Delta_{\mathrm{SM}}$ & S & S $-$ O & M $-$ S \\
+Model & Task / cells & $n$ & Quantity & Estimate & Interval \\
 \midrule
-Qwen3-8B & routing int., seq. & 256 & $+3.248$ {\scriptsize $[+2.768, +3.751]$} & $+1.330$ {\scriptsize $[+0.978, +1.668]$} & $-1.702$ {\scriptsize $[-1.978, -1.406]$} & $+0.195$ {\scriptsize $[+0.145, +0.250]$} & $+0.125$ {\scriptsize $[+0.066, +0.180]$} & $+0.117$ {\scriptsize $[+0.055, +0.180]$} \\
-Qwen3-8B & access int. & 128 & $+4.221$ {\scriptsize $[+3.470, +5.063]$} & $-0.132$ {\scriptsize $[-0.775, +0.536]$} & $-0.740$ {\scriptsize $[-1.303, -0.122]$} & $+0.273$ {\scriptsize $[+0.195, +0.352]$} & $+0.039$ {\scriptsize $[-0.039, +0.125]$} & $-0.055$ {\scriptsize $[-0.156, +0.047]$} \\
-Qwen3-14B & routing comp., int., seq. & 384 & $+4.785$ {\scriptsize $[+4.244, +5.354]$} & $+0.866$ {\scriptsize $[+0.417, +1.328]$} & $+0.248$ {\scriptsize $[-0.117, +0.601]$} & $+0.167$ {\scriptsize $[+0.130, +0.206]$} & $+0.021$ {\scriptsize $[-0.023, +0.068]$} & $+0.003$ {\scriptsize $[-0.039, +0.044]$} \\
-Gemma 4 12B & routing comp., int., seq. & 384 & $+3.949$ {\scriptsize $[+3.455, +4.473]$} & $+3.247$ {\scriptsize $[+2.786, +3.724]$} & $+1.436$ {\scriptsize $[+0.996, +1.874]$} & $+0.148$ {\scriptsize $[+0.115, +0.185]$} & $+0.138$ {\scriptsize $[+0.102, +0.177]$} & $-0.044$ {\scriptsize $[-0.089, -0.003]$} \\
-Gemma 4 12B & access comp. & 128 & $+4.384$ {\scriptsize $[+3.480, +5.518]$} & $+1.184$ {\scriptsize $[-0.184, +2.652]$} & $+2.058$ {\scriptsize $[+1.182, +3.005]$} & $+0.062$ {\scriptsize $[+0.023, +0.109]$} & $-0.055$ {\scriptsize $[-0.125, +0.016]$} & $-0.008$ {\scriptsize $[-0.062, +0.047]$} \\
-Qwen3.5 9B & routing comp., seq. & 256 & $+1.085$ {\scriptsize $[+0.975, +1.190]$} & $+0.358$ {\scriptsize $[+0.274, +0.444]$} & $-0.014$ {\scriptsize $[-0.076, +0.047]$} & $+0.230$ {\scriptsize $[+0.180, +0.281]$} & $+0.121$ {\scriptsize $[+0.066, +0.172]$} & $-0.016$ {\scriptsize $[-0.078, +0.043]$} \\
-Granite 4.1 8B & routing int., seq. & 256 & $+3.441$ {\scriptsize $[+2.977, +3.973]$} & $+0.793$ {\scriptsize $[+0.498, +1.097]$} & $-2.208$ {\scriptsize $[-2.607, -1.802]$} & $+0.168$ {\scriptsize $[+0.125, +0.219]$} & $+0.039$ {\scriptsize $[+0.000, +0.078]$} & $+0.188$ {\scriptsize $[+0.129, +0.246]$} \\
+Qwen3-8B & routing i,s & 256 & $D_{\mathrm{S}}$ & $+3.248$ & $[+2.768, +3.751]$ \\
+ &  &  & $\Delta_{\mathrm{SO}}$ & $+1.330$ & $[+0.978, +1.668]$ \\
+ &  &  & $\Delta_{\mathrm{SM}}$ & $-1.702$ & $[-1.978, -1.406]$ \\
+ & access i & 128 & $D_{\mathrm{S}}$ & $+4.221$ & $[+3.470, +5.063]$ \\
+ &  &  & $\Delta_{\mathrm{SO}}$ & $-0.132$ & $[-0.775, +0.536]$ \\
+ &  &  & $\Delta_{\mathrm{SM}}$ & $-0.740$ & $[-1.303, -0.122]$ \\
+\midrule
+Qwen3-14B & routing c,i,s & 384 & $D_{\mathrm{S}}$ & $+4.785$ & $[+4.244, +5.354]$ \\
+ &  &  & $\Delta_{\mathrm{SO}}$ & $+0.866$ & $[+0.417, +1.328]$ \\
+ &  &  & $\Delta_{\mathrm{SM}}$ & $+0.248$ & $[-0.117, +0.601]$ \\
+\midrule
+Gemma 4 12B & routing c,i,s & 384 & $D_{\mathrm{S}}$ & $+3.949$ & $[+3.455, +4.473]$ \\
+ &  &  & $\Delta_{\mathrm{SO}}$ & $+3.247$ & $[+2.786, +3.724]$ \\
+ &  &  & $\Delta_{\mathrm{SM}}$ & $+1.436$ & $[+0.996, +1.874]$ \\
+ & access c & 128 & $D_{\mathrm{S}}$ & $+4.384$ & $[+3.480, +5.518]$ \\
+ &  &  & $\Delta_{\mathrm{SO}}$ & $+1.184$ & $[-0.184, +2.652]$ \\
+ &  &  & $\Delta_{\mathrm{SM}}$ & $+2.058$ & $[+1.182, +3.005]$ \\
+\midrule
+Qwen3.5 9B & routing c,s & 256 & $D_{\mathrm{S}}$ & $+1.085$ & $[+0.975, +1.190]$ \\
+ &  &  & $\Delta_{\mathrm{SO}}$ & $+0.358$ & $[+0.274, +0.444]$ \\
+ &  &  & $\Delta_{\mathrm{SM}}$ & $-0.014$ & $[-0.076, +0.047]$ \\
+\midrule
+Granite 4.1 8B & routing i,s & 256 & $D_{\mathrm{S}}$ & $+3.441$ & $[+2.977, +3.973]$ \\
+ &  &  & $\Delta_{\mathrm{SO}}$ & $+0.793$ & $[+0.498, +1.097]$ \\
+ &  &  & $\Delta_{\mathrm{SM}}$ & $-2.208$ & $[-2.607, -1.802]$ \\
 \bottomrule
-\end{tabular}}
-\caption{Table~\ref{tab:cross-model} with intervals: 97.5\% for $D_{\mathrm{S}}$ and $\Delta_{\mathrm{SO}}$, 95\% otherwise (history bootstrap). Cells are selected by the frozen gate.}
+\end{tabular}
+\caption{Primary confirmation estimates on frozen-gate-selected cells (Table~\ref{tab:cross-model}): score shifts in nats. Intervals are 97.5\% for $D_{\mathrm{S}}$ and $\Delta_{\mathrm{SO}}$, 95\% for $\Delta_{\mathrm{SM}}$. Cells: s = sequential, i = interleaved, c = competing; $n$ counts histories.}
 \label{tab:cross-model-ci}
+\end{table*}
+
+\begin{table*}[t]
+\centering
+\small
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{@{}llrlrr@{}}
+\toprule
+Model & Task / cells & $n$ & Quantity & Estimate & Interval \\
+\midrule
+Qwen3-8B & routing i,s & 256 & S & $+0.195$ & $[+0.145, +0.250]$ \\
+ &  &  & S $-$ O & $+0.125$ & $[+0.066, +0.180]$ \\
+ &  &  & M $-$ S & $+0.117$ & $[+0.055, +0.180]$ \\
+ & access i & 128 & S & $+0.273$ & $[+0.195, +0.352]$ \\
+ &  &  & S $-$ O & $+0.039$ & $[-0.039, +0.125]$ \\
+ &  &  & M $-$ S & $-0.055$ & $[-0.156, +0.047]$ \\
+\midrule
+Qwen3-14B & routing c,i,s & 384 & S & $+0.167$ & $[+0.130, +0.206]$ \\
+ &  &  & S $-$ O & $+0.021$ & $[-0.023, +0.068]$ \\
+ &  &  & M $-$ S & $+0.003$ & $[-0.039, +0.044]$ \\
+\midrule
+Gemma 4 12B & routing c,i,s & 384 & S & $+0.148$ & $[+0.115, +0.185]$ \\
+ &  &  & S $-$ O & $+0.138$ & $[+0.102, +0.177]$ \\
+ &  &  & M $-$ S & $-0.044$ & $[-0.089, -0.003]$ \\
+ & access c & 128 & S & $+0.062$ & $[+0.023, +0.109]$ \\
+ &  &  & S $-$ O & $-0.055$ & $[-0.125, +0.016]$ \\
+ &  &  & M $-$ S & $-0.008$ & $[-0.062, +0.047]$ \\
+\midrule
+Qwen3.5 9B & routing c,s & 256 & S & $+0.230$ & $[+0.180, +0.281]$ \\
+ &  &  & S $-$ O & $+0.121$ & $[+0.066, +0.172]$ \\
+ &  &  & M $-$ S & $-0.016$ & $[-0.078, +0.043]$ \\
+\midrule
+Granite 4.1 8B & routing i,s & 256 & S & $+0.168$ & $[+0.125, +0.219]$ \\
+ &  &  & S $-$ O & $+0.039$ & $[+0.000, +0.078]$ \\
+ &  &  & M $-$ S & $+0.188$ & $[+0.129, +0.246]$ \\
+\bottomrule
+\end{tabular}
+\caption{Primary confirmation estimates on frozen-gate-selected cells (Table~\ref{tab:cross-model}): net switch rates and paired differences, with 95\% intervals. Cells: s = sequential, i = interleaved, c = competing; $n$ counts histories.}
+\label{tab:cross-model-ci-switches}
 \end{table*}

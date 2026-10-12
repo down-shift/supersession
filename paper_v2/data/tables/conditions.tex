@@ -1,20 +1,30 @@
 \begin{table*}[t]
 \centering
 \small
-\setlength{\tabcolsep}{4pt}
-\resizebox{\textwidth}{!}{%
-\begin{tabular}{@{}lccccccccc@{}}
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{@{}lrrrrr@{}}
 \toprule
- & \multicolumn{3}{c}{Main design, no thinking ($n=384$)} & \multicolumn{3}{c}{Balanced, no thinking ($n=192$)} & \multicolumn{2}{c}{Main design, thinking ($n=384$)} \\
-\cmidrule(lr){2-4}\cmidrule(lr){5-7}\cmidrule(lr){8-9}
-Construction & $D$ & Net switch & W/C & $D$ & Net switch & W/C & Net switch & W/C \\
+Construction & $D$ (nats) & 95\% interval & Net switch & 95\% interval & W/C \\
 \midrule
-Superseded & $+3.133$ {\scriptsize $[+2.794, +3.478]$} & $+0.185$ {\scriptsize $[+0.143, +0.227]$} & 75/4 & $+3.895$ {\scriptsize $[+3.333, +4.443]$} & $+0.031$ {\scriptsize $[+0.010, +0.057]$} & 6/0 & $+0.000$ {\scriptsize $[+0.000, +0.000]$} & 0/0 \\
-Other attr., updated & $+1.909$ {\scriptsize $[+1.661, +2.161]$} & $+0.065$ {\scriptsize $[+0.029, +0.099]$} & 37/12 & $+2.962$ {\scriptsize $[+2.541, +3.365]$} & $+0.026$ {\scriptsize $[+0.005, +0.052]$} & 5/0 & $+0.000$ {\scriptsize $[+0.000, +0.000]$} & 0/0 \\
-Mention & $+4.807$ {\scriptsize $[+4.455, +5.186]$} & $+0.294$ {\scriptsize $[+0.250, +0.341]$} & 113/0 & $+6.621$ {\scriptsize $[+5.917, +7.323]$} & $+0.177$ {\scriptsize $[+0.125, +0.234]$} & 34/0 & $+0.018$ {\scriptsize $[+0.005, +0.034]$} & 7/0 \\
-Unattached & $+2.496$ {\scriptsize $[+2.201, +2.805]$} & $+0.039$ {\scriptsize $[+0.013, +0.068]$} & 23/8 & $+3.326$ {\scriptsize $[+2.889, +3.765]$} & $-0.005$ {\scriptsize $[-0.026, +0.010]$} & 1/2 & $+0.000$ {\scriptsize $[+0.000, +0.000]$} & 0/0 \\
+\multicolumn{6}{@{}l}{\textbf{Main design, no thinking} ($n=384$)} \\
+Superseded & $+3.133$ & $[+2.794, +3.478]$ & $+0.185$ & $[+0.143, +0.227]$ & 75/4 \\
+Other attribute, updated & $+1.909$ & $[+1.661, +2.161]$ & $+0.065$ & $[+0.029, +0.099]$ & 37/12 \\
+Mention & $+4.807$ & $[+4.455, +5.186]$ & $+0.294$ & $[+0.250, +0.341]$ & 113/0 \\
+Unattached & $+2.496$ & $[+2.201, +2.805]$ & $+0.039$ & $[+0.013, +0.068]$ & 23/8 \\
+\midrule
+\multicolumn{6}{@{}l}{\textbf{Balanced, no thinking} ($n=192$)} \\
+Superseded & $+3.895$ & $[+3.333, +4.443]$ & $+0.031$ & $[+0.010, +0.057]$ & 6/0 \\
+Other attribute, updated & $+2.962$ & $[+2.541, +3.365]$ & $+0.026$ & $[+0.005, +0.052]$ & 5/0 \\
+Mention & $+6.621$ & $[+5.917, +7.323]$ & $+0.177$ & $[+0.125, +0.234]$ & 34/0 \\
+Unattached & $+3.326$ & $[+2.889, +3.765]$ & $-0.005$ & $[-0.026, +0.010]$ & 1/2 \\
+\midrule
+\multicolumn{6}{@{}l}{\textbf{Main design, thinking} ($n=384$)} \\
+Superseded & -- & -- & $+0.000$ & $[+0.000, +0.000]$ & 0/0 \\
+Other attribute, updated & -- & -- & $+0.000$ & $[+0.000, +0.000]$ & 0/0 \\
+Mention & -- & -- & $+0.018$ & $[+0.005, +0.034]$ & 7/0 \\
+Unattached & -- & -- & $+0.000$ & $[+0.000, +0.000]$ & 0/0 \\
 \bottomrule
-\end{tabular}}
-\caption{Values behind Figure~\ref{fig:conditions} (Qwen3-8B, routing), with 95\% intervals. W/C: histories switched to the wrong / to the correct action.}
+\end{tabular}
+\caption{Values behind Figure~\ref{fig:conditions} (Qwen3-8B, routing), with 95\% intervals. W/C: histories switched to wrong / correct. Thinking has no scores; balanced and original histories differ, so their comparison is descriptive.}
 \label{tab:conditions}
 \end{table*}

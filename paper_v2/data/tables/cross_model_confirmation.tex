@@ -1,22 +1,71 @@
 \begin{table*}[t]
 \centering
 \small
-\setlength{\tabcolsep}{4pt}
-\resizebox{\textwidth}{!}{%
-\begin{tabular}{@{}llrcccccc@{}}
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{@{}llrlrr@{}}
 \toprule
- & & & \multicolumn{3}{c}{Scores (nats)} & \multicolumn{3}{c}{Net switch rate} \\
-\cmidrule(lr){4-6}\cmidrule(lr){7-9}
-Model & Cells & $n$ & $D_{\mathrm{S}}$ & $\Delta_{\mathrm{SO}}$ & $\Delta_{\mathrm{SM}}$ & S & S $-$ O & M $-$ S \\
+Model & Task / cells & $n$ & Quantity & Estimate & Interval \\
 \midrule
-Qwen3-8B & routing comp., int., seq. & 384 & $+3.133$ {\scriptsize $[+2.743, +3.516]$} & $+1.224$ {\scriptsize $[+0.973, +1.485]$} & $-1.675$ {\scriptsize $[-1.896, -1.441]$} & $+0.185$ {\scriptsize $[+0.143, +0.227]$} & $+0.120$ {\scriptsize $[+0.076, +0.164]$} & $+0.109$ {\scriptsize $[+0.060, +0.156]$} \\
-Qwen3-14B & routing comp., int., seq. & 384 & $+4.785$ {\scriptsize $[+4.244, +5.354]$} & $+0.866$ {\scriptsize $[+0.417, +1.328]$} & $+0.248$ {\scriptsize $[-0.117, +0.601]$} & $+0.167$ {\scriptsize $[+0.130, +0.206]$} & $+0.021$ {\scriptsize $[-0.023, +0.068]$} & $+0.003$ {\scriptsize $[-0.039, +0.044]$} \\
-Gemma 4 12B & routing comp., seq. & 256 & $+3.709$ {\scriptsize $[+3.146, +4.247]$} & $+3.102$ {\scriptsize $[+2.564, +3.642]$} & $+1.513$ {\scriptsize $[+0.998, +2.041]$} & $+0.109$ {\scriptsize $[+0.070, +0.148]$} & $+0.090$ {\scriptsize $[+0.051, +0.133]$} & $-0.012$ {\scriptsize $[-0.062, +0.039]$} \\
-Gemma 4 12B & access comp., int., seq. & 384 & $+4.285$ {\scriptsize $[+3.622, +4.998]$} & $+1.561$ {\scriptsize $[+0.743, +2.345]$} & $+1.455$ {\scriptsize $[+0.823, +2.043]$} & $+0.083$ {\scriptsize $[+0.057, +0.112]$} & $-0.031$ {\scriptsize $[-0.076, +0.008]$} & $-0.010$ {\scriptsize $[-0.042, +0.026]$} \\
-Qwen3.5 9B & routing int., seq. & 256 & $+1.072$ {\scriptsize $[+0.939, +1.209]$} & $+0.311$ {\scriptsize $[+0.228, +0.399]$} & $-0.019$ {\scriptsize $[-0.079, +0.035]$} & $+0.242$ {\scriptsize $[+0.191, +0.297]$} & $+0.148$ {\scriptsize $[+0.098, +0.199]$} & $-0.062$ {\scriptsize $[-0.125, +0.000]$} \\
-Granite 4.1 8B & routing comp., int. & 256 & $+3.385$ {\scriptsize $[+2.851, +3.957]$} & $+0.755$ {\scriptsize $[+0.483, +1.053]$} & $-1.929$ {\scriptsize $[-2.365, -1.512]$} & $+0.188$ {\scriptsize $[+0.141, +0.238]$} & $+0.027$ {\scriptsize $[-0.012, +0.062]$} & $+0.156$ {\scriptsize $[+0.098, +0.215]$} \\
+Qwen3-8B & routing c,i,s & 384 & $D_{\mathrm{S}}$ & $+3.133$ & $[+2.743, +3.516]$ \\
+ &  &  & $\Delta_{\mathrm{SO}}$ & $+1.224$ & $[+0.973, +1.485]$ \\
+ &  &  & $\Delta_{\mathrm{SM}}$ & $-1.675$ & $[-1.896, -1.441]$ \\
+\midrule
+Qwen3-14B & routing c,i,s & 384 & $D_{\mathrm{S}}$ & $+4.785$ & $[+4.244, +5.354]$ \\
+ &  &  & $\Delta_{\mathrm{SO}}$ & $+0.866$ & $[+0.417, +1.328]$ \\
+ &  &  & $\Delta_{\mathrm{SM}}$ & $+0.248$ & $[-0.117, +0.601]$ \\
+\midrule
+Gemma 4 12B & routing c,s & 256 & $D_{\mathrm{S}}$ & $+3.709$ & $[+3.146, +4.247]$ \\
+ &  &  & $\Delta_{\mathrm{SO}}$ & $+3.102$ & $[+2.564, +3.642]$ \\
+ &  &  & $\Delta_{\mathrm{SM}}$ & $+1.513$ & $[+0.998, +2.041]$ \\
+ & access c,i,s & 384 & $D_{\mathrm{S}}$ & $+4.285$ & $[+3.622, +4.998]$ \\
+ &  &  & $\Delta_{\mathrm{SO}}$ & $+1.561$ & $[+0.743, +2.345]$ \\
+ &  &  & $\Delta_{\mathrm{SM}}$ & $+1.455$ & $[+0.823, +2.043]$ \\
+\midrule
+Qwen3.5 9B & routing i,s & 256 & $D_{\mathrm{S}}$ & $+1.072$ & $[+0.939, +1.209]$ \\
+ &  &  & $\Delta_{\mathrm{SO}}$ & $+0.311$ & $[+0.228, +0.399]$ \\
+ &  &  & $\Delta_{\mathrm{SM}}$ & $-0.019$ & $[-0.079, +0.035]$ \\
+\midrule
+Granite 4.1 8B & routing c,i & 256 & $D_{\mathrm{S}}$ & $+3.385$ & $[+2.851, +3.957]$ \\
+ &  &  & $\Delta_{\mathrm{SO}}$ & $+0.755$ & $[+0.483, +1.053]$ \\
+ &  &  & $\Delta_{\mathrm{SM}}$ & $-1.929$ & $[-2.365, -1.512]$ \\
 \bottomrule
-\end{tabular}}
-\caption{Post hoc robustness comparison: confirmation estimates on cells selected by confirmation competence. Primary gate-selected estimates are in Table~\ref{tab:cross-model-ci}. Intervals: 97.5\% for $D_{\mathrm{S}}$ and $\Delta_{\mathrm{SO}}$, 95\% otherwise.}
+\end{tabular}
+\caption{Post hoc confirmation-selected robustness estimates: score shifts in nats. Intervals are 97.5\% for $D_{\mathrm{S}}$ and $\Delta_{\mathrm{SO}}$, 95\% for $\Delta_{\mathrm{SM}}$. Cells: s = sequential, i = interleaved, c = competing; $n$ counts histories.}
 \label{tab:cross-model-confirmation}
+\end{table*}
+
+\begin{table*}[t]
+\centering
+\small
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{@{}llrlrr@{}}
+\toprule
+Model & Task / cells & $n$ & Quantity & Estimate & Interval \\
+\midrule
+Qwen3-8B & routing c,i,s & 384 & S & $+0.185$ & $[+0.143, +0.227]$ \\
+ &  &  & S $-$ O & $+0.120$ & $[+0.076, +0.164]$ \\
+ &  &  & M $-$ S & $+0.109$ & $[+0.060, +0.156]$ \\
+\midrule
+Qwen3-14B & routing c,i,s & 384 & S & $+0.167$ & $[+0.130, +0.206]$ \\
+ &  &  & S $-$ O & $+0.021$ & $[-0.023, +0.068]$ \\
+ &  &  & M $-$ S & $+0.003$ & $[-0.039, +0.044]$ \\
+\midrule
+Gemma 4 12B & routing c,s & 256 & S & $+0.109$ & $[+0.070, +0.148]$ \\
+ &  &  & S $-$ O & $+0.090$ & $[+0.051, +0.133]$ \\
+ &  &  & M $-$ S & $-0.012$ & $[-0.062, +0.039]$ \\
+ & access c,i,s & 384 & S & $+0.083$ & $[+0.057, +0.112]$ \\
+ &  &  & S $-$ O & $-0.031$ & $[-0.076, +0.008]$ \\
+ &  &  & M $-$ S & $-0.010$ & $[-0.042, +0.026]$ \\
+\midrule
+Qwen3.5 9B & routing i,s & 256 & S & $+0.242$ & $[+0.191, +0.297]$ \\
+ &  &  & S $-$ O & $+0.148$ & $[+0.098, +0.199]$ \\
+ &  &  & M $-$ S & $-0.062$ & $[-0.125, +0.000]$ \\
+\midrule
+Granite 4.1 8B & routing c,i & 256 & S & $+0.188$ & $[+0.141, +0.238]$ \\
+ &  &  & S $-$ O & $+0.027$ & $[-0.012, +0.062]$ \\
+ &  &  & M $-$ S & $+0.156$ & $[+0.098, +0.215]$ \\
+\bottomrule
+\end{tabular}
+\caption{Post hoc confirmation-selected robustness estimates: net switch rates and paired differences, with 95\% intervals. Cells: s = sequential, i = interleaved, c = competing; $n$ counts histories.}
+\label{tab:cross-model-confirmation-switches}
 \end{table*}

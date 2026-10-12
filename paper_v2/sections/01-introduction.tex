@@ -1,22 +1,20 @@
 \section{Introduction}
 \label{sec:intro}
 
-Agents and assistants increasingly act on records that change: a user's clearance is revoked, a ticket is
-rerouted, a preference is replaced. The record usually keeps the history, and the model is told that only
-the latest entry counts. Retrieval benchmarks ask whether the model can then report the current value, and
-recent work shows that old values do intrude on such reports, especially after many overwrites
-\citep{wang2026unable,guo2026context,chattaraj2026dual}. A deployed system, however, rarely asks the model
-to restate a value. It asks the model to \emph{use} it. Two questions follow that retrieval accuracy does
-not answer. When a model can state the current value correctly, does the obsolete value still change the
-decision it takes, and under what conditions? And if it does, is the obsolete value acting as a superseded assignment of the queried
-attribute, or simply as a word that occurs in the context near the entity?
+Agents and assistants act on records that change: clearance is revoked, a ticket rerouted, a preference
+replaced. Earlier entries remain visible, but only the current state should govern the action. Direct
+retrieval studies show that old values intrude on current-value reports, especially after repeated
+updates \citep{wang2026unable,chattaraj2026dual}. Prior work also tests downstream use: STALE evaluates
+implicit policy adaptation \citep{chao2026stale}, and \citet{guo2026context} include decisions under
+revised constraints. We ask whether obsolete words affect policy decisions on histories with correct
+retrieval, and whether supersession matters beyond the word's presence near the queried entity.
 
-The second question matters because the two accounts call for different evaluations. If the
-interference is tied to supersession, it is a failure of state tracking, the target of update-aware memory,
-historical marking or attention routing toward the current entry \citep{guo2026context}. If any nearby
-mention of a decision-relevant word does the same, the problem is contextual entrainment
-\citep{niu2025entrainment} reaching decisions. We test no mitigation, but either way an evaluation of one
-needs a matched mention control and decision-level outcomes.
+Supersession-specific interference would motivate state-tracking interventions, such as historical
+marking or attention routing \citep{guo2026context}. Similar interference from incidental mentions
+would instead suggest a broader lexical effect, analogous to contextual entrainment \citep{niu2025entrainment}.
+Here the measured outputs are policy-derived action labels, so the analogy does not establish a shared
+mechanism. Either account motivates matched mention controls and decision-level evaluation; we test no
+mitigation.
 
 \paragraph{Design.} We hold the current state, policy, query and correct action fixed, and edit one
 obsolete state to imply either the wrong or the correct action. The paired difference in decision
@@ -46,9 +44,8 @@ cells; confirmation-selected and tracked-history analyses are post hoc robustnes
 
 \paragraph{What is and is not new.} That stale context interferes with answers is established
 \citep{wang2026unable,guo2026context,qian2026forget,chao2026stale}, as is the fact that mentioned tokens
-gain probability \citep{niu2025entrainment}. Our contribution is a controlled test connecting these phenomena to policy decisions. Minimal-pair
-edits hold the correct action fixed; matched controls compare supersession, other-attribute assignment
-and incidental mention. We report scores, generated answers and retrieval checks, a negative result for
+gain probability \citep{niu2025entrainment}. Our contribution is the controlled contrast between superseded assignments and matched
+other-attribute and incidental-mention controls while holding the correct policy action fixed. We report scores, generated answers and retrieval checks, a negative result for
 sensitivity-based prediction, and measurement problems involving chat-format events and reduced-precision
 scoring (Appendix~\ref{app:history}).
 

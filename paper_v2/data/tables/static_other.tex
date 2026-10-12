@@ -1,24 +1,32 @@
-\begin{table}[t]
+\begin{table*}[t]
 \centering
 \small
-\setlength{\tabcolsep}{3pt}
-\resizebox{\columnwidth}{!}{%
-\begin{tabular}{@{}lcccc@{}}
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{@{}lrrrr@{}}
 \toprule
- & \multicolumn{2}{c}{Qwen3-8B} & \multicolumn{2}{c}{Qwen3-14B} \\
- & $D$ & Net switch & $D$ & Net switch \\
+Construction / contrast & $D$ (nats) & 95\% interval & Net switch & 95\% interval \\
 \midrule
-Superseded & $+3.133$ {\scriptsize $[+2.794, +3.478]$} & $+0.185$ {\scriptsize $[+0.143, +0.227]$} & $+4.785$ {\scriptsize $[+4.306, +5.277]$} & $+0.167$ {\scriptsize $[+0.130, +0.206]$} \\
-Other attr., updated & $+1.909$ {\scriptsize $[+1.661, +2.161]$} & $+0.065$ {\scriptsize $[+0.029, +0.099]$} & $+3.919$ {\scriptsize $[+3.592, +4.252]$} & $+0.146$ {\scriptsize $[+0.109, +0.185]$} \\
-Other attr., not updated & $+3.112$ {\scriptsize $[+2.815, +3.397]$} & $+0.193$ {\scriptsize $[+0.154, +0.234]$} & $+5.861$ {\scriptsize $[+5.444, +6.292]$} & $+0.263$ {\scriptsize $[+0.219, +0.310]$} \\
-Mention & $+4.807$ {\scriptsize $[+4.455, +5.186]$} & $+0.294$ {\scriptsize $[+0.250, +0.341]$} & $+4.538$ {\scriptsize $[+4.134, +4.952]$} & $+0.169$ {\scriptsize $[+0.133, +0.208]$} \\
-Unattached & $+2.496$ {\scriptsize $[+2.201, +2.805]$} & $+0.039$ {\scriptsize $[+0.013, +0.068]$} & $+2.145$ {\scriptsize $[+1.840, +2.477]$} & $+0.029$ {\scriptsize $[+0.003, +0.052]$} \\
+\multicolumn{5}{@{}l}{\textbf{Qwen3-8B}} \\
+Superseded & $+3.133$ & $[+2.794, +3.478]$ & $+0.185$ & $[+0.143, +0.227]$ \\
+Other attribute, updated & $+1.909$ & $[+1.661, +2.161]$ & $+0.065$ & $[+0.029, +0.099]$ \\
+Other attribute, not updated & $+3.112$ & $[+2.815, +3.397]$ & $+0.193$ & $[+0.154, +0.234]$ \\
+Mention & $+4.807$ & $[+4.455, +5.186]$ & $+0.294$ & $[+0.250, +0.341]$ \\
+Unattached & $+2.496$ & $[+2.201, +2.805]$ & $+0.039$ & $[+0.013, +0.068]$ \\
+$\Delta_{\mathrm{ON}}$ (O $-$ N) & $-1.204$ & $[-1.326, -1.080]$ & $-0.128$ & $[-0.177, -0.081]$ \\
+$\Delta_{\mathrm{SO}}$ (S $-$ O) & $+1.224$ & $[+1.002, +1.454]$ & $+0.120$ & $[+0.076, +0.164]$ \\
+$\Delta_{\mathrm{SN}}$ (S $-$ N) & $+0.020$ & $[-0.201, +0.254]$ & $-0.008$ & $[-0.052, +0.036]$ \\
 \midrule
-$\Delta_{\mathrm{ON}}$ (updated $-$ not updated) & $-1.204$ {\scriptsize $[-1.326, -1.080]$} & $-0.128$ {\scriptsize $[-0.177, -0.081]$} & $-1.942$ {\scriptsize $[-2.191, -1.706]$} & $-0.117$ {\scriptsize $[-0.167, -0.070]$} \\
-$\Delta_{\mathrm{SO}}$ (superseded $-$ updated) & $+1.224$ {\scriptsize $[+1.002, +1.454]$} & $+0.120$ {\scriptsize $[+0.076, +0.164]$} & $+0.866$ {\scriptsize $[+0.476, +1.263]$} & $+0.021$ {\scriptsize $[-0.023, +0.068]$} \\
-$\Delta_{\mathrm{SN}}$ (superseded $-$ not updated) & $+0.020$ {\scriptsize $[-0.201, +0.254]$} & $-0.008$ {\scriptsize $[-0.052, +0.036]$} & $-1.076$ {\scriptsize $[-1.526, -0.661]$} & $-0.096$ {\scriptsize $[-0.154, -0.044]$} \\
+\multicolumn{5}{@{}l}{\textbf{Qwen3-14B}} \\
+Superseded & $+4.785$ & $[+4.306, +5.277]$ & $+0.167$ & $[+0.130, +0.206]$ \\
+Other attribute, updated & $+3.919$ & $[+3.592, +4.252]$ & $+0.146$ & $[+0.109, +0.185]$ \\
+Other attribute, not updated & $+5.861$ & $[+5.444, +6.292]$ & $+0.263$ & $[+0.219, +0.310]$ \\
+Mention & $+4.538$ & $[+4.134, +4.952]$ & $+0.169$ & $[+0.133, +0.208]$ \\
+Unattached & $+2.145$ & $[+1.840, +2.477]$ & $+0.029$ & $[+0.003, +0.052]$ \\
+$\Delta_{\mathrm{ON}}$ (O $-$ N) & $-1.942$ & $[-2.191, -1.706]$ & $-0.117$ & $[-0.167, -0.070]$ \\
+$\Delta_{\mathrm{SO}}$ (S $-$ O) & $+0.866$ & $[+0.476, +1.263]$ & $+0.021$ & $[-0.023, +0.068]$ \\
+$\Delta_{\mathrm{SN}}$ (S $-$ N) & $-1.076$ & $[-1.526, -0.661]$ & $-0.096$ & $[-0.154, -0.044]$ \\
 \bottomrule
-\end{tabular}}
+\end{tabular}
 \caption{Never-updated other attribute (N) on the routing confirmation histories ($n=384$), with 95\% intervals. Prediction recorded before scoring: $\Delta_{\mathrm{ON}} \le 0$.}
 \label{tab:static-other}
-\end{table}
+\end{table*}

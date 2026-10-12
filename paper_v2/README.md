@@ -28,6 +28,8 @@ uv run --extra dev python -m paper_v2.data.tables
 uv run --extra dev python -m paper_v2.figures.make_figures
 ```
 
+Appendix tables use unscaled full-width layouts; score and switch intervals are separate tables, and wide comparisons group conditions or models vertically.
+
 `models.pdf` summarizes routing cells selected by the frozen gate; `conditions.pdf` compares main, balanced and thinking conditions. The construction plots include the never-updated other attribute where available. `competence.pdf` and `replication.pdf` are appendix diagnostics.
 
 ## Re-derive evidence from sealed artifacts
@@ -56,3 +58,9 @@ The derivation records input SHA-256 hashes and checks confirmation scores again
 The [protocol history](sections/A-protocol-history.tex) documents the event-format corrections, numerical precision checks and dated amendments. The [reproducibility appendix](sections/C-reproducibility.tex) records model revisions, float32 runtime, provenance and compute.
 
 The documentation cleanup changes source/protocol hashes used for new runs. Verify or resume historical frozen artifacts from their recorded Git revision, with its original protocol files; the current guide does not replace their hash-bound records.
+
+## AI-assistance disclosure
+
+The Ethical Considerations section discloses LLM assistance with experiment implementation and manuscript drafting, and author review of claims, analyses, references and final text. Report both coding and writing assistance in the Responsible NLP Checklist on OpenReview, citing that section. The checklist is a submission form and is not updated by editing this repository.
+
+The related-work framing distinguishes prior downstream evaluations (STALE and CICM) from the present fixed-action lexical-control contrasts. Contextual entrainment is a behavioral analogy, not an established shared mechanism.
