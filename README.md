@@ -1,8 +1,8 @@
 # What a Stale Value Still Does: Mention Structure and Order Shape Score Sensitivity After In-Context Updates
 
-This repository contains the experiments, analysis code, and TMLR manuscript for studying how edits to historical values affect language models' candidate scores after an in-context update. Across seven screened models from five families, mention order produces larger changes in query-specific score sensitivity than relation status. Results also vary with mention construction and model; they do not identify an internal obsolete-binding mechanism or imply that score changes alter generated answers.
+This repository contains experiments, analysis code, and two manuscript lines. The TMLR manuscript in `paper/` studies candidate-score sensitivity after in-context updates. The separate ACL-format stale-decision manuscript in `paper_v2/` studies effects on policy decisions. Its frozen confirmation finds that obsolete-state edits shift action preferences and can change generated routing decisions in five models; matched incidental mentions also shift preferences, so the effects are not specific to superseded assignments. See [`docs/paper_claims.md`](docs/paper_claims.md) for the scope and limits of both papers.
 
-The current paper and evidence map are in [`paper/`](paper/) and [`paper/RESULTS_INDEX.md`](paper/RESULTS_INDEX.md). The primary relational/order experiment covers Qwen3-8B and Gemma 3 4B; a seven-model extension, a 96-history marker experiment, and controlled follow-ups broaden the comparisons. Some follow-ups are score-only or development-only, as detailed in the manuscript and result ledger. Earlier `cross_model_v1` and mechanistic experiments retain their separate protocols and estimands.
+The TMLR paper and evidence map are in [`paper/`](paper/) and [`paper/RESULTS_INDEX.md`](paper/). The stale-decision paper and its derived evidence are in [`paper_v2/`](paper_v2/). The two manuscripts use separate experiments, protocols, and estimands.
 
 ## Paper and workflow
 
@@ -236,7 +236,7 @@ This behavior runner does not launch probes or patching. The separate mechanisti
 
 ## Separate four-query supersession extensions
 
-The studies summarized in the paper use the relational/order protocol described above. This is a separate four-query research line on **ordinary binding retrieval** (a live assignment), **stale binding retrieval** (an obsolete value remains causally retrievable), and **semantic supersession/version selection** (the current accepted version wins over that stale value). The original 96-history controls and status studies and the counterbalanced-controls study have been scored and analyzed; they are separate exploratory results, not part of the TMLR manuscript's primary evidence. The independent status 2×2 competence gate failed, and no confirmatory status 2×2 run was produced. The command blocks below document the original runs and gated follow-ups; preserve their output artifacts and use fresh paths for any authorized new work.
+This is a separate four-query research line on **ordinary binding retrieval** (a live assignment), **stale binding retrieval** (an obsolete value remains causally retrievable), and **semantic supersession/version selection** (the current accepted version wins over that stale value). These results are distinct from both manuscripts' main experiments. The original 96-history controls and status studies and the counterbalanced-controls study have been scored and analyzed; they remain exploratory. The independent status 2×2 competence gate failed, and no confirmatory status 2×2 run was produced. The command blocks below document the original runs and gated follow-ups; preserve their output artifacts and use fresh paths for any authorized new work.
 
 Generate fresh matched live/superseded/irrelevant controls, accepted/rejected update cases, or version chains (provide a JSON array of values):
 
