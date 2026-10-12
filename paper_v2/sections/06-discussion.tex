@@ -3,17 +3,19 @@
 
 \paragraph{What the evidence supports.} In five models that report both the current and the initial state
 correctly, an obsolete state still shifts the preference between routing actions toward the action it
-implies. Whether that shift changes the decision depends on the rest of the record. When the other entity's
-current state also implies the wrong action, the net switch rate is 0.143--0.233 in histories the models
-demonstrably track; in Qwen3-8B, without that cue it is 0.031, and with a reasoning trace it is zero. A
-plausible reading is that the obsolete word adds pressure that crosses the decision boundary mostly when a
-second cue already pushes toward the same action. Stale-value interference, documented for value queries
-\citep{guo2026context,wang2026unable}, thus reaches single-step policy decisions after a single update, on
-items where retrieval is at ceiling, but conditionally. The zero switch rate with thinking agrees with
+implies. Generated decisions also changed in the main design, where the other entity's current state
+implied the wrong action: net switch rates were 0.143--0.233 in post hoc tracked histories. In an
+exploratory Qwen3-8B run where that state supported the correct action, the superseded rate was 0.031,
+against 0.185 on the original full routing grid. Because the histories differ and equal current states
+may simplify the task, this comparison does not establish that cue agreement causes the difference or
+that the pattern generalizes across models. A second cue contributing to a decision-boundary crossing
+is a hypothesis consistent with these observations. Stale-value interference, documented for value
+queries \citep{guo2026context,wang2026unable}, thus also reaches single-step policy decisions after a
+single update, including histories with correct retrieval. The zero switch rate with thinking agrees with
 \citet{guo2026context}, whose reasoning models showed no difference between full histories and resolved
 snapshots. The interference does not require supersession, nor assignment to the queried attribute: an
 incidental mention of the same word shifts preferences in every model, and in Qwen3-8B it changed decisions
-even without the second cue (0.177) and, a few times, with thinking. It behaves like entrainment by
+in the balanced run (0.177) and, a few times, with thinking. It behaves like entrainment by
 decision-relevant words attached to the queried entity \citep{niu2025entrainment}; how it compares with the
 superseded assignment differs between models. An unattached word likewise shifted preferences by
 2.5--3.0 nats but changed few decisions (0.039 and 0.062): large changes in scored preference need not
@@ -21,8 +23,8 @@ change greedy generation.
 
 \paragraph{Consequences for evaluation and mitigation.} Three practical points follow. First, stale-state
 benchmarks that vary only update histories cannot tell supersession from incidental mention; a matched
-mention condition is cheap and changed our conclusion. Second, decision-level rates depend on what else
-the record says, so a benchmark should report which other cues agree with the stale value. Third,
+mention condition is cheap and changed our conclusion. Second, the exploratory comparison motivates reporting and varying which other cues agree with the
+stale value; matched histories across models would be needed to isolate their contribution. Third,
 mitigations (which we did not test) should be evaluated the same way, with and without a reasoning step,
 and should also check historical retrieval, which a blunt fix could damage.
 
@@ -30,7 +32,7 @@ and should also check historical retrieval, which a blunt fix could damage.
 contrasts compare whole constructions. Correct direct retrieval also does not show that the current state
 was the one used at decision time, so the retrieval checks do not rule out stale binding in the sense of
 \citet{guo2026context}. The mention construction could be read as more salient. Its
-advantage varied with template in Qwen3-8B, was not resolved in three models and reversed in scores in
-Gemma 4 12B, which fits a surface
+advantage varied with template in Qwen3-8B, was not resolved in two models and reversed in scores and switches on gate-selected
+cells in Gemma 4 12B, which fits a surface
 explanation better than a categorical one. Natural state words carry prior meanings, but in Qwen3-8B $D_{\mathrm{S}}$ was positive and
 $\Delta_{\mathrm{SM}}$ negative in all 12 task $\times$ cell $\times$ vocabulary strata (Table~\ref{tab:strata}).

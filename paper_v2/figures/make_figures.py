@@ -176,8 +176,8 @@ MODEL_ORDER = ('Qwen3-8B', 'Qwen3-14B', 'Gemma 4 12B', 'Qwen3.5 9B', 'Granite 4.
 
 def models():
     """Routing, each confirmed model's competent cells: D_S and net switch rates S and M (main-text figure)."""
-    ms = [m for m in MODEL_ORDER if D['models'].get(m, {}).get('confirmation', {}).get('competent_confirmation', {}).get('routing')]
-    get = lambda m: D['models'][m]['confirmation']['competent_confirmation']['routing']
+    ms = [m for m in MODEL_ORDER if D['models'].get(m, {}).get('confirmation', {}).get('competent', {}).get('routing')]
+    get = lambda m: D['models'][m]['confirmation']['competent']['routing']
     fig, axes = plt.subplots(1, 2, figsize=(3.3, 1.7), sharey=True)
     for i, m in enumerate(ms):
         c = get(m)

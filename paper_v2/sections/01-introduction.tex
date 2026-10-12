@@ -18,54 +18,39 @@ mention of a decision-relevant word does the same, the problem is contextual ent
 \citep{niu2025entrainment} reaching decisions. We test no mitigation, but either way an evaluation of one
 needs a matched mention control and decision-level outcomes.
 
-\paragraph{Design.} We hold everything that should determine the decision fixed: the current state, the
-policy that maps states to actions, the query, and the correct action. We edit one obsolete state. In one
-member of each pair, the obsolete state implies the wrong action; in the other, it implies the correct
-action. The difference in the model's preference for the wrong action between the two members is the
-decision effect of the obsolete content, and the paired generated answers give its behavioral
-counterpart (Figure~\ref{fig:example}). The same edit is repeated in matched constructions that keep the
-word and its position but change its role: an assignment to a different attribute that was later updated,
-a word the entity only mentioned, and a word attached to no entity. Before testing decisions, we check on
-the same records that the model reports the current and the initial state correctly when asked.
+\paragraph{Design.} We hold the current state, policy, query and correct action fixed, and edit one
+obsolete state to imply either the wrong or the correct action. The paired difference in decision
+preference and generated answers measures interference (Figure~\ref{fig:example}). Matched controls keep
+the edited word and its position but change its role: an updated other attribute, an incidental entity
+mention, or an unattached word. Direct queries check current and initial retrieval on the same records.
 
-\paragraph{Findings.} The experiment ran under a protocol frozen before the confirmation data were
-generated, on a held-out prompt template, with Qwen3-8B. Four further models (Qwen3-14B, Gemma 4 12B,
-Qwen3.5 9B, Granite 4.1 8B) were run on identical rows under a dated amendment; Gemma 3 4B and Ministral 3
-14B did not meet the competence gate. Routing meets the competence criteria on the confirmation data in all
-five models; access does so only in Gemma 4 12B, and other access estimates are reported second and labeled.
-Four findings follow:
+\paragraph{Findings.} Qwen3-8B was tested on held-out wording under a protocol frozen before confirmation;
+four further models used identical rows under dated amendments. Compact estimates use frozen-gate-selected
+cells; confirmation-selected and tracked-history analyses are post hoc robustness checks.
 \begin{enumerate}
-  \item \textbf{Obsolete states shift decision scores in models that track them correctly.} In all five
-  models, making the obsolete state imply the wrong action raised that action's log-odds (1.072--4.785 nats
-  in routing), while the models retrieved the current and initial states correctly
+  \item \textbf{Obsolete states shift decision preferences.} Routing shifts were 1.085--4.785 nats across
+  five models and persisted in histories with correct current and initial retrieval
   (\S\ref{sec:results-h1}, \S\ref{sec:results-replication}).
-  \item \textbf{The shifts change decisions mainly when another cue agrees.} In the main design the other
-  entity's current state implies the wrong action. There, the net switch rate toward the wrong action was
-  0.143--0.233 across models in histories the models demonstrably track, almost never in reverse. In
-  Qwen3-8B it fell to 0.031 when the other entity's state implied the correct action, and in both Qwen3
-  models to zero with thinking enabled, while preference shifts stayed (\S\ref{sec:results-conditions}).
-  \item \textbf{Neither supersession nor assignment to the queried attribute is needed.} In all five models a
-  superseded assignment interfered more in scores than an updated assignment to an unrelated attribute
-  (0.311--3.102 nats), but in the two Qwen3 models the same assignment never updated was not resolved from it
-  or interfered more. The same word mentioned in passing by the same entity shifted preferences in every
-  model; it changed more decisions than the superseded assignment in Qwen3-8B (also without the second cue)
-  and Granite 4.1 8B, and was not resolved from it in the other three (\S\ref{sec:results-h2},
-  \S\ref{sec:results-replication}).
-  \item \textbf{Easy-query sensitivity did not improve failure prediction} beyond the specified pre-decision
-  features, in any model (\S\ref{sec:results-h3}).
+  \item \textbf{Generated decisions vary across tested conditions.} In Qwen3-8B, the superseded net
+  switch rate was 0.185 on the original routing grid and 0.031 in an exploratory run where the other
+  entity's state supported the correct action. Different histories make this comparison descriptive.
+  Thinking-enabled generation produced no superseded switches in either Qwen3 model
+  (\S\ref{sec:results-conditions}).
+  \item \textbf{Interference requires neither supersession nor queried-attribute assignment.} Incidental
+  mentions shifted preferences in every model. A never-updated other attribute was unresolved from, or
+  exceeded, the superseded assignment in the two Qwen3 models. Mention-versus-superseded switch
+  differences varied by model (\S\ref{sec:results-h2}, \S\ref{sec:results-replication}).
+  \item \textbf{Easy-query sensitivity did not improve failure prediction} beyond the specified
+  pre-decision features in any model (\S\ref{sec:results-h3}).
 \end{enumerate}
 
 \paragraph{What is and is not new.} That stale context interferes with answers is established
 \citep{wang2026unable,guo2026context,qian2026forget,chao2026stale}, as is the fact that mentioned tokens
-gain probability \citep{niu2025entrainment}. Our contribution is a controlled test that connects the two at
-the level of decisions. We measure interference on policy decisions in open models, on items whose
-current and historical states the model retrieves correctly. We use minimal-pair edits that hold the
-correct action fixed, report both scores and generated answers, and include matched controls that separate
-an assignment to the queried attribute from an assignment to another attribute and from an incidental
-mention. We also report the negative result for a
-sensitivity-based predictor and, in Appendix~\ref{app:history}, two measurement problems we found along
-the way: chat-format events that the model never generates, and log-probabilities that change when tokens
-are appended under 8-bit and bfloat16 inference.
+gain probability \citep{niu2025entrainment}. Our contribution is a controlled test connecting these phenomena to policy decisions. Minimal-pair
+edits hold the correct action fixed; matched controls compare supersession, other-attribute assignment
+and incidental mention. We report scores, generated answers and retrieval checks, a negative result for
+sensitivity-based prediction, and measurement problems involving chat-format events and reduced-precision
+scoring (Appendix~\ref{app:history}).
 
 \begin{figure*}[t]
 \centering

@@ -6,7 +6,7 @@ This appendix gives the decision effects by construction for both tasks (Figure~
 \S\ref{sec:discussion} (Table~\ref{tab:strata}). It also shows the replication of the primary and
 mention contrasts across all splits (Figure~\ref{fig:replication}, summarized in \S\ref{sec:results-h2}),
 the gate results of every model attempted (Table~\ref{tab:models-gate}), further Qwen3-14B estimates and
-estimates under the gate rule, the tracked-history
+post hoc confirmation-selected estimates, the tracked-history
 analysis per model (Tables~\ref{tab:joint-by-model} and~\ref{tab:tracked-models}), and Qwen3-14B's construction effects
 (Figure~\ref{fig:constructions-14b}). Rows are ordered with routing, the task competent on the confirmation data, first.
 
@@ -160,13 +160,18 @@ difference was $-0.003$ $[-0.050, 0.042]$. In access (non-competent cells) the s
 preference more than the mention ($\Delta_{\mathrm{SM}} = +0.845$ $[0.425, 1.255]$). Easy-query sensitivity did not improve prediction: AUROC $0.684$ without and $0.685$ with
 $R_{\mathrm{easy}}$, log-loss gain $-0.0001$ $[-0.0027, 0.0022]$.
 
-\paragraph{Gate-rule estimates.} \gateConfDiffs{} \gateruleSensitivity
+\paragraph{Confirmation-selection robustness comparison.} \gateConfDiffs{}
+Table~\ref{tab:cross-model-confirmation} gives the post hoc confirmation-selected estimates alongside the
+primary gate-selected intervals in Table~\ref{tab:cross-model-ci}. The populations differ for four
+models, but the routing obsolete-state score shift remains positive in all five.
 
 \input{data/tables/joint_by_model}
 
 \input{data/tables/tracked_models}
 
 \input{data/tables/cross_model_ci}
+
+\input{data/tables/cross_model_confirmation}
 
 \begin{figure*}[t]
 \centering

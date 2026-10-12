@@ -1,10 +1,10 @@
 # paper_v2 — stale-decision manuscript (ACL format)
 
-**Obsolete and Incidental Words Shift Language-Model Decisions, but Change Them Mainly When Another Cue Agrees** ([source](main.tex), [PDF](main.pdf)).
+**Obsolete and Incidental Words Shift Language-Model Decision Preferences** ([source](main.tex), [PDF](main.pdf)).
 
-Obsolete-state edits shift routing action preferences in five open models, including histories with correct current and initial retrieval. Generated decisions change mainly when the other entity's current state also implies the wrong action. In Qwen3-8B, the superseded net switch rate falls from `0.185` to `0.031` on balanced histories; in both Qwen3 models it is zero with thinking enabled. Incidental mentions also shift preferences in every model. The never-updated other-attribute control shows that interference requires neither supersession nor assignment to the queried attribute.
+Obsolete-state edits shift routing action preferences in five open models, including histories with correct current and initial retrieval. An exploratory Qwen3-8B comparison found fewer generated switches when the other entity's state supported the correct action, but different history sets prevent attributing the difference to cue agreement. In Qwen3-8B, the superseded net switch rate falls from `0.185` to `0.031` on balanced histories; in both Qwen3 models it is zero with thinking enabled. Incidental mentions also shift preferences in every model. The never-updated other-attribute control shows that interference requires neither supersession nor assignment to the queried attribute.
 
-See the [manuscript guide](../docs/stale_decision_v2.md) for the design, model results, controls, reporting choices and limits. Access meets confirmation competence only in Gemma 4 12B. The tracked-history analyses and confirmation-based selection of competent cells are post hoc; the appendix also gives estimates under the original gate-based rule. The balanced comparison is descriptive and limited to Qwen3-8B. Evidence comes from short synthetic tasks and does not identify a mechanism or establish mitigation efficacy.
+See the [manuscript guide](../docs/stale_decision_v2.md) for the design, model results, controls, reporting choices and limits. Access meets confirmation competence only in Gemma 4 12B. Primary compact estimates use cells selected by the original frozen gate. The appendix reports post hoc confirmation-selected and tracked-history analyses as robustness comparisons. The balanced comparison is descriptive and limited to Qwen3-8B. Evidence comes from short synthetic tasks and does not identify a mechanism or establish mitigation efficacy.
 
 [RESULTS_INDEX.md](RESULTS_INDEX.md) maps the manuscript's results, tables and figures to their committed data keys and source artifacts.
 
@@ -17,7 +17,7 @@ cd paper_v2
 latexmk -pdf main.tex
 ```
 
-The ACL style and bibliography style are included as [`acl.sty`](acl.sty) and [`acl_natbib.bst`](acl_natbib.bst). The manuscript reads committed tables from `data/tables/` and figures from `figures/`.
+The ACL style and bibliography style are included as [`acl.sty`](acl.sty) and [`acl_natbib.bst`](acl_natbib.bst). The unmodified [`lineno.sty`](lineno.sty) v5.9 is bundled to match the working review build; v5.7 placed right-column line numbers over the left-column text. The manuscript reads committed tables from `data/tables/` and figures from `figures/`.
 
 ## Regenerate tables and figures
 
@@ -28,7 +28,7 @@ uv run --extra dev python -m paper_v2.data.tables
 uv run --extra dev python -m paper_v2.figures.make_figures
 ```
 
-`models.pdf` summarizes confirmation-competent routing cells; `conditions.pdf` compares main, balanced and thinking conditions. The construction plots include the never-updated other attribute where available. `competence.pdf` and `replication.pdf` are appendix diagnostics.
+`models.pdf` summarizes routing cells selected by the frozen gate; `conditions.pdf` compares main, balanced and thinking conditions. The construction plots include the never-updated other attribute where available. `competence.pdf` and `replication.pdf` are appendix diagnostics.
 
 ## Re-derive evidence from sealed artifacts
 

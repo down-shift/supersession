@@ -9,14 +9,15 @@
 \cmidrule(lr){4-6}\cmidrule(lr){7-9}
 Model & Cells & $n$ & $D_{\mathrm{S}}$ & $\Delta_{\mathrm{SO}}$ & $\Delta_{\mathrm{SM}}$ & S & S $-$ O & M $-$ S \\
 \midrule
-Qwen3-8B & routing comp., int., seq. & 384 & $+3.133$ {\scriptsize $[+2.743, +3.516]$} & $+1.224$ {\scriptsize $[+0.973, +1.485]$} & $-1.675$ {\scriptsize $[-1.896, -1.441]$} & $+0.185$ {\scriptsize $[+0.143, +0.227]$} & $+0.120$ {\scriptsize $[+0.076, +0.164]$} & $+0.109$ {\scriptsize $[+0.060, +0.156]$} \\
+Qwen3-8B & routing int., seq. & 256 & $+3.248$ {\scriptsize $[+2.768, +3.751]$} & $+1.330$ {\scriptsize $[+0.978, +1.668]$} & $-1.702$ {\scriptsize $[-1.978, -1.406]$} & $+0.195$ {\scriptsize $[+0.145, +0.250]$} & $+0.125$ {\scriptsize $[+0.066, +0.180]$} & $+0.117$ {\scriptsize $[+0.055, +0.180]$} \\
+Qwen3-8B & access int. & 128 & $+4.221$ {\scriptsize $[+3.470, +5.063]$} & $-0.132$ {\scriptsize $[-0.775, +0.536]$} & $-0.740$ {\scriptsize $[-1.303, -0.122]$} & $+0.273$ {\scriptsize $[+0.195, +0.352]$} & $+0.039$ {\scriptsize $[-0.039, +0.125]$} & $-0.055$ {\scriptsize $[-0.156, +0.047]$} \\
 Qwen3-14B & routing comp., int., seq. & 384 & $+4.785$ {\scriptsize $[+4.244, +5.354]$} & $+0.866$ {\scriptsize $[+0.417, +1.328]$} & $+0.248$ {\scriptsize $[-0.117, +0.601]$} & $+0.167$ {\scriptsize $[+0.130, +0.206]$} & $+0.021$ {\scriptsize $[-0.023, +0.068]$} & $+0.003$ {\scriptsize $[-0.039, +0.044]$} \\
-Gemma 4 12B & routing comp., seq. & 256 & $+3.709$ {\scriptsize $[+3.146, +4.247]$} & $+3.102$ {\scriptsize $[+2.564, +3.642]$} & $+1.513$ {\scriptsize $[+0.998, +2.041]$} & $+0.109$ {\scriptsize $[+0.070, +0.148]$} & $+0.090$ {\scriptsize $[+0.051, +0.133]$} & $-0.012$ {\scriptsize $[-0.062, +0.039]$} \\
-Gemma 4 12B & access comp., int., seq. & 384 & $+4.285$ {\scriptsize $[+3.622, +4.998]$} & $+1.561$ {\scriptsize $[+0.743, +2.345]$} & $+1.455$ {\scriptsize $[+0.823, +2.043]$} & $+0.083$ {\scriptsize $[+0.057, +0.112]$} & $-0.031$ {\scriptsize $[-0.076, +0.008]$} & $-0.010$ {\scriptsize $[-0.042, +0.026]$} \\
-Qwen3.5 9B & routing int., seq. & 256 & $+1.072$ {\scriptsize $[+0.939, +1.209]$} & $+0.311$ {\scriptsize $[+0.228, +0.399]$} & $-0.019$ {\scriptsize $[-0.079, +0.035]$} & $+0.242$ {\scriptsize $[+0.191, +0.297]$} & $+0.148$ {\scriptsize $[+0.098, +0.199]$} & $-0.062$ {\scriptsize $[-0.125, +0.000]$} \\
-Granite 4.1 8B & routing comp., int. & 256 & $+3.385$ {\scriptsize $[+2.851, +3.957]$} & $+0.755$ {\scriptsize $[+0.483, +1.053]$} & $-1.929$ {\scriptsize $[-2.365, -1.512]$} & $+0.188$ {\scriptsize $[+0.141, +0.238]$} & $+0.027$ {\scriptsize $[-0.012, +0.062]$} & $+0.156$ {\scriptsize $[+0.098, +0.215]$} \\
+Gemma 4 12B & routing comp., int., seq. & 384 & $+3.949$ {\scriptsize $[+3.455, +4.473]$} & $+3.247$ {\scriptsize $[+2.786, +3.724]$} & $+1.436$ {\scriptsize $[+0.996, +1.874]$} & $+0.148$ {\scriptsize $[+0.115, +0.185]$} & $+0.138$ {\scriptsize $[+0.102, +0.177]$} & $-0.044$ {\scriptsize $[-0.089, -0.003]$} \\
+Gemma 4 12B & access comp. & 128 & $+4.384$ {\scriptsize $[+3.480, +5.518]$} & $+1.184$ {\scriptsize $[-0.184, +2.652]$} & $+2.058$ {\scriptsize $[+1.182, +3.005]$} & $+0.062$ {\scriptsize $[+0.023, +0.109]$} & $-0.055$ {\scriptsize $[-0.125, +0.016]$} & $-0.008$ {\scriptsize $[-0.062, +0.047]$} \\
+Qwen3.5 9B & routing comp., seq. & 256 & $+1.085$ {\scriptsize $[+0.975, +1.190]$} & $+0.358$ {\scriptsize $[+0.274, +0.444]$} & $-0.014$ {\scriptsize $[-0.076, +0.047]$} & $+0.230$ {\scriptsize $[+0.180, +0.281]$} & $+0.121$ {\scriptsize $[+0.066, +0.172]$} & $-0.016$ {\scriptsize $[-0.078, +0.043]$} \\
+Granite 4.1 8B & routing int., seq. & 256 & $+3.441$ {\scriptsize $[+2.977, +3.973]$} & $+0.793$ {\scriptsize $[+0.498, +1.097]$} & $-2.208$ {\scriptsize $[-2.607, -1.802]$} & $+0.168$ {\scriptsize $[+0.125, +0.219]$} & $+0.039$ {\scriptsize $[+0.000, +0.078]$} & $+0.188$ {\scriptsize $[+0.129, +0.246]$} \\
 \bottomrule
 \end{tabular}}
-\caption{Table~\ref{tab:cross-model} with intervals: 97.5\% for $D_{\mathrm{S}}$ and $\Delta_{\mathrm{SO}}$, 95\% otherwise (history bootstrap).}
+\caption{Table~\ref{tab:cross-model} with intervals: 97.5\% for $D_{\mathrm{S}}$ and $\Delta_{\mathrm{SO}}$, 95\% otherwise (history bootstrap). Cells are selected by the frozen gate.}
 \label{tab:cross-model-ci}
 \end{table*}

@@ -3,8 +3,8 @@
 \paragraph{Five models, three developers.} The confirmed results are for Qwen3-8B, Qwen3-14B, Gemma 4 12B,
 Qwen3.5 9B and Granite 4.1 8B, all open models of 8--14B parameters run with thinking disabled. Gemma 3 4B and
 Ministral 3 14B did not meet the competence gate. The never-updated control was run only in the two Qwen3
-models, the balanced subset only in Qwen3-8B and thinking mode only in the Qwen3 models, so the conditional
-decision effect rests on one model. The mention comparison differs between models. We make no claim about larger or closed models.
+models, the balanced subset only in Qwen3-8B and thinking mode only in the Qwen3 models, so the cue comparison
+is descriptive and limited to one model. The mention comparison differs between models. We make no claim about larger or closed models.
 
 \paragraph{Synthetic tasks.} The records, policies and constructions are synthetic and short: two
 entities, one update and an explicit policy. This control is what lets the contrasts hold the correct
@@ -12,12 +12,10 @@ action fixed, but the effect sizes need not transfer to natural dialogue, long a
 outputs.
 
 \paragraph{Competence in access.} The access cells met the competence criteria on the confirmation data only in
-Gemma 4 12B. In the Qwen3 models this is mainly because current-only accuracy was 0.859--0.875 for Qwen3-8B and 0.820--0.859 for
-Qwen3-14B. The errors differ by model. Qwen3-8B errs mostly with natural state words (current-only accuracy
-0.797, against 0.938 with opaque labels), consistent with prior word meanings competing with the policy.
-Qwen3-14B errs mostly when the correct action is \lit{DENY} (0.688, against 0.990 for \lit{APPROVE}), with
-opaque labels as well (0.615), which points to a response bias rather than a word prior. Access estimates are
-fixed-grid averages over cells where the model already makes errors without history.
+Gemma 4 12B. Other access estimates include cells where the model already makes errors without history
+(\S\ref{sec:results-competence}). Gate-selected access estimates are therefore accompanied by confirmation
+competence diagnostics and fixed-grid estimates; they do not establish interference in otherwise
+competent access decisions.
 
 \paragraph{Construction differences.} Constructions share the edited word and its position but differ in
 syntax. The contrasts compare constructions, not isolated semantic properties. The template dependence of

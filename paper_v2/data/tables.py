@@ -2,7 +2,7 @@
 
     uv run --extra dev python -m paper_v2.data.tables
 
-Outputs paper_v2/data/tables/{cross_model,models_gate,joint_by_model,tracked,static_other,macros}.tex, \\input by the
+Outputs paper_v2/data/tables/*.tex, \\input by the
 manuscript, so these numbers are never typed by hand.
 """
 import json
@@ -37,25 +37,8 @@ def models():
     return [m for m in ORDER if m in D['models']]
 
 
-def gate_rule_note(m, conf):
-    """Entries under the amendment's gate rule, when it selects different cells from the confirmation rule."""
-    parts = []
-    for t in ('routing', 'access'):
-        g, c = conf['competent'][t], conf['competent_confirmation'][t]
-        if (g and g['cells']) == (c and c['cells']):
-            continue
-        if g is None:
-            parts.append(f'{t}: no gate-competent cell')
-            continue
-        cells = '+'.join(ABBR[x] for x in g['cells'])
-        parts.append(f"{t} {cells} ($n={g['n']}$): $D_{{\\mathrm{{S}}}}={num(g['D_superseded']['mean'], True)}$, "
-                     f"$\\Delta_{{\\mathrm{{SO}}}}={num(g['Delta_semantic']['mean'], True)}$, "
-                     f"net switch rate ${num(g['switch_superseded']['mean'], True)}$")
-    return f"{m} would use " + '; '.join(parts) + '.' if parts else f'{m}\\textquoteright s cells are unchanged.'
-
-
-def cross_model(ci=False):
-    """Main text: point estimates (grey when the interval includes zero). ci=True: the appendix version with intervals."""
+def cross_model(ci=False, confirmation_selected=False):
+    """Gate-selected primary estimates; optional post hoc confirmation selection. ci=True adds intervals."""
     f = est if ci else pt
     lines = [r'\begin{table*}[t]', r'\centering', r'\small', r'\setlength{\tabcolsep}{4pt}']
     if ci:
@@ -70,7 +53,7 @@ def cross_model(ci=False):
         if not conf:  # models without a confirmation are listed in the gate table
             continue
         for t in ('routing', 'access'):
-            c = conf['competent_confirmation'][t]
+            c = conf['competent_confirmation' if confirmation_selected else 'competent'][t]
             if c is None:
                 continue
             cells = t + ' ' + ', '.join(ABBR[x] for x in c['cells'])
@@ -78,13 +61,20 @@ def cross_model(ci=False):
                          f"{f(c['Delta_mention'])} & {f(c['switch_superseded'])} & {f(c['switch_diff_attribute'])} & "
                          f"{f(c['switch_diff_mention_minus_superseded'])} \\\\")
     lines += [r'\bottomrule', r'\end{tabular}' + ('}' if ci else '')]
-    if ci:
+    if confirmation_selected:
+        lines.append(r'\caption{Post hoc robustness comparison: confirmation estimates on cells selected by '
+                     r'confirmation competence. Primary gate-selected estimates are in Table~\ref{tab:cross-model-ci}. '
+                     r'Intervals: 97.5\% for $D_{\mathrm{S}}$ and $\Delta_{\mathrm{SO}}$, 95\% otherwise.}')
+        lines += [r'\label{tab:cross-model-confirmation}', r'\end{table*}']
+    elif ci:
         lines.append(r'\caption{Table~\ref{tab:cross-model} with intervals: 97.5\% for $D_{\mathrm{S}}$ and '
-                     r'$\Delta_{\mathrm{SO}}$, 95\% otherwise (history bootstrap).}')
+                     r'$\Delta_{\mathrm{SO}}$, 95\% otherwise (history bootstrap). Cells are selected by the frozen gate.}')
         lines += [r'\label{tab:cross-model-ci}', r'\end{table*}']
     else:
-        lines.append(r'\caption{Confirmation results on each model\textquoteright s competent cells (access only for '
-                     r'Gemma 4 12B). Grey: interval includes zero (intervals in Table~\ref{tab:cross-model-ci}).}')
+        lines.append(r'\caption{Primary confirmation estimates on cells selected by each model\textquoteright s '
+                     r'frozen gate. Access in Qwen3-8B fails confirmation competence. Grey: interval includes zero '
+                     r'(Table~\ref{tab:cross-model-ci}); post hoc confirmation selection: '
+                     r'Table~\ref{tab:cross-model-confirmation}.}')
         lines += [r'\label{tab:cross-model}', r'\end{table*}']
     return '\n'.join(lines) + '\n'
 
@@ -148,14 +138,10 @@ def joint_by_model():
 
 
 def macros():
-    """Numbers quoted in running text: the gate-rule sensitivity statement (\\S5.5) and Qwen3-14B paired switch
-    differences."""
-    notes = [gate_rule_note(m, D['models'][m]['confirmation']) for m in models() if D['models'][m].get('confirmation')]
-    c = D['models']['Qwen3-14B']['confirmation']['competent_confirmation']['routing']
+    """Confirmation competence discrepancies and Qwen3-14B paired switch differences."""
+    c = D['models']['Qwen3-14B']['confirmation']['competent']['routing']
     inline = lambda b: f"${num(b['mean'], True)}$ $[{num(b['ci'][0], True)}, {num(b['ci'][1], True)}]$"
     return '\n'.join([
-        r'\newcommand{\gateruleSensitivity}{Under the amendment\textquoteright s gate-defined cells '
-        r'(Table~\ref{tab:models-gate}), ' + ' '.join(notes) + '}',
         r'\newcommand{\gateConfDiffs}{Competence labels on the confirmation data can differ from the gate labels '
         r'(Table~\ref{tab:models-gate})' + diff_note() + '.}',
         r'\newcommand{\swattrfourteen}{' + inline(c['switch_diff_attribute']) + '}',
@@ -258,7 +244,7 @@ def conditions():
 def main():
     out = HERE / 'tables'
     out.mkdir(exist_ok=True)
-    for name, fn in [('cross_model', cross_model), ('cross_model_ci', lambda: cross_model(ci=True)), ('models_gate', models_gate), ('joint_by_model', joint_by_model),
+    for name, fn in [('cross_model', cross_model), ('cross_model_ci', lambda: cross_model(ci=True)), ('cross_model_confirmation', lambda: cross_model(ci=True, confirmation_selected=True)), ('models_gate', models_gate), ('joint_by_model', joint_by_model),
                      ('tracked', tracked), ('tracked_models', tracked_models), ('static_other', static_other), ('conditions', conditions), ('macros', macros)]:
         (out / f'{name}.tex').write_text(fn())
         print(out / f'{name}.tex')

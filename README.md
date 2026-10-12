@@ -1,6 +1,6 @@
-# Obsolete and Incidental Words Shift Language-Model Decisions, but Change Them Mainly When Another Cue Agrees
+# Obsolete and Incidental Words Shift Language-Model Decision Preferences
 
-The ACL-format manuscript in [`paper_v2/`](paper_v2/) studies policy decisions after an in-context update. In five open models, obsolete-state edits shift routing preferences and change generated decisions even on histories the models retrieve correctly. Decision switches occur mainly when the other entity's current state also implies the wrong action; they fall sharply on Qwen3-8B's balanced histories and disappear for superseded assignments with thinking enabled in both Qwen3 models. Incidental mentions also shift preferences in every model.
+The ACL-format manuscript in [`paper_v2/`](paper_v2/) studies policy decisions after an in-context update. In five open models, obsolete-state edits shift routing preferences and change generated decisions even on histories the models retrieve correctly. An exploratory Qwen3-8B run has fewer superseded switches when the other entity's state supports the correct action, but different histories prevent isolating cue agreement. Thinking-enabled generation produces no superseded switches in either Qwen3 model. Incidental mentions also shift preferences in every model.
 
 ## Documentation
 

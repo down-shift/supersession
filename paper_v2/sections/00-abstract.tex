@@ -1,16 +1,17 @@
 \begin{abstract}
 A model that reads an updated record can report the current value correctly and still let the old value
-shape its decision. We test when this happens, and whether it depends on the old value having been
-superseded. In synthetic routing and access-control records, the current state, the policy and the
-correct action are fixed while one obsolete state is edited to imply the correct or the wrong action.
-Matched controls place the same word as an updated assignment of an unrelated attribute, as a word the
-entity merely mentioned, or as an unattached word. In a frozen confirmation on held-out wording (Qwen3-8B)
-and in four further open models on identical rows, the obsolete state shifted the preference toward the
-action it implies (1.072--4.785 nats in routing) while the models retrieved the current and initial states
-correctly. These shifts changed decisions mainly when another cue also pointed to the wrong action. With
-the other entity's current state implying it, the net switch rate toward the wrong action was 0.143--0.233
-in histories the models demonstrably track. In Qwen3-8B it fell to 0.031 when that state implied the
-correct action, and in both Qwen3 models to zero with thinking enabled. The interference does not require supersession: an
-incidental mention of the same word by the same entity shifted preferences in every model, and in Qwen3-8B
-changed more decisions than the superseded assignment in both designs.
+shape its decision. We test whether this interference depends on the old value having been superseded.
+In synthetic routing and access-control records, the current state, policy and correct action are fixed
+while one obsolete state is edited to imply the correct or the wrong action. Matched controls place the
+same word as an updated assignment of an unrelated attribute, an incidental entity mention, or an
+unattached word. In a frozen confirmation on held-out wording (Qwen3-8B) and four further open models on
+identical rows, obsolete states shifted routing preferences toward the action they imply
+(1.085--4.785 nats on cells selected by the frozen gate). Post hoc checks retain the effect on histories
+with correct current and initial retrieval. Incidental mentions also shifted preferences in every model.
+Generated decisions changed less often in an exploratory Qwen3-8B run where the other entity's state
+supported the correct action: the superseded net switch rate was 0.031, against 0.185 on the original
+full routing grid. These runs use different histories, so the comparison does not isolate the effect of
+cue agreement. Thinking-enabled generation produced no superseded switches in either Qwen3 model.
+The results show that decision-preference interference requires neither supersession nor assignment to
+the queried attribute, while its expression in generated answers varies across the tested conditions.
 \end{abstract}
