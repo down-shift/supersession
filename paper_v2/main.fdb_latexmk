@@ -1,13 +1,13 @@
 # Fdb version 4
-["bibtex main"] 1791831756.74029 "main.aux" "main.bbl" "main" 1791831758.27125 0
+["bibtex main"] 1791834791.09725 "main.aux" "main.bbl" "main" 1791834792.52695 0
   "./acl_natbib.bst" 1791826980.86346 45442 bb9ea745fc0a84096e0948d1c1b99bbe ""
   "./references.bib" 1791826980.87862 13726 a871e75ec8bcffd8787482ff35b71a5a ""
-  "main.aux" 1791831758.06908 39930 e0b6e6824dbc093bc72a7ebf00a7d88e "pdflatex"
+  "main.aux" 1791834792.33281 39684 be6a4e9323d3a2a892279e0badda5301 "pdflatex"
   (generated)
   "main.bbl"
   "main.blg"
   (rewritten before read)
-["pdflatex"] 1791831756.79273 "main.tex" "main.pdf" "main" 1791831758.27152 0
+["pdflatex"] 1791834791.13783 "main.tex" "main.pdf" "main" 1791834792.52722 0
   "/tmp/arr-texmf-var/fonts/map/pdftex/updmap/pdftex.map" 1791831339 93156 799c09be0ffd9cd45d2b52f82ab4c176 ""
   "/tmp/arr-texmf/fonts/enc/dvips/inconsolata/i4-t1-0.enc" 1558214095 7631 5169ff1acd97ff1c4ab83563c99f96f4 ""
   "/tmp/arr-texmf/fonts/tfm/adobe/helvetic/phvb.tfm" 1136768653 2300 14616918391efa49ac8b481a75fbdc1a ""
@@ -172,11 +172,11 @@
   "figures/models.pdf" 1791831216.00267 34335 254b969397d42dbfcd6991abfc64e1f2 ""
   "figures/replication.pdf" 1791826980.87325 45173 4a20e83859c20b3aee1fe7048b40aff5 ""
   "lineno.sty" 1791831742.39406 156060 5215e5556723efde95042c27de7c8740 ""
-  "main.aux" 1791831758.06908 39930 e0b6e6824dbc093bc72a7ebf00a7d88e "pdflatex"
-  "main.bbl" 1791831756.79132 8782 11a7a0d7aae652a4c871e70172dc8f0b "bibtex main"
-  "main.out" 1791831758.07229 2863 6a6c552f6b6d43b908e686e0da63dd35 "pdflatex"
+  "main.aux" 1791834792.33281 39684 be6a4e9323d3a2a892279e0badda5301 "pdflatex"
+  "main.bbl" 1791834791.13369 8782 11a7a0d7aae652a4c871e70172dc8f0b "bibtex main"
+  "main.out" 1791834792.33583 2863 6a6c552f6b6d43b908e686e0da63dd35 "pdflatex"
   "main.tex" 1791831199.4036 1564 3edf7731b2d7c841e629e7b3925c8494 ""
-  "sections/00-abstract.tex" 1791831199.4039 1559 47f8de158db50e4e59b4f6dcb2165b59 ""
+  "sections/00-abstract.tex" 1791833633.78792 1559 47f8de158db50e4e59b4f6dcb2165b59 ""
   "sections/01-introduction.tex" 1791831413.69755 5869 dc79ff56a8263a9349bc79a6986758d3 ""
   "sections/02-related-work.tex" 1791826980.87948 2034 a003c45a9a258d5ba9f4942764bc2521 ""
   "sections/03-design.tex" 1791826980.87984 5296 9bb2f70039105c185375fc3614a82703 ""
@@ -188,7 +188,7 @@
   "sections/09-ethics.tex" 1791826980.88089 705 52e617b42b76c0a764b187739bf08837 ""
   "sections/A-protocol-history.tex" 1791831199.40674 9341 2f0c66c847708915bb3d60738dc698d4 ""
   "sections/B-tables.tex" 1791831199.40778 8653 88f6c49758ba964653f562d88ab49b7e ""
-  "sections/C-reproducibility.tex" 1791826980.88143 3386 e4b4f4fdb13b34ab6a5f21b7ada685a3 ""
+  "sections/C-reproducibility.tex" 1791834789.39476 2923 964b47c8d34fcdc8cbc2b2aea64bcc8d ""
   (generated)
   "main.aux"
   "main.log"

@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.10.6)  12 OCT 2026 22:02
+This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.10.6)  12 OCT 2026 22:53
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -844,20 +844,13 @@ Underfull \hbox (badness 1558) in paragraph at lines 15--23
 \T1/ptm/m/n/10.95 (+20) to-k-enizer au-dit, code hash and con-fig-u-ra-tion
  []
 
-
-Underfull \hbox (badness 2326) in paragraph at lines 24--36
+)
+Underfull \hbox (badness 2326) in paragraph at lines 24--57
  []\T1/ptm/b/n/10.95 (+20) Compute.[] \T1/ptm/m/n/10.95 (+20) Qwen3-8B's con-fi
 r-ma-tion scor-ing
  []
 
-[15 <./figures/constructions_qwen3_14b.pdf>])
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
-
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [16]
-[17] (./main.aux)
+[15 <./figures/constructions_qwen3_14b.pdf>] [16] [17] (./main.aux)
  ***********
 LaTeX2e <2025-11-01>
 L3 programming layer <2026-01-19>
@@ -866,10 +859,10 @@ Package rerunfilecheck Info: File `main.out' has not changed.
 (rerunfilecheck)             Checksum: 6A6C552F6B6D43B908E686E0DA63DD35;2863.
  )
 Here is how much of TeX's memory you used:
- 16791 strings out of 469006
- 267727 string characters out of 5454813
- 776821 words of memory out of 5000000
- 44677 multiletter control sequences out of 15000+600000
+ 16789 strings out of 469006
+ 267708 string characters out of 5454813
+ 776789 words of memory out of 5000000
+ 44676 multiletter control sequences out of 15000+600000
  688371 words of font info for 350 fonts, out of 8000000 for 9000
  319 hyphenation exceptions out of 8191
  84i,12n,93p,1001b,624s stack positions out of 10000i,1000n,20000p,200000b,200000s
@@ -893,10 +886,10 @@ type1/public/amsfonts/cm/cmsy9.pfb></tmp/arr-texmf/fonts/type1/urw/helvetic/uhv
 b8a.pfb></usr/local/texlive/2026basic/texmf-dist/fonts/type1/urw/times/utmb8a.p
 fb></usr/local/texlive/2026basic/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></
 usr/local/texlive/2026basic/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on main.pdf (17 pages, 522435 bytes).
+Output written on main.pdf (17 pages, 521864 bytes).
 PDF statistics:
- 759 PDF objects out of 1000 (max. 8388607)
- 626 compressed objects within 7 object streams
- 135 named destinations out of 1000 (max. 500000)
+ 758 PDF objects out of 1000 (max. 8388607)
+ 625 compressed objects within 7 object streams
+ 134 named destinations out of 1000 (max. 500000)
  48807 words of extra memory for PDF output out of 51595 (max. 10000000)
 
