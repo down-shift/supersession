@@ -1,5 +1,7 @@
 # Stage 1 delivery and verification
 
+Historical report for the v1 implementation and CPU checks. The v1 design was never run; the executed v1b/v2 revisions and current manuscript findings are documented in the [stale-decision manuscript guide](stale_decision_v2.md) and [protocol history](../paper_v2/sections/A-protocol-history.tex). Statements below about inference and remaining work refer to the original Stage 1 delivery.
+
 Stage 1 is complete. No model weights were downloaded or loaded, and no GPU pilot or confirmation inference was launched. CPU tests use fake/tiny models. The actual cached tokenizer was audited without downloading weights. Existing experiment sources, frozen results, provenance and manuscript sources were preserved. The pre-existing edit to scripts/fig_decomposition.py was left untouched.
 
 The architecture audit, hypotheses, estimands, construction details, schema, full commands, selection restrictions, gate rules, bootstrap/prediction specifications, cost assumptions and scientific risks are in [stale_decision_v1.md](stale_decision_v1.md). Configuration is configs/stale_decision_v1/protocol.json. The new CLI is `python -m scripts.stale_decision_v1` and the independent modules live in src/{data,experiments,analysis}/stale_decision_v1.py. No new dependencies were added.

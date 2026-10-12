@@ -1,12 +1,14 @@
-# What a Stale Value Still Does: Mention Structure and Order Shape Score Sensitivity After In-Context Updates
+# Obsolete and Incidental Words Shift Language-Model Decisions, but Change Them Mainly When Another Cue Agrees
 
-This repository contains experiments, analysis code, and two manuscript lines. The TMLR manuscript in `paper/` studies candidate-score sensitivity after in-context updates. The separate ACL-format stale-decision manuscript in `paper_v2/` studies effects on policy decisions. Its frozen confirmation finds that obsolete-state edits shift action preferences and can change generated routing decisions in five models; matched incidental mentions also shift preferences, so the effects are not specific to superseded assignments. See [`docs/paper_claims.md`](docs/paper_claims.md) for the scope and limits of both papers.
+The current ACL-format manuscript in [`paper_v2/`](paper_v2/) studies policy decisions after an in-context update. In five open models, obsolete-state edits shift routing preferences and change generated decisions even on histories the models retrieve correctly. Decision switches occur mainly when the other entity's current state also implies the wrong action; they fall sharply on Qwen3-8B's balanced histories and disappear for superseded assignments with thinking enabled in both Qwen3 models. Incidental mentions also shift preferences in every model. See the [stale-decision manuscript guide](docs/stale_decision_v2.md) and [claim boundaries](docs/paper_claims.md).
 
-The TMLR paper and evidence map are in [`paper/`](paper/) and [`paper/RESULTS_INDEX.md`](paper/). The stale-decision paper and its derived evidence are in [`paper_v2/`](paper_v2/). The two manuscripts use separate experiments, protocols, and estimands.
+The earlier TMLR paper and evidence map are in [`paper/`](paper/) and [`paper/RESULTS_INDEX.md`](paper/RESULTS_INDEX.md). Its relational/order score-sensitivity experiment has separate protocols and estimands.
 
 ## Paper and workflow
 
-The manuscript uses the TMLR LaTeX template, with one `.tex` file per section. See [`paper/README.md`](paper/README.md) for build and figure reproduction instructions, and [`docs/paper_claims.md`](docs/paper_claims.md) for claim boundaries across the repository's distinct protocols. The project check is `bash scripts/check.sh`.
+See [`paper_v2/README.md`](paper_v2/README.md) for the current manuscript's ACL build, table and figure commands, and required evidence artifacts. [`paper/README.md`](paper/README.md) documents the earlier TMLR build. The project check is `bash scripts/check.sh`.
+
+The current evidence map is [`paper_v2/RESULTS_INDEX.md`](paper_v2/RESULTS_INDEX.md); definitions, model-specific estimates and reporting rules are in [`docs/stale_decision_v2.md`](docs/stale_decision_v2.md).
 
 ## Environment
 
@@ -22,11 +24,13 @@ On the experiment machine, install model support as well:
 uv sync --extra model --extra dev
 ```
 
-Configure model ID, exact optional revision, tokenizer, device map, quantization, dtype, chat setting, candidate vocabulary, and seeds in `configs/pilot.yaml` or `configs/primary.yaml`. No model download is initiated by tests or dataset generation. `src.models.loader` supports standard Hugging Face decoder-only models exposing `layers` and reports unsupported architectures clearly. The configured Qwen3-8B run uses bitsandbytes LLM.int8 with FP16 non-quantized layers and `device_map: auto`. Attention uses PyTorch SDPA (`attn_implementation: sdpa`), which selects an available PyTorch attention kernel; it complements weight quantization rather than replacing it ([Transformers attention backends](https://huggingface.co/docs/transformers/main/attention_interface)). Matching FP16 avoids the common BF16-to-FP16 cast path in bitsandbytes; warnings are not globally suppressed. For RTX 5080 (SM120), bitsandbytes lists CUDA 12.8+ builds for Linux and Windows; install a compatible NVIDIA driver/PyTorch CUDA runtime on the experiment PC ([bitsandbytes install matrix](https://github.com/bitsandbytes-foundation/bitsandbytes/blob/main/docs/source/installation.mdx)).
+The `paper_v2` runs use pinned model/tokenizer revisions, unquantized float32, SDPA, and one GPU; the reported experiments ran on an 80 GB H100. Their configurations are under `configs/stale_decision_*`. See the [manuscript guide](docs/stale_decision_v2.md) for the numerical checks and protocol history.
+
+The following setup and commands describe the earlier experiment workflows. Configure model ID, exact optional revision, tokenizer, device map, quantization, dtype, chat setting, candidate vocabulary, and seeds in `configs/pilot.yaml` or `configs/primary.yaml`. No model download is initiated by tests or dataset generation. `src.models.loader` supports standard Hugging Face decoder-only models exposing `layers` and reports unsupported architectures clearly. The configured Qwen3-8B run uses bitsandbytes LLM.int8 with FP16 non-quantized layers and `device_map: auto`. Attention uses PyTorch SDPA (`attn_implementation: sdpa`), which selects an available PyTorch attention kernel; it complements weight quantization rather than replacing it ([Transformers attention backends](https://huggingface.co/docs/transformers/main/attention_interface)). Matching FP16 avoids the common BF16-to-FP16 cast path in bitsandbytes; warnings are not globally suppressed. For RTX 5080 (SM120), bitsandbytes lists CUDA 12.8+ builds for Linux and Windows; install a compatible NVIDIA driver/PyTorch CUDA runtime on the experiment PC ([bitsandbytes install matrix](https://github.com/bitsandbytes-foundation/bitsandbytes/blob/main/docs/source/installation.mdx)).
 
 ## Commands
 
-### Four-query matched pilot (new primary design)
+### Earlier four-query matched pilot
 
 This design uses one fixed history to produce current-x, initial-x, current-z,
 and initial-z queries. The pilot config gives 144 histories from the full

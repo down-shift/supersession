@@ -1,13 +1,56 @@
 # paper_v2 — stale-decision manuscript (ACL format)
 
-This is a separate manuscript and evidence line from the TMLR source in `paper/`. The paper studies whether editing an obsolete state changes policy decisions, using synthetic routing and access records. In the frozen Qwen3-8B confirmation, routing met the competence criteria and access did not. The obsolete-state edit shifted routing wrong-action log-odds by 3.133 nats and produced a net wrong-action switch rate of 0.185. Four further models replicated routing preference shifts; matched incidental mentions also shifted preferences across models, showing that the effect is not unique to superseded assignments. See [`docs/paper_claims.md`](../docs/paper_claims.md) for claim boundaries and [`sections/08-limitations.tex`](sections/08-limitations.tex) for scope.
+**Obsolete and Incidental Words Shift Language-Model Decisions, but Change Them Mainly When Another Cue Agrees** ([source](main.tex), [PDF](main.pdf)).
 
-The results are behavioral evidence from short synthetic tasks. The paper does not identify an internal mechanism or test a mitigation. Access results for Qwen3-8B are below the competence criteria, and two screened models have no confirmation because they failed the gate.
+Obsolete-state edits shift routing action preferences in five open models, including histories with correct current and initial retrieval. Generated decisions change mainly when the other entity's current state also implies the wrong action. In Qwen3-8B, the superseded net switch rate falls from `0.185` to `0.031` on balanced histories; in both Qwen3 models it is zero with thinking enabled. Incidental mentions also shift preferences in every model. The never-updated other-attribute control shows that interference requires neither supersession nor assignment to the queried attribute.
 
-    uv run --extra dev python -m paper_v2.data.derive          # numbers -> paper_v2/data/derived.json
-    uv run --extra dev python -m paper_v2.figures.make_figures # figures/*.pdf
-    cd paper_v2 && latexmk -pdf main.tex
+See the [manuscript guide](../docs/stale_decision_v2.md) for the design, model results, controls, reporting choices and limits, and [claim map](../docs/paper_claims.md) for the earlier TMLR research line. Access meets confirmation competence only in Gemma 4 12B. The tracked-history analyses and confirmation-based selection of competent cells are post hoc; the appendix also gives estimates under the original gate-based rule. The balanced comparison is descriptive and limited to Qwen3-8B. Evidence comes from short synthetic tasks and does not identify a mechanism or establish mitigation efficacy.
 
-`derive.py` reads the sealed reports under `outputs/stale_decision_{v1b,v2,v2m}` and the confirmation score
-file. It checks the score file against its completion record and stores the SHA-256 of every input. Style files:
-see STYLE_SOURCE.txt. Assessment: docs/rescue/PUBLICATION_ASSESSMENT.md.
+[RESULTS_INDEX.md](RESULTS_INDEX.md) maps the manuscript's results, tables and figures to their committed data keys and source artifacts.
+
+## Build from committed assets
+
+From the repository root, with `latexmk` and the required TeX packages installed:
+
+```bash
+cd paper_v2
+latexmk -pdf main.tex
+```
+
+The ACL style and bibliography style are included as [`acl.sty`](acl.sty) and [`acl_natbib.bst`](acl_natbib.bst). The manuscript reads committed tables from `data/tables/` and figures from `figures/`.
+
+## Regenerate tables and figures
+
+From the repository root, using the committed [`data/derived.json`](data/derived.json):
+
+```bash
+uv run --extra dev python -m paper_v2.data.tables
+uv run --extra dev python -m paper_v2.figures.make_figures
+```
+
+`models.pdf` summarizes confirmation-competent routing cells; `conditions.pdf` compares main, balanced and thinking conditions. The construction plots include the never-updated other attribute where available. `competence.pdf` and `replication.pdf` are appendix diagnostics.
+
+## Re-derive evidence from sealed artifacts
+
+The raw experiment inputs are absent from this checkout. Re-derivation requires the sealed reports, datasets, scores, completion records and timings at the paths recorded in `data/derived.json` and [`data/derive.py`](data/derive.py):
+
+| Output namespace | Evidence |
+|---|---|
+| `outputs/stale_decision_v1b/` | Earlier development and failed gate |
+| `outputs/stale_decision_v2/` | Qwen3-8B development, gate and confirmation |
+| `outputs/stale_decision_v2m/` | Gemma 3 4B development and failed gate |
+| `outputs/stale_decision_v2r/` | Qwen3-14B replication |
+| `outputs/stale_decision_v2f/` | Further families and their gates/confirmations |
+| `outputs/stale_decision_v2s/` | Never-updated other attribute in both Qwen3 models |
+| `outputs/stale_decision_v2b/` | Balanced routing histories in Qwen3-8B |
+| `outputs/stale_decision_think/` | Thinking-enabled generation in both Qwen3 models |
+
+With those artifacts available, run this before regenerating tables and figures:
+
+```bash
+uv run --extra dev python -m paper_v2.data.derive
+```
+
+The derivation records input SHA-256 hashes and checks confirmation scores against completion records. Model and follow-up loaders skip absent reports, so reproducing the full current paper requires every input listed in the committed `derived.json`. [`data/check_numbers.py`](data/check_numbers.py) traces numeric literals to derived values or recorded design constants; its matches require human review because rounded values can coincide.
+
+The [protocol history](sections/A-protocol-history.tex) documents the event-format corrections, numerical precision checks and dated amendments. The [reproducibility appendix](sections/C-reproducibility.tex) records model revisions, float32 runtime, provenance and compute.

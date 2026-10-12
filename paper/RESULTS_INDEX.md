@@ -1,4 +1,6 @@
-# Manuscript results and reproducibility index
+# TMLR manuscript results and reproducibility index
+
+This index covers the earlier manuscript in `paper/`. The current stale-decision manuscript has its own [results index](../paper_v2/RESULTS_INDEX.md).
 
 The manuscript's core evidence is relational/order Experiment 1 (96 histories, Qwen3-8B and Gemma 3 4B) and marker × construction Experiment 2 (96 histories, same models; an earlier 24-history run is reported in Appendix D). It also reports three controlled follow-ups, five additional screened models (seven total), an exploratory OLMo-2 generated-answer analysis, and distractor development that stopped under its rule. The update-chain generation development remained at ceiling; a separate 96-history score-only analysis is reported. The earlier `cross_model_v1` result is historical context in Appendix A and has a different estimand.
 

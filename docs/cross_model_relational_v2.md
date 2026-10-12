@@ -1,6 +1,6 @@
 # Relational/order v2 protocol
 
-This document records the core two-model relational/order experiment, not the full scope of the current manuscript. The seven-model thesis and other studies are mapped in the [paper results index](../paper/RESULTS_INDEX.md); this protocol remains the detailed record for the Qwen/Gemma v2 experiment.
+This document records the core two-model relational/order experiment in the earlier TMLR manuscript. Its seven-model thesis and other studies are mapped in the [TMLR results index](../paper/RESULTS_INDEX.md). The current ACL-format stale-decision manuscript uses a different v2 protocol, documented in the [stale-decision guide](stale_decision_v2.md).
 
 ## Geometry validation implementation migration (2026-10-03)
 

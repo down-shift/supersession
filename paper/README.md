@@ -1,5 +1,7 @@
 # What a Stale Value Still Does: Mention Structure and Order Shape Score Sensitivity After In-Context Updates
 
+This directory contains the earlier TMLR manuscript. The current ACL-format stale-decision manuscript is documented in [`paper_v2/README.md`](../paper_v2/README.md) and its [results index](../paper_v2/RESULTS_INDEX.md).
+
 TMLR manuscript on how mention construction, relative order, and explicit temporal marking affect candidate-score sensitivity to edited historical values. The main paper reports seven screened models from five families; the core relational/order and marker experiments are supplemented by three controlled follow-ups and exploratory generated-answer analyses. These results concern the tested prompts and score estimand, not an identified internal mechanism. `main.tex` holds the preamble and pulls in one file per section from `sections/`. Tables, figures, source analyses, and evidence limits are mapped in [RESULTS_INDEX.md](RESULTS_INDEX.md).
 
 Build: `latexmk -pdf main.tex` (requires a TeX distribution).
