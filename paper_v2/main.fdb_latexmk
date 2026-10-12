@@ -1,13 +1,13 @@
 # Fdb version 4
-["bibtex main"] 1791819535.45596 "main.aux" "main.bbl" "main" 1791819547.7445 0
+["bibtex main"] 1791824369.72339 "main.aux" "main.bbl" "main" 1791824370.49879 0
   "./acl_natbib.bst" 1791567611.76051 45442 bb9ea745fc0a84096e0948d1c1b99bbe ""
   "./references.bib" 1791585267.94337 13726 a871e75ec8bcffd8787482ff35b71a5a ""
-  "main.aux" 1791819547.57852 38392 12b632c8ca5e17167a6b774768cc9f60 "pdflatex"
+  "main.aux" 1791824370.33069 38751 db60c2da1bff66fe8b1982d4fdd2c6f2 "pdflatex"
   (generated)
   "main.bbl"
   "main.blg"
   (rewritten before read)
-["pdflatex"] 1791819547.03272 "main.tex" "main.pdf" "main" 1791819547.74463 0
+["pdflatex"] 1791824369.79855 "main.tex" "main.pdf" "main" 1791824370.49893 0
   "/usr/local/texlive/2026/texmf-dist/fonts/enc/dvips/base/8r.enc" 1165713224 4850 80dc9bab7f31fb78a000ccfed0e27cab ""
   "/usr/local/texlive/2026/texmf-dist/fonts/enc/dvips/inconsolata/i4-t1-0.enc" 1558214095 7631 5169ff1acd97ff1c4ab83563c99f96f4 ""
   "/usr/local/texlive/2026/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
@@ -166,21 +166,22 @@
   "data/tables/static_other.tex" 1791819546.97687 2159 9df8c9b745950106ce455b5c7881a145 ""
   "data/tables/tracked.tex" 1791819546.97667 570 c6cf1d6f8bca13586291eb43778a68a0 ""
   "data/tables/tracked_models.tex" 1791819546.97678 2143 7c0a896fdd88bfe44c3378ffd95f01d3 ""
-  "figures/competence.pdf" 1791819383.0851 14297 425bf18f2a6f03c60a53d199cf63c050 ""
-  "figures/conditions.pdf" 1791819383.27873 16416 b3457bfea715b703a790c16789ebdfab ""
-  "figures/constructions.pdf" 1791819382.67266 19101 ac7b5f8efffe3d0f9854ffd6e2ae215e ""
-  "figures/constructions_qwen3_14b.pdf" 1791819382.93265 19385 23181a2cfbe07471c9e5141bcdc81d59 ""
-  "figures/replication.pdf" 1791819383.20017 22594 9c48cc43e23ee913da5e44ef48db79a1 ""
-  "main.aux" 1791819547.57852 38392 12b632c8ca5e17167a6b774768cc9f60 "pdflatex"
-  "main.bbl" 1791819535.51458 8782 11a7a0d7aae652a4c871e70172dc8f0b "bibtex main"
-  "main.out" 1791819547.57978 2803 f7d2998e3879256ac26897e349444ea3 "pdflatex"
+  "figures/competence.pdf" 1791824359.44827 30255 3cc1b6f02543bafc55141fbe461b9c34 ""
+  "figures/conditions.pdf" 1791824359.64348 31867 7809ea468707c3fab42817e2a6d88c1e ""
+  "figures/constructions.pdf" 1791824359.08895 33877 15edfb0e1b282e3594118b814239e8c5 ""
+  "figures/constructions_qwen3_14b.pdf" 1791824359.31348 34260 55066e88381b1f81d294c96b3d4d4801 ""
+  "figures/models.pdf" 1791824359.70432 34339 93cc516e376180555f7372131e88bead ""
+  "figures/replication.pdf" 1791824359.56658 45173 4a20e83859c20b3aee1fe7048b40aff5 ""
+  "main.aux" 1791824370.33069 38751 db60c2da1bff66fe8b1982d4fdd2c6f2 "pdflatex"
+  "main.bbl" 1791824369.79673 8782 11a7a0d7aae652a4c871e70172dc8f0b "bibtex main"
+  "main.out" 1791824370.33195 2803 f7d2998e3879256ac26897e349444ea3 "pdflatex"
   "main.tex" 1791800375.1982 1602 819a2cf6cf0f6da00cfdeb54ecc84201 ""
   "sections/00-abstract.tex" 1791817234.97943 1471 1b3f03dd3517556fa1bdfccd1abb15f5 ""
   "sections/01-introduction.tex" 1791819443.5749 7334 cf8c4d92735e1c462d36a63dd009ca6d ""
   "sections/02-related-work.tex" 1791631301.85799 2034 a003c45a9a258d5ba9f4942764bc2521 ""
   "sections/03-design.tex" 1791819305.0306 5296 9bb2f70039105c185375fc3614a82703 ""
   "sections/04-protocol.tex" 1791819297.01126 4201 7937877d68eca38e136f13df34f3e17b ""
-  "sections/05-results.tex" 1791819422.69399 11404 34e03c56841f02bc129f72394dfc37b4 ""
+  "sections/05-results.tex" 1791824368.91349 11639 1190d2a4c8e9dfd53affd2f7afacf3fe ""
   "sections/06-discussion.tex" 1791819297.01148 3120 e4e21dca3ed9d3204b7ceee18076d141 ""
   "sections/07-conclusion.tex" 1791817234.97963 1085 92cb124af6e1bd3a63469844087dd3c9 ""
   "sections/08-limitations.tex" 1791800284.29625 2642 e2be79d1eb92cef1fb4611127ffd5fea ""

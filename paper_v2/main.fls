@@ -316,6 +316,11 @@ INPUT ./data/tables/cross_model.tex
 INPUT ./data/tables/cross_model.tex
 INPUT ./data/tables/cross_model.tex
 INPUT data/tables/cross_model.tex
+INPUT ./figures/models.pdf
+INPUT ./figures/models.pdf
+INPUT ./figures/models.pdf
+INPUT ./figures/models.pdf
+INPUT ./figures/models.pdf
 INPUT ./sections/06-discussion.tex
 INPUT ./sections/06-discussion.tex
 INPUT ./sections/06-discussion.tex

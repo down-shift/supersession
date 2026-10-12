@@ -20,7 +20,32 @@ LABELS = {'superseded': 'Superseded assignment', 'updated_other': 'Other attribu
           'static_other': 'Other attribute, not updated',
           'entity_mention': 'Mentioned by entity', 'unassigned': 'Unattached word'}
 COLORS = {'superseded': '#1f4e79', 'updated_other': '#7f7f7f', 'static_other': '#5b9bd5', 'entity_mention': '#c55a11', 'unassigned': '#bfbfbf'}
-plt.rcParams.update({'font.size': 8, 'axes.spines.top': False, 'axes.spines.right': False, 'pdf.fonttype': 42})
+plt.rcParams.update({'font.size': 8, 'axes.spines.top': False, 'axes.spines.right': False, 'pdf.fonttype': 42,
+                     'font.family': 'serif', 'font.serif': ['Times New Roman', 'Times', 'STIXGeneral'],
+                     'mathtext.fontset': 'stix'})
+INK, GRID = '#222222', '#e6e6e6'
+# Main-text figures: one colour per condition, one marker per series; dots with interval whiskers.
+COND = {'Main design': ('#1f3b5c', 'o'), 'Balanced': ('#7aa6d6', 's'), 'Thinking': ('#4f9a74', 'D')}
+
+
+def tidy(ax, axis='y'):
+    """Light grid behind the data, thin ink spines, no tick marks."""
+    ax.grid(axis=axis, color=GRID, lw=0.6)
+    ax.set_axisbelow(True)
+    for sp in ('left', 'bottom'):
+        ax.spines[sp].set_color(INK)
+        ax.spines[sp].set_linewidth(0.6)
+    ax.tick_params(length=0, labelsize=7, colors=INK)
+
+
+def dot(ax, x, y, b, color, marker, horizontal=False, **kw):
+    lo, hi = b['ci']
+    if horizontal:
+        ax.plot([lo, hi], [y, y], color=color, lw=1.1, solid_capstyle='round', zorder=2)
+    else:
+        ax.plot([x, x], [lo, hi], color=color, lw=1.1, solid_capstyle='round', zorder=2)
+    ax.plot(*((b['mean'], y) if horizontal else (x, b['mean'])), marker=marker, color=color, ms=3.6,
+            mec='white', mew=0.5, ls='none', zorder=3, **kw)
 
 
 def err(b):
@@ -124,25 +149,56 @@ def conditions():
             'Balanced': ({f: B['constructions'][f]['D'] for f in FAMILIES},
                          {f: B['constructions'][f]['switch'] for f in FAMILIES}),
             'Thinking': (None, {f: T['constructions'][f]['switch'] for f in FAMILIES})}
-    colors = {'Main design': '#1f4e79', 'Balanced': '#5b9bd5', 'Thinking': '#c55a11'}
-    fig, axes = plt.subplots(1, 2, figsize=(3.3, 1.9))
-    for k, (ax, title) in enumerate(zip(axes, ['(a) $D$ (nats)', '(b) Net switch rate'])):
+    fig, axes = plt.subplots(1, 2, figsize=(3.3, 1.75))
+    for k, (ax, title) in enumerate(zip(axes, ['(a) Score shift $D$ (nats)', '(b) Net switch rate'])):
         conds = [c for c in rows if rows[c][k] is not None]
-        w = 0.8 / len(conds)
         for i, c in enumerate(conds):
             for j, f in enumerate(FAMILIES):
-                b = rows[c][k][f]
-                x = j + (i - (len(conds) - 1) / 2) * w
-                ax.bar(x, b['mean'], w, color=colors[c], label=c if j == 0 else None)
-                ax.errorbar(x, b['mean'], yerr=err(b), color='black', lw=0.6, capsize=1)
+                dot(ax, j + (i - (len(conds) - 1) / 2) * 0.22, None, rows[c][k][f], *COND[c],
+                    label=c if j == 0 else None)
         ax.set_xticks(range(len(FAMILIES)), ['S', 'O', 'M', 'U'])
-        ax.axhline(0, color='black', lw=0.5)
-        ax.set_title(title, loc='left', fontsize=7.5)
-        ax.tick_params(labelsize=7)
-    fig.legend(*axes[1].get_legend_handles_labels(), frameon=False, fontsize=6.5, loc='upper center', ncol=3,
-               handlelength=1, columnspacing=1)
-    fig.tight_layout(pad=0.3, w_pad=0.8, rect=(0, 0, 1, 0.9))
+        ax.set_xlim(-0.5, len(FAMILIES) - 0.5)
+        ax.axhline(0, color=INK, lw=0.6, zorder=1)
+        ax.spines['bottom'].set_visible(False)
+        ax.set_title(title, loc='left', fontsize=7.5, color=INK)
+        tidy(ax)
+    axes[0].set_ylim(bottom=0)
+    axes[1].set_ylim(-0.035, None)
+    handles, labels = axes[1].get_legend_handles_labels()
+    fig.legend(handles, labels, frameon=False, fontsize=7, loc='upper center', ncol=3, handletextpad=0.2,
+               columnspacing=1.2, borderaxespad=0.1)
+    fig.tight_layout(pad=0.2, w_pad=1.0, rect=(0, 0, 1, 0.9))
     fig.savefig(HERE / 'conditions.pdf')
+
+
+MODEL_ORDER = ('Qwen3-8B', 'Qwen3-14B', 'Gemma 4 12B', 'Qwen3.5 9B', 'Granite 4.1 8B')
+
+
+def models():
+    """Routing, each confirmed model's competent cells: D_S and net switch rates S and M (main-text figure)."""
+    ms = [m for m in MODEL_ORDER if D['models'].get(m, {}).get('confirmation', {}).get('competent_confirmation', {}).get('routing')]
+    get = lambda m: D['models'][m]['confirmation']['competent_confirmation']['routing']
+    fig, axes = plt.subplots(1, 2, figsize=(3.3, 1.7), sharey=True)
+    for i, m in enumerate(ms):
+        c = get(m)
+        dot(axes[0], None, i, c['D_superseded'], COLORS['superseded'], 'o', horizontal=True)
+        dot(axes[1], None, i - 0.14, c['switch_superseded'], COLORS['superseded'], 'o', horizontal=True,
+            label='S, superseded' if i == 0 else None)
+        dot(axes[1], None, i + 0.14, c['switch_entity_mention'], COLORS['entity_mention'], 'D', horizontal=True,
+            label='M, mention' if i == 0 else None)
+    for ax, title in zip(axes, ['(a) $D_{\\mathrm{S}}$ (nats)', '(b) Net switch rate']):
+        ax.axvline(0, color=INK, lw=0.6, zorder=1)
+        ax.spines['left'].set_visible(False)
+        ax.set_title(title, loc='left', fontsize=7.5, color=INK)
+        tidy(ax, axis='x')
+    axes[0].set_yticks(range(len(ms)), ms)
+    axes[0].set_ylim(len(ms) - 0.5, -0.5)
+    axes[0].set_xlim(left=0)
+    axes[1].set_xlim(left=-0.01)
+    fig.legend(*axes[1].get_legend_handles_labels(), frameon=False, fontsize=7, loc='upper center', ncol=2,
+               handletextpad=0.2, columnspacing=1.2, borderaxespad=0.1)
+    fig.tight_layout(pad=0.2, w_pad=0.8, rect=(0, 0, 1, 0.88))
+    fig.savefig(HERE / 'models.pdf')
 
 
 if __name__ == '__main__':
@@ -154,3 +210,4 @@ if __name__ == '__main__':
     competence()
     replication()
     conditions()
+    models()

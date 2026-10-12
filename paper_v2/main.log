@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.3.26)  12 OCT 2026 17:39
+This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.3.26)  12 OCT 2026 18:59
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -632,14 +632,21 @@ LaTeX Font Info:    Font shape `T1/zi4/m/n' will be
 ])
 (./sections/04-protocol.tex [4]) (./sections/05-results.tex
 (./data/tables/tracked.tex [5])
-<figures/conditions.pdf, id=256, 238.49101pt x 137.313pt>
+<figures/conditions.pdf, id=256, 238.49101pt x 126.4725pt>
 File: figures/conditions.pdf Graphic file (type pdf)
 <use figures/conditions.pdf>
 Package pdftex.def Info: figures/conditions.pdf  used on input line 119.
-(pdftex.def)             Requested size: 219.08614pt x 126.143pt.
+(pdftex.def)             Requested size: 219.08614pt x 116.18434pt.
  [6 <./figures/conditions.pdf>]
-(./data/tables/cross_model.tex)) (./sections/06-discussion.tex [7])
-(./sections/07-conclusion.tex) (./sections/08-limitations.tex [8]
+(./data/tables/cross_model.tex)
+<figures/models.pdf, id=293, 238.49101pt x 122.85901pt>
+File: figures/models.pdf Graphic file (type pdf)
+<use figures/models.pdf>
+Package pdftex.def Info: figures/models.pdf  used on input line 151.
+(pdftex.def)             Requested size: 219.08614pt x 112.86479pt.
+) (./sections/06-discussion.tex [7 <./figures/models.pdf>]) (./sections/07-conc
+lusion.tex) (./sections/08-limitations.tex
+[8]
 Underfull \hbox (badness 4608) in paragraph at lines 30--32
  []\T1/ptm/b/n/10.95 (+20) Prediction scope.[] \T1/ptm/m/n/10.95 (+20) H3 uses 
 cross-validation
@@ -670,19 +677,13 @@ Underfull \hbox (badness 1748) in paragraph at lines 87--95
 \T1/ptm/m/n/10.95 (+20) gen-er-ated an-swers with think-ing en-abled for
  []
 
-) (./sections/B-tables.tex
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
-
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [11]
-<figures/constructions.pdf, id=460, 476.98201pt x 209.58301pt>
+[11]) (./sections/B-tables.tex
+<figures/constructions.pdf, id=485, 476.98201pt x 209.58301pt>
 File: figures/constructions.pdf Graphic file (type pdf)
 <use figures/constructions.pdf>
 Package pdftex.def Info: figures/constructions.pdf  used on input line 15.
 (pdftex.def)             Requested size: 455.24411pt x 200.03653pt.
-<figures/competence.pdf, id=461, 476.98201pt x 209.58301pt>
+<figures/competence.pdf, id=486, 476.98201pt x 209.58301pt>
 File: figures/competence.pdf Graphic file (type pdf)
 <use figures/competence.pdf>
 Package pdftex.def Info: figures/competence.pdf  used on input line 22.
@@ -693,47 +694,41 @@ Underfull \hbox (badness 2790) in paragraph at lines 27--30
 nt-state re-trieval is
  []
 
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-
-LaTeX Warning: `h' float specifier changed to `ht'.
+[12]
+Underfull \vbox (badness 1112) has occurred while \output is active []
 
 
-LaTeX Warning: `h' float specifier changed to `ht'.
+Underfull \vbox (badness 1112) has occurred while \output is active []
 
-<figures/replication.pdf, id=465, 476.98201pt x 158.99399pt>
+<figures/replication.pdf, id=500, 476.98201pt x 158.99399pt>
 File: figures/replication.pdf Graphic file (type pdf)
 <use figures/replication.pdf>
 Package pdftex.def Info: figures/replication.pdf  used on input line 119.
 (pdftex.def)             Requested size: 455.24411pt x 151.75183pt.
-
-LaTeX Warning: `h' float specifier changed to `ht'.
 
 (./data/tables/conditions.tex) (./data/tables/static_other.tex)
 (./data/tables/models_gate.tex
 
 LaTeX Warning: `h' float specifier changed to `ht'.
 
-) [12]
-Underfull \vbox (badness 1112) has occurred while \output is active []
-
-
-Underfull \vbox (badness 1112) has occurred while \output is active []
-
-
+) [13 <./figures/constructions.pdf> <./figures/competence.pdf>]
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
 
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
- [13 <./figures/constructions.pdf> <./figures/competence.pdf>]
-(./data/tables/joint_by_model.tex
+
+Underfull \vbox (badness 3579) has occurred while \output is active []
+
+
+Underfull \vbox (badness 3579) has occurred while \output is active []
+
+ [14 <./figures/replication.pdf>] (./data/tables/joint_by_model.tex
 
 LaTeX Warning: `h' float specifier changed to `ht'.
 
 ) (./data/tables/tracked_models.tex) (./data/tables/cross_model_ci.tex)
-<figures/constructions_qwen3_14b.pdf, id=525, 476.98201pt x 209.58301pt>
+<figures/constructions_qwen3_14b.pdf, id=592, 476.98201pt x 209.58301pt>
 File: figures/constructions_qwen3_14b.pdf Graphic file (type pdf)
 <use figures/constructions_qwen3_14b.pdf>
 Package pdftex.def Info: figures/constructions_qwen3_14b.pdf  used on input lin
@@ -838,19 +833,13 @@ Underfull \hbox (badness 1558) in paragraph at lines 15--23
 \T1/ptm/m/n/10.95 (+20) to-k-enizer au-dit, code hash and con-fig-u-ra-tion
  []
 
-
-Underfull \vbox (badness 1226) has occurred while \output is active []
-
-
-Underfull \vbox (badness 1226) has occurred while \output is active []
-
- [14 <./figures/replication.pdf>]
+[15]
 Underfull \hbox (badness 2326) in paragraph at lines 24--36
  []\T1/ptm/b/n/10.95 (+20) Compute.[] \T1/ptm/m/n/10.95 (+20) Qwen3-8B's con-fi
 r-ma-tion scor-ing
  []
 
-) [15 <./figures/constructions_qwen3_14b.pdf>] [16] [17] (./main.aux)
+) [16] [17 <./figures/constructions_qwen3_14b.pdf>] (./main.aux)
  ***********
 LaTeX2e <2025-11-01>
 L3 programming layer <2026-01-19>
@@ -859,13 +848,13 @@ Package rerunfilecheck Info: File `main.out' has not changed.
 (rerunfilecheck)             Checksum: F7D2998E3879256AC26897E349444EA3;2803.
  ) 
 Here is how much of TeX's memory you used:
- 16760 strings out of 467525
- 266319 string characters out of 5418982
- 775567 words of memory out of 5000000
- 44877 multiletter control sequences out of 15000+600000
+ 16770 strings out of 467525
+ 266554 string characters out of 5418982
+ 764140 words of memory out of 5000000
+ 44886 multiletter control sequences out of 15000+600000
  687857 words of font info for 342 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 84i,12n,93p,1001b,634s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 84i,12n,93p,1001b,626s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </usr/local/texlive/2026/texmf-dist/fonts/type1/public/inconsolata/Inconsolat
 a-zi4r.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/c
 mex10.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cm
@@ -886,10 +875,10 @@ e/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy9.pfb></usr/local/texlive/
 xmf-dist/fonts/type1/urw/times/utmb8a.pfb></usr/local/texlive/2026/texmf-dist/f
 onts/type1/urw/times/utmr8a.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1
 /urw/times/utmri8a.pfb>
-Output written on main.pdf (17 pages, 407425 bytes).
+Output written on main.pdf (17 pages, 521681 bytes).
 PDF statistics:
- 706 PDF objects out of 1000 (max. 8388607)
- 592 compressed objects within 6 object streams
- 132 named destinations out of 1000 (max. 500000)
- 48802 words of extra memory for PDF output out of 51595 (max. 10000000)
+ 747 PDF objects out of 1000 (max. 8388607)
+ 616 compressed objects within 7 object streams
+ 133 named destinations out of 1000 (max. 500000)
+ 48807 words of extra memory for PDF output out of 51595 (max. 10000000)
 

@@ -146,9 +146,16 @@ different generation processes, and no test was prespecified.
 
 \input{data/tables/cross_model}
 
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{figures/models.pdf}
+\caption{Routing, each model's competent cells, with 97.5\% (a) and 95\% (b) intervals.}
+\label{fig:models}
+\end{figure}
+
 Four further models were run under amendments dated before any of their data were scored, with the same
 rows, rules and runtime (Appendix~\ref{app:history}): Qwen3-14B, then Gemma 4 12B, Qwen3.5 9B and Granite 4.1
-8B. Table~\ref{tab:cross-model} gives each on the cells competent on the confirmation data: all three routing
+8B. Table~\ref{tab:cross-model} and Figure~\ref{fig:models} give each on the cells competent on the confirmation data: all three routing
 cells for Qwen3-14B, two for the others, and access only for Gemma 4 12B.
 
 The obsolete-state effect replicates in every model. In routing, $D_{\mathrm{S}}$ is
