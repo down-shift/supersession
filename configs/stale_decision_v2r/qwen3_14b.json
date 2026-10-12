@@ -18,6 +18,6 @@
   "development_replicates": 1,
   "gate_replicates": 2,
   "confirmation_replicates": 4,
-  "status": "v2r: Qwen/Qwen3-14B (docs/stale_decision_v2_replication.md)",
+  "status": "v2r: Qwen/Qwen3-14B (paper_v2/sections/A-protocol-history.tex)",
   "scorer": "kv_cache"
 }

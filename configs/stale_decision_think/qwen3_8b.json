@@ -13,5 +13,5 @@
   "max_new_tokens": 4096,
   "bootstrap_draws": 2000,
   "histories": "all",
-  "status": "thinking mode: Qwen/Qwen3-8B (docs/stale_decision_think.md)"
+  "status": "thinking mode: Qwen/Qwen3-8B (paper_v2/sections/A-protocol-history.tex)"
 }

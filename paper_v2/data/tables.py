@@ -204,7 +204,7 @@ def tracked_models():
 
 
 def static_other():
-    """Five constructions on the confirmation routing histories (docs/stale_decision_v2_balanced.md, part B)."""
+    """Five constructions on the confirmation routing histories (paper_v2/sections/A-protocol-history.tex, part B)."""
     S = D.get('static_other', {})
     ms = [m for m in models() if m in S]
     lines = [r'\begin{table}[t]', r'\centering', r'\small', r'\setlength{\tabcolsep}{3pt}',
@@ -229,8 +229,8 @@ def static_other():
 
 
 def conditions():
-    """Qwen3-8B routing: sealed confirmation, balanced subset (docs/stale_decision_v2_balanced.md) and thinking mode
-    (docs/stale_decision_think.md), per construction."""
+    """Qwen3-8B routing: sealed confirmation, balanced subset (paper_v2/sections/A-protocol-history.tex) and thinking mode
+    (paper_v2/sections/A-protocol-history.tex), per construction."""
     B, T = D.get('balanced'), D.get('think', {}).get('Qwen3-8B')
     if not B or not T:
         return ''

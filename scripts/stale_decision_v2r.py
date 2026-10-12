@@ -1,4 +1,4 @@
-"""stale_decision_v2r CLI (docs/stale_decision_v2_replication.md): the v2 commands for a model from the frozen list.
+"""stale_decision_v2r CLI (paper_v2/sections/A-protocol-history.tex): the v2 commands for a model from the frozen list.
 Usage: python -m scripts.stale_decision_v2r --config configs/stale_decision_v2r/<model>.json <command> ...
 
     python -m scripts.stale_decision_v2r generate --output DIR/development.jsonl

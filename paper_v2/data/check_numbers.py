@@ -18,19 +18,19 @@ SECTIONS = HERE.parent / 'sections'
 
 # Values quoted from protocol records rather than derived.json, with their source.
 ALLOW = {
-    # design constants: docs/stale_decision_v1.md, v1b.md, v2.md, v2_replication.md
+    # Design constants: paper_v2/sections/03-design.tex and 04-protocol.tex
     '192': 'histories per replicate', '384': 'gate / per-task histories', '768': 'confirmation histories',
     '8448': 'confirmation records', '4224': 'gate records', '2000': 'bootstrap draws', '0.95': 'threshold',
     '0.90': 'threshold', '0.05': 'threshold', '0.02': 'scorer tolerance', '97.5': 'interval level',
     '95': 'interval level', '16': 'max new tokens', '20': 'top-20 causality check', '24': 'smoke records',
-    '64': 'histories per stratum', '128': 'histories per cell', '82003': 'confirmation seed', '82101': 'balanced subset seed (docs/stale_decision_v2_balanced.md)', '80': 'GPU memory GB',
+    '64': 'histories per stratum', '128': 'histories per cell', '82003': 'confirmation seed', '82101': 'balanced subset seed (paper_v2/sections/A-protocol-history.tex)', '80': 'GPU memory GB',
     '2026': 'year', '10': 'exponent', '5': 'folds', '1': 'C', '3': 'misc',
-    # docs/stale_decision_v1b.md and RESEARCH_LOG (numerical causality, v1b gate failure)
+    # paper_v2/sections/A-protocol-history.tex (numerical causality, v1b gate failure)
     '0.843': 'int8 causality', '0.875': 'bf16 causality', '0.502': 'bf16+fp32 head', '3.406': 'int8 KV scorer',
     '5.08': 'fp32 KV scorer (x1e-5)', '5.7': 'v2b causality max x1e-5 (derived balanced/causality/max)', '0.851': 'v1b gate direct min', '0.946': 'v1b gate direct max',
     '260': 'v1b Answer: echoes', '100': 'v1b label answers', '64.': '', '6.27': 'confirmation GPU-h',
-    '2.67': 's per record; Granite 4.1 confirmation GPU-h (9608 s)', '2.8': 'OLMo 3 preflight causality x1e-5 (docs/stale_decision_v2_families.md)',
-    '456': 'thousands group of 3,456 thinking-mode items (docs/stale_decision_think.md)', '4.29': 'Gemma 4 confirmation GPU-h (timing.json 15455 s)', '7.59': 'Qwen3.5 confirmation GPU-h (timing.json 27338 s)',
+    '2.67': 's per record; Granite 4.1 confirmation GPU-h (9608 s)', '2.8': 'OLMo 3 preflight causality x1e-5 (paper_v2/sections/A-protocol-history.tex)',
+    '456': 'thousands group of 3,456 thinking-mode items (paper_v2/sections/A-protocol-history.tex)', '4.29': 'Gemma 4 confirmation GPU-h (timing.json 15455 s)', '7.59': 'Qwen3.5 confirmation GPU-h (timing.json 27338 s)',
     '24.': '', '0.984': 'Gemma dev historical retrieval (v2m report)',
     # derived in prose from derived.json values (ranges written as lo--hi are traced endpoint by endpoint)
     '3.1': 'routing D_superseded 3.133 rounded in prose', '1.2': 'routing Delta_semantic 1.224 rounded',

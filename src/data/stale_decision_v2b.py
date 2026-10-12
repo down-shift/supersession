@@ -1,5 +1,5 @@
 """stale_decision_v2b construction: the v2 generator with the other entity's current state set to the queried
-entity's current state, so that it implies the correct action (docs/stale_decision_v2_balanced.md). Routing task
+entity's current state, so that it implies the correct action (paper_v2/sections/A-protocol-history.tex). Routing task
 only, held-out template, its own seed and entity-name pool. No model imports. v2's docstring: v1's generator with
 no trailing "Answer:" line, new seeds, new entity-name pools."""
 import hashlib

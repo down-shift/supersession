@@ -18,6 +18,6 @@
   "development_replicates": 1,
   "gate_replicates": 2,
   "confirmation_replicates": 4,
-  "status": "v2r: google/gemma-3-12b-it (docs/stale_decision_v2_replication.md)",
+  "status": "v2r: google/gemma-3-12b-it (paper_v2/sections/A-protocol-history.tex)",
   "scorer": "kv_cache"
 }

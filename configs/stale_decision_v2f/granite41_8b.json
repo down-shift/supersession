@@ -20,6 +20,6 @@
   "development_replicates": 1,
   "gate_replicates": 2,
   "confirmation_replicates": 4,
-  "status": "v2f: ibm-granite/granite-4.1-8b (docs/stale_decision_v2_families.md)",
+  "status": "v2f: ibm-granite/granite-4.1-8b (paper_v2/sections/A-protocol-history.tex)",
   "scorer": "kv_cache"
 }

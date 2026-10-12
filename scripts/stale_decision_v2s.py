@@ -1,4 +1,4 @@
-"""stale_decision_v2s CLI (docs/stale_decision_v2_balanced.md, part B): static other-attribute construction on the
+"""stale_decision_v2s CLI (paper_v2/sections/A-protocol-history.tex, part B): static other-attribute construction on the
 v2 confirmation routing histories.
 
     python -m scripts.stale_decision_v2s generate --config CFG --output DIR/static.jsonl

@@ -1,5 +1,5 @@
 """stale_decision_v2s: static other-attribute construction on the v2 confirmation routing histories
-(docs/stale_decision_v2_balanced.md, part B). No model imports.
+(paper_v2/sections/A-protocol-history.tex, part B). No model imports.
 
 The 384 routing histories of the sealed v2 confirmation split (seed 82003, held-out template) are regenerated
 with the sealed v2 generator. For each history, a fifth construction is added: `static_other`. It is the

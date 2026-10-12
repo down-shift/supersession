@@ -26,7 +26,7 @@ REPORTS = {
     'gemma_development': OUT / 'stale_decision_v2m/gemma3_4b/development_report.json',
     'gemma_gate': OUT / 'stale_decision_v2m/gemma3_4b/gate/gate_report.json',
 }
-# Every model attempted (docs/stale_decision_v2_models.md, docs/stale_decision_v2_replication.md). Reports that do
+# Every model attempted (paper_v2/sections/A-protocol-history.tex, paper_v2/sections/A-protocol-history.tex). Reports that do
 # not exist yet are skipped, so the derivation can be rerun as models finish.
 V2R = OUT / 'stale_decision_v2r'
 MODEL_RUNS = {
@@ -37,7 +37,7 @@ MODEL_RUNS = {
        for label, name in [('Qwen3-14B', 'qwen3_14b'), ('Gemma 3 12B', 'gemma3_12b'),
                            ('Granite 3.1 8B', 'granite31_8b'), ('Mistral 7B v0.3', 'mistral7b'),
                            ('Falcon3 7B', 'falcon3_7b')]},
-    # further families (docs/stale_decision_v2_families.md); OLMo 3 not run (causality 2.8e-5 nats)
+    # further families (paper_v2/sections/A-protocol-history.tex); OLMo 3 not run (causality 2.8e-5 nats)
     **{label: {'gate': OUT / f'stale_decision_v2f/{name}/gate/gate_report.json',
                'confirmation': OUT / f'stale_decision_v2f/{name}/confirmation/confirmation_report.json'}
        for label, name in [('Ministral 3 14B', 'ministral3_14b'), ('Gemma 4 12B', 'gemma4_12b'),
@@ -273,7 +273,7 @@ STATIC = {'Qwen3-8B': OUT / 'stale_decision_v2s/qwen3_8b/static_report.json',
 
 
 def static_other():
-    """Part B of docs/stale_decision_v2_balanced.md: five constructions on the 384 confirmation routing histories."""
+    """Part B of paper_v2/sections/A-protocol-history.tex: five constructions on the 384 confirmation routing histories."""
     out, inputs = {}, {}
     for m, path in STATIC.items():
         if not path.exists():
@@ -297,7 +297,7 @@ FAMILIES = ('superseded', 'updated_other', 'entity_mention', 'unassigned')
 
 
 def balanced():
-    """docs/stale_decision_v2_balanced.md: other entity's current state implies the correct action (Qwen3-8B)."""
+    """paper_v2/sections/A-protocol-history.tex: other entity's current state implies the correct action (Qwen3-8B)."""
     path, cpath = BALANCED / 'balanced_report.json', BALANCED / 'causality_check.json'
     if not path.exists():
         return {}, {}
@@ -314,7 +314,7 @@ def balanced():
 
 
 def think():
-    """docs/stale_decision_think.md: routing confirmation rows generated with thinking enabled."""
+    """paper_v2/sections/A-protocol-history.tex: routing confirmation rows generated with thinking enabled."""
     out, inputs = {}, {}
     for m, d in THINK.items():
         path = d / 'report.json'

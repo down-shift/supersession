@@ -19,5 +19,5 @@
   "bootstrap_draws": 2000,
   "part": "static_other",
   "scorer": "kv_cache",
-  "status": "v2s: static other attribute on the v2 confirmation routing histories, Qwen/Qwen3-8B (docs/stale_decision_v2_balanced.md, part B)"
+  "status": "v2s: static other attribute on the v2 confirmation routing histories, Qwen/Qwen3-8B (paper_v2/sections/A-protocol-history.tex, part B)"
 }

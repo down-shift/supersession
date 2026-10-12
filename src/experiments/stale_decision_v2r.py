@@ -1,8 +1,7 @@
-"""stale_decision_v2r: replication models under the v2m protocol (docs/stale_decision_v2_replication.md).
-A copy of stale_decision_v2m with its own frozen model list, so that the sealed v2/v2m artifacts keep their
-code hashes. v2m's docstring follows.
+"""stale_decision_v2r: replication models under the v2m protocol (paper_v2/sections/A-protocol-history.tex).
+A copy of stale_decision_v2m with its own frozen model list and provenance hash. v2m's docstring follows.
 
-stale_decision_v2m: the v2 protocol extended to further models (docs/stale_decision_v2_models.md).
+stale_decision_v2m: the v2 protocol extended to further models (paper_v2/sections/A-protocol-history.tex).
 Identical to stale_decision_v2 except that the model comes from a frozen list and the action event and greedy
 generation end with a configured end-of-turn token (Gemma ends its turn with <end_of_turn>, not its tokenizer's
 EOS); `EndOfTurn` makes every existing use of `eos_token_id` refer to that token.
@@ -10,7 +9,7 @@ EOS); `EndOfTurn` makes every existing use of `eos_token_id` refer to that token
 stale_decision_v2: stale_decision_v1b's scoring and checks on the v2 data (docs/stale_decision_v2.md).
 v1b's docstring follows; everything it says about v1b applies to v2.
 
-stale_decision_v1b: documented pre-inference correction of stale_decision_v1 (docs/stale_decision_v1b.md).
+stale_decision_v1b: documented pre-inference correction of stale_decision_v1 (paper_v2/sections/A-protocol-history.tex).
 
 Unchanged from v1: the data generator, factorial, seeds, splits, prompts, easy-retrieval events, strict
 parser, checkpoint contracts, gates and the D / Delta / R_easy_local contrasts. Changed:
@@ -21,7 +20,6 @@ parser, checkpoint contracts, gates and the D / Delta / R_easy_local contrasts. 
 * a historical-retrieval query ("what was the INITIAL value?") is asked in the superseded construction;
 * an optional KV-cache scorer, used only after `verify_cached_scorer` reproduces the reference scorer.
 
-No v1 file is modified.
 """
 import hashlib
 import json
@@ -48,17 +46,26 @@ HISTORICAL_INTRO = 'The record below lists initial and final assignments.'
 
 
 def code_hash():
-    files = ['src/data/stale_decision_v2.py', 'src/experiments/stale_decision_v1.py',
-             'src/analysis/stale_decision_v1.py', 'src/experiments/stale_decision_v2r.py',
-             'src/analysis/stale_decision_v2.py', 'scripts/stale_decision_v2r.py', 'docs/stale_decision_v2_models.md', 'docs/stale_decision_v2_replication.md',
-             'src/cross_model/scoring.py', 'src/cross_model/tokens.py', 'docs/stale_decision_v1b.md',
-             'docs/stale_decision_v2.md']
+    files = [
+        'src/data/stale_decision_v2.py',
+        'src/experiments/stale_decision_v1.py',
+        'src/analysis/stale_decision_v1.py',
+        'src/experiments/stale_decision_v2r.py',
+        'src/analysis/stale_decision_v2.py',
+        'scripts/stale_decision_v2r.py',
+        'paper_v2/sections/A-protocol-history.tex',
+        'src/cross_model/scoring.py',
+        'src/cross_model/tokens.py',
+        'docs/stale_decision_v2.md',
+        'paper_v2/sections/03-design.tex',
+        'paper_v2/sections/04-protocol.tex',
+    ]
     return digest({p: (ROOT / p).read_text() for p in files})
 
 
 def check_config(config):
     """v1b runtime: unquantized float32 on one GPU (int8 and bfloat16 scoring were shown to depend on
-    tokens after the scored position; docs/stale_decision_v1b.md), plus the v1 split, decoding and
+    tokens after the scored position; paper_v2/sections/A-protocol-history.tex), plus the v1 split, decoding and
     bootstrap settings."""
     if config.get('protocol') != PROTOCOL:
         raise ValueError('wrong protocol')

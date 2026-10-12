@@ -1,4 +1,4 @@
-"""stale_decision_think: decisions with reasoning enabled, generation only (docs/stale_decision_think.md).
+"""stale_decision_think: decisions with reasoning enabled, generation only (paper_v2/sections/A-protocol-history.tex).
 
 The sealed confirmation rows (stale_decision_v2, seed 82003, held-out template) are rendered with the chat
 template's thinking switch on. Each decision prompt is answered by greedy decoding until the model's end-of-turn
@@ -25,8 +25,15 @@ TASK = 'routing'
 
 
 def code_hash():
-    files = ['src/experiments/stale_decision_think.py', 'scripts/stale_decision_think.py', 'docs/stale_decision_think.md',
-             'src/data/stale_decision_v2.py', 'src/experiments/stale_decision_v1.py']
+    files = [
+        'src/experiments/stale_decision_think.py',
+        'scripts/stale_decision_think.py',
+        'paper_v2/sections/A-protocol-history.tex',
+        'src/data/stale_decision_v2.py',
+        'src/experiments/stale_decision_v1.py',
+        'paper_v2/sections/03-design.tex',
+        'paper_v2/sections/04-protocol.tex',
+    ]
     return digest({p: (ROOT / p).read_text() for p in files})
 
 

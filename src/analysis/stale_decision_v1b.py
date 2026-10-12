@@ -1,5 +1,5 @@
 """stale_decision_v1b analysis: the v1 contrasts unchanged, with corrected H3 predictors and added
-historical-retrieval and error summaries (docs/stale_decision_v1b.md)."""
+historical-retrieval and error summaries (paper_v2/sections/A-protocol-history.tex)."""
 from collections import Counter, defaultdict
 from contextlib import contextmanager
 import math

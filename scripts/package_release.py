@@ -2,10 +2,10 @@
 
     uv run --extra dev python -m scripts.package_release [--output dist/anonymous_release.zip]
 
-Contents: the import closure of the stale-decision pipeline, its tests and configs, the dated protocol
-records, the sealed analysis reports and the paper's derivation and figure scripts. Raw score files and model
-weights are excluded (datasets are regenerated deterministically from the code). The archive is scanned for
-identifying strings; the build fails if any is found.
+Contents: the import closure of the stale-decision pipeline, its tests and configs, current documentation,
+manuscript protocol sources, sealed analysis reports, confirmation datasets and scores, and the paper's
+derivation and figure scripts. Model weights are excluded. The archive is scanned for identifying strings;
+the build fails if any is found.
 """
 import argparse
 import re
@@ -28,67 +28,52 @@ scripts/stale_decision_v2.py scripts/stale_decision_v2m.py scripts/stale_decisio
 tests/__init__.py tests/test_stale_decision_v1.py tests/test_stale_decision_v1b.py tests/test_stale_decision_v2.py
 tests/test_stale_decision_v2m.py tests/test_stale_decision_v2r.py
 pyproject.toml uv.lock
-docs/stale_decision_v1.md docs/stale_decision_v1_stage1_report.md docs/stale_decision_v1b.md
-docs/stale_decision_v1b_development_report.md docs/stale_decision_v2.md docs/stale_decision_v2_confirmation_report.md
-docs/stale_decision_v2_models.md docs/stale_decision_v2m_gemma_report.md docs/stale_decision_v2_replication.md
+docs/stale_decision_v2.md paper_v2/README.md paper_v2/RESULTS_INDEX.md
+paper_v2/main.tex paper_v2/acl.sty paper_v2/acl_natbib.bst paper_v2/references.bib
 paper_v2/__init__.py paper_v2/data/__init__.py paper_v2/data/derive.py paper_v2/data/check_numbers.py
-paper_v2/data/derived.json paper_v2/data/tables.py paper_v2/data/tables/cross_model.tex paper_v2/data/tables/models_gate.tex paper_v2/data/tables/joint_by_model.tex paper_v2/data/tables/gate_rule.tex paper_v2/figures/__init__.py paper_v2/figures/make_figures.py
+paper_v2/data/derived.json paper_v2/data/tables.py paper_v2/figures/__init__.py paper_v2/figures/make_figures.py
 """.split()
-CONFIG_GLOBS = ['configs/stale_decision_v1/*', 'configs/stale_decision_v1b/*', 'configs/stale_decision_v2/*',
-                'configs/stale_decision_v2m/*', 'configs/stale_decision_v2r/*']
+SOURCE_GLOBS = ['src/data/stale_decision*.py', 'src/experiments/stale_decision*.py',
+                'src/analysis/stale_decision*.py', 'scripts/stale_decision*.py',
+                'tests/test_stale_decision*.py', 'paper_v2/sections/*.tex',
+                'paper_v2/data/tables/*.tex', 'paper_v2/figures/*.pdf']
+CONFIG_GLOBS = ['configs/stale_decision_*/*']
 # Sealed analysis reports and run records (small JSON); raw score files are excluded.
-RECORD_GLOBS = ['outputs/stale_decision_v1b/*/*report.json', 'outputs/stale_decision_v2/*/*report.json',
-                'outputs/stale_decision_v2m/gemma3_4b/*report.json', 'outputs/stale_decision_v2m/gemma3_4b/gate/*report.json',
-                'outputs/stale_decision_v2r/*/*report.json', 'outputs/stale_decision_v2r/*/*/*report.json',
-                'outputs/stale_decision_v*/**/*.manifest.json', 'outputs/stale_decision_v*/**/*.complete.json',
-                'outputs/stale_decision_v*/**/freeze.json', 'outputs/stale_decision_v*/**/scorer_check.json',
-                'outputs/stale_decision_v*/**/causality_check.json', 'outputs/stale_decision_v*/**/*.timing.json']
+RECORD_GLOBS = ['outputs/stale_decision_*/**/*report.json',
+                'outputs/stale_decision_*/**/*.manifest.json', 'outputs/stale_decision_*/**/*.complete.json',
+                'outputs/stale_decision_*/**/freeze.json', 'outputs/stale_decision_*/**/scorer_check.json',
+                'outputs/stale_decision_*/**/causality_check.json', 'outputs/stale_decision_*/**/*.timing.json']
 # Confirmation datasets and per-record scores, so that paper_v2.data.derive runs from the archive.
-RAW = ['outputs/stale_decision_v2/confirmation/confirmation.jsonl',
-       'outputs/stale_decision_v2/confirmation/confirmation_scores.jsonl',
-       'outputs/stale_decision_v2r/qwen3_14b/confirmation/confirmation.jsonl',
-       'outputs/stale_decision_v2r/qwen3_14b/confirmation/confirmation_scores.jsonl']
+RAW = [f'{directory}/{name}'
+       for directory in ('outputs/stale_decision_v2/confirmation',
+                         'outputs/stale_decision_v2r/qwen3_14b/confirmation',
+                         'outputs/stale_decision_v2f/gemma4_12b/confirmation',
+                         'outputs/stale_decision_v2f/qwen35_9b/confirmation',
+                         'outputs/stale_decision_v2f/granite41_8b/confirmation')
+       for name in ('confirmation.jsonl', 'confirmation_scores.jsonl')]
 EXTRA = {'scripts/causality_check.py': 'outputs/_dgx_final/causality_check_v2m.py'}
-# Identifying strings found in dated protocol records; redacted in the archive copy only (the repository records,
-# and the code hashes computed over them, are unchanged).
+# Identifying strings are redacted in archive copies only.
 REDACT = [(re.compile(r'/Users/[A-Za-z0-9_.-]+'), '/Users/<user>'), (re.compile(r'\bgpubox\b'), 'a workstation')]
 FORBIDDEN = re.compile(r'kaluzh|jerzy|jrzkaminski|d\.dgx|gpubox|A100-ya|ysda|/Users/(?!<user>)|/data/storage|privaterelay|'
                        r'/work/stale|jhub', re.I)
 README = """# Anonymized release: stale-state decisions
 
-Code, protocol records and sealed analysis reports for the submission. Python >= 3.11 with uv.
+Code, current documentation, manuscript protocol sources and experiment artifacts for the five-model submission. Python >= 3.11 with uv.
 
-    uv sync --extra dev                       # CPU: tests, analysis, paper numbers and figures
-    uv run --extra dev pytest -q tests        # unit tests
-    uv run --extra dev python -m paper_v2.data.derive   # every number in the paper -> paper_v2/data/derived.json
-    uv run --extra dev python -m paper_v2.data.tables   # generated LaTeX tables
-    uv run --extra dev python -m paper_v2.figures.make_figures
+```bash
+uv sync --extra dev
+uv run --extra dev python -m paper_v2.data.derive
+uv run --extra dev python -m paper_v2.data.tables
+uv run --extra dev python -m paper_v2.figures.make_figures
+```
 
-Reproducing a run (GPU, float32, one 80 GB GPU; `uv sync --extra model --extra dev`). Each command validates the
-dataset, freeze, scorer check and completion records against the code hash in docs/; see the CLI docstrings.
+The archive includes confirmation datasets and per-record scores for the five confirmed models, sealed analysis reports, and available manifests, completion records, freezes, scorer/causality checks and timings. Derivation checks confirmation scores against their completion records. Model weights are excluded.
 
-    python -m scripts.stale_decision_v2 generate --output DIR/development.jsonl
-    python -m scripts.stale_decision_v2 token-audit --dataset DIR/development.jsonl --output DIR/token_audit.json
-    python scripts/causality_check.py DIR/development.jsonl DIR/causality_check.json configs/stale_decision_v2/protocol.json
-    python -m scripts.stale_decision_v2 verify-scorer --dataset DIR/development.jsonl --output DIR/scorer_check.json
-    python -m scripts.stale_decision_v2 freeze --output DIR/freeze.json
-    python -m scripts.stale_decision_v2 score --dataset DIR/development.jsonl --freeze DIR/freeze.json \\
-        --scorer-check DIR/scorer_check.json --output DIR/development_scores.jsonl
-    python -m scripts.stale_decision_v2 analyze --dataset DIR/development.jsonl --scores DIR/development_scores.jsonl \\
-        --output DIR/development_report.json
-    # gate: generate --split frozen_gate --exclude DIR/development.jsonl, then score and analyze
-    # confirmation: generate --split confirmation --exclude <dev> --exclude <gate> --gate-dataset <gate>
-    #               --gate-scores <gate scores>  (refuses unless the recomputed gate passes), then score and analyze
-    # other models: scripts.stale_decision_v2m / v2r with --config configs/stale_decision_v2{m,r}/<model>.json
+See `docs/stale_decision_v2.md` for the design, controls, model results and reporting limits; `paper_v2/RESULTS_INDEX.md` maps the evidence and `paper_v2/README.md` gives build and reproduction instructions. Protocol revisions are recorded in `paper_v2/sections/A-protocol-history.tex`.
 
-Protocol records (docs/) are dated; amendments are appended, never rewritten. outputs/ holds the sealed
-analysis reports and run records (manifests, completion records, freezes, scorer and causality checks), and
-the confirmation datasets and per-record score files of both confirmed models (checked against their
-completion records by derive.py). Development and gate score files are available on request after review.
+GPU inference requires the model extra, pinned revisions, unquantized float32 and a single GPU with sufficient memory. The reported runs used an 80 GB H100. The runners hash their implementation and retained manuscript protocol sources. Documentation cleanup changes these hashes; verifying or resuming historical freezes requires the original code revision and protocol records. New runs must create fresh freezes and output paths.
 
-Anonymization: identifying strings (a local home path and a hostname) were redacted in the archive copies of
-the files listed in REDACTED.txt. Code hashes in the sealed reports were computed over the unredacted
-records, so re-verifying those hashes needs the originals; regenerated runs are self-consistent.
+Anonymization redacts identifying paths and hostnames only in archive copies listed in `REDACTED.txt`. Verifying hashes of affected historical records requires the original files.
 """
 
 
@@ -97,7 +82,7 @@ def collect():
     for p in CODE:
         if (ROOT / p).exists():
             files[p] = ROOT / p
-    for g in CONFIG_GLOBS + RECORD_GLOBS:
+    for g in SOURCE_GLOBS + CONFIG_GLOBS + RECORD_GLOBS:
         for p in ROOT.glob(g):
             if p.is_file() and 'invalid' not in p.parts and '_dgx_final' not in p.parts:
                 files[str(p.relative_to(ROOT))] = p

@@ -1,4 +1,4 @@
-"""stale_decision_v1b CLI (docs/stale_decision_v1b.md). The datasets are the v1 generator's output;
+"""stale_decision_v1b CLI (paper_v2/sections/A-protocol-history.tex). The datasets are the v1 generator's output;
 v1b manifests bind the v1b code and config.
 
     python -m scripts.stale_decision_v1b generate --output DIR/development.jsonl

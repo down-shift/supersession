@@ -1,4 +1,4 @@
-"""stale_decision_v2f preflight (docs/stale_decision_v2_families.md), run before any development scoring.
+"""stale_decision_v2f preflight (paper_v2/sections/A-protocol-history.tex), run before any development scoring.
 
     python -m scripts.stale_decision_v2f_preflight causality --config CFG --dataset DIR/development.jsonl --output DIR/causality_check.json
     python -m scripts.stale_decision_v2f_preflight format --config CFG --smoke DIR/smoke --output DIR/format_check.json

@@ -13,7 +13,7 @@
   },
   "max_new_tokens": 16,
   "bootstrap_draws": 2000,
-  "status": "v2b: balanced other-entity subset, Qwen3-8B (docs/stale_decision_v2_balanced.md)",
+  "status": "v2b: balanced other-entity subset, Qwen3-8B (paper_v2/sections/A-protocol-history.tex)",
   "scorer": "kv_cache",
   "balanced_replicates": 2
 }

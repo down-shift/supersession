@@ -1,4 +1,4 @@
-"""stale_decision_think CLI (docs/stale_decision_think.md).
+"""stale_decision_think CLI (paper_v2/sections/A-protocol-history.tex).
 
     python -m scripts.stale_decision_think --config CFG smoke --batch-size B --output DIR/smoke.json
     python -m scripts.stale_decision_think --config CFG freeze --output DIR/freeze.json

@@ -1,6 +1,6 @@
 # Stale-decision results and reproducibility index
 
-This index maps the current `paper_v2` manuscript to its committed evidence. The [manuscript guide](../docs/stale_decision_v2.md) explains the estimates and populations; the [README](README.md) gives build and regeneration commands. The earlier TMLR results have their own [index](../paper/RESULTS_INDEX.md).
+This index maps the current `paper_v2` manuscript to its committed evidence. The [manuscript guide](../docs/stale_decision_v2.md) explains the estimates and populations; the [README](README.md) gives build and regeneration commands.
 
 All data keys below refer to [`data/derived.json`](data/derived.json). Source-artifact paths and SHA-256 hashes are stored under its `inputs` key. The sealed input reports and raw score files are absent from this checkout; the committed derived data support checking displayed results and rebuilding tables and figures.
 

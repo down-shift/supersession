@@ -53,7 +53,7 @@ def err(b):
 
 
 def constructions(conf=None, path='constructions.pdf', static=None):
-    """static: the model's static-other results (routing only; docs/stale_decision_v2_balanced.md, part B)."""
+    """static: the model's static-other results (routing only; paper_v2/sections/A-protocol-history.tex, part B)."""
     conf = conf or C
     fig, axes = plt.subplots(1, 2, figsize=(6.6, 2.9))
     for ax, (title, get, xlabel) in zip(axes, [

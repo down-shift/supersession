@@ -1,4 +1,4 @@
-"""stale_decision_v2b CLI (docs/stale_decision_v2_balanced.md) (docs/stale_decision_v2.md); same commands as the v1b CLI.
+"""stale_decision_v2b CLI (paper_v2/sections/A-protocol-history.tex) (docs/stale_decision_v2.md); same commands as the v1b CLI.
 
     python -m scripts.stale_decision_v2 generate --output DIR/development.jsonl
     python -m scripts.stale_decision_v2 token-audit --dataset DIR/development.jsonl --output DIR/token_audit.json

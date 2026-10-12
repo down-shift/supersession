@@ -16,6 +16,6 @@
   "development_replicates": 1,
   "gate_replicates": 2,
   "confirmation_replicates": 8,
-  "status": "v1b: pre-inference correction of v1 (docs/stale_decision_v1b.md)",
+  "status": "v1b: pre-inference correction of v1 (paper_v2/sections/A-protocol-history.tex)",
   "scorer": "batched"
 }
