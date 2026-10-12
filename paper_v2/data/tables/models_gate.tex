@@ -1,0 +1,62 @@
+\begin{table}[h]
+\centering
+\small
+\setlength{\tabcolsep}{3pt}
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{@{}llcccc@{}}
+\toprule
+Model & Cell & Direct & No hist. & History & Comp. \\
+\midrule
+Qwen3-8B & routing seq. & 0.977 & 0.938 & 0.779 & yes \\
+ & routing int. & 0.986 & 0.938 & 0.779 & yes \\
+ & routing comp. & 0.945 & 0.938 & 0.752 & no \\
+ & access seq. & 0.889 & 0.906 & 0.822 & no \\
+ & access int. & 0.953 & 0.938 & 0.877 & yes \\
+ & access comp. & 0.953 & 0.859 & 0.883 & no \\
+\midrule
+Qwen3-14B & routing seq. & 0.996 & 0.922 & 0.854 & yes \\
+ & routing int. & 1.000 & 1.000 & 0.846 & yes \\
+ & routing comp. & 0.997 & 1.000 & 0.814 & yes \\
+ & access seq. & 0.991 & 0.781 & 0.729 & no \\
+ & access int. & 0.977 & 0.828 & 0.748 & no \\
+ & access comp. & 0.946 & 0.828 & 0.697 & no \\
+\midrule
+Gemma 3 4B & routing seq. & 0.939 & 0.688 & 0.645 & no \\
+ & routing int. & 0.964 & 0.609 & 0.488 & no \\
+ & routing comp. & 0.916 & 0.625 & 0.533 & no \\
+ & access seq. & 0.945 & 0.719 & 0.678 & no \\
+ & access int. & 0.936 & 0.609 & 0.676 & no \\
+ & access comp. & 0.946 & 0.672 & 0.641 & no \\
+\midrule
+Ministral 3 14B & routing seq. & 0.997 & 0.766 & 0.766 & no \\
+ & routing int. & 0.986 & 0.766 & 0.756 & no \\
+ & routing comp. & 0.999 & 0.812 & 0.756 & no \\
+ & access seq. & 0.970 & 0.750 & 0.670 & no \\
+ & access int. & 0.926 & 0.812 & 0.711 & no \\
+ & access comp. & 0.952 & 0.797 & 0.732 & no \\
+\midrule
+Gemma 4 12B & routing seq. & 1.000 & 0.906 & 0.936 & yes \\
+ & routing int. & 0.999 & 0.984 & 0.887 & yes \\
+ & routing comp. & 1.000 & 0.969 & 0.930 & yes \\
+ & access seq. & 0.912 & 0.969 & 0.967 & no \\
+ & access int. & 0.987 & 0.875 & 0.850 & no \\
+ & access comp. & 0.993 & 0.906 & 0.932 & yes \\
+\midrule
+Qwen3.5 9B & routing seq. & 1.000 & 0.906 & 0.795 & yes \\
+ & routing int. & 0.922 & 0.922 & 0.746 & no \\
+ & routing comp. & 0.950 & 0.969 & 0.867 & yes \\
+ & access seq. & 0.994 & 0.688 & 0.656 & no \\
+ & access int. & 0.908 & 0.703 & 0.666 & no \\
+ & access comp. & 0.891 & 0.688 & 0.789 & no \\
+\midrule
+Granite 4.1 8B & routing seq. & 0.967 & 0.984 & 0.799 & yes \\
+ & routing int. & 0.955 & 0.953 & 0.738 & yes \\
+ & routing comp. & 0.932 & 0.953 & 0.816 & no \\
+ & access seq. & 0.935 & 0.797 & 0.828 & no \\
+ & access int. & 0.960 & 0.812 & 0.793 & no \\
+ & access comp. & 0.962 & 0.828 & 0.865 & no \\
+\bottomrule
+\end{tabular}}
+\caption{Frozen gate split (384 histories, the same rows for every model): accuracy and competence per cell. This gate decided eligibility for confirmation.}
+\label{tab:models-gate}
+\end{table}

@@ -1,0 +1,25 @@
+{
+  "protocol": "stale_decision_v2f",
+  "model": {
+    "id": "google/gemma-4-12B-it",
+    "tokenizer_id": "google/gemma-4-12B-it",
+    "revision": "707f0a3b8a3c7ad586ed01e27eafbad8a27dd0f7",
+    "tokenizer_revision": "707f0a3b8a3c7ad586ed01e27eafbad8a27dd0f7",
+    "dtype": "float32",
+    "quantization": "none",
+    "device_map": 0,
+    "attn_implementation": "sdpa",
+    "require_full_gpu": true,
+    "end_token": "<turn|>",
+    "end_suffix": "",
+    "load_class": "causal_lm",
+    "tokenizer_kwargs": {}
+  },
+  "max_new_tokens": 16,
+  "bootstrap_draws": 2000,
+  "development_replicates": 1,
+  "gate_replicates": 2,
+  "confirmation_replicates": 4,
+  "status": "v2f: google/gemma-4-12B-it (paper_v2/sections/A-protocol-history.tex)",
+  "scorer": "kv_cache"
+}

@@ -1,0 +1,35 @@
+\section*{Limitations}
+
+\paragraph{Five models, three developers.} The confirmed results are for Qwen3-8B, Qwen3-14B, Gemma 4 12B,
+Qwen3.5 9B and Granite 4.1 8B, all open models of 8--14B parameters run with thinking disabled. Gemma 3 4B and
+Ministral 3 14B did not meet the competence gate. The never-updated control was run only in the two Qwen3
+models, the balanced subset only in Qwen3-8B and thinking mode only in the Qwen3 models, so the cue comparison
+is descriptive and limited to one model. The mention comparison differs between models. We make no claim about larger or closed models.
+
+\paragraph{Synthetic tasks.} The records, policies and constructions are synthetic and short: two
+entities, one update and an explicit policy. This control is what lets the contrasts hold the correct
+action fixed, but the effect sizes need not transfer to natural dialogue, long agent logs or tool
+outputs.
+
+\paragraph{Competence in access.} The access cells met the competence criteria on the confirmation data only in
+Gemma 4 12B. Other access estimates include cells where the model already makes errors without history
+(\S\ref{sec:results-competence}). Gate-selected access estimates are therefore accompanied by confirmation
+competence diagnostics and fixed-grid estimates; they do not establish interference in otherwise
+competent access decisions.
+
+\paragraph{Construction differences.} Constructions share the edited word and its position but differ in
+syntax. The contrasts compare constructions, not isolated semantic properties. The template dependence of
+the mention contrast shows that wording matters.
+
+\paragraph{Behavioral evidence only.} We measure scores and generated answers. Nothing here identifies a
+mechanism, and terms such as \emph{entrainment} describe the behavioral pattern, not a verified internal
+process.
+
+\paragraph{Prediction scope.} H3 uses cross-validation within the confirmation split. A null result there
+does not rule out other score-based diagnostics, other outcomes, or other models.
+
+\paragraph{No mitigation.} We did not test an intervention; the paper makes no claim about which
+mitigations work.
+
+\paragraph{Use of AI assistants.} A large language model assisted with implementing the experiment code
+and drafting this manuscript. The authors checked the claims, analyses, references and final text.

@@ -152,8 +152,10 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output-dir', type=Path,
                         default=Path('outputs/cross_model_reporting_20261003'))
+    parser.add_argument('--amendment', type=Path, required=True,
+                        help='original dated analysis amendment from the historical run artifacts')
     args = parser.parse_args()
-    amendment_path = Path('docs/analysis_amendment_20261003.md')
+    amendment_path = args.amendment
     amendment_record_path = V2_ROOT / 'analysis_amendment_record.json'
     amendment_record = read_sealed(amendment_record_path)
     if amendment_record.get('amendment_sha256') != sha256_file(amendment_path):

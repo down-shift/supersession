@@ -1,0 +1,17 @@
+{
+  "protocol": "stale_decision_think",
+  "model": {
+    "id": "Qwen/Qwen3-8B",
+    "revision": "b968826d9c46dd6066d109eabc6255188de91218",
+    "dtype": "float32",
+    "attn_implementation": "sdpa",
+    "load_class": "causal_lm",
+    "tokenizer_kwargs": {},
+    "end_token": "<|im_end|>",
+    "think_close": "</think>"
+  },
+  "max_new_tokens": 4096,
+  "bootstrap_draws": 2000,
+  "histories": "all",
+  "status": "thinking mode: Qwen/Qwen3-8B (paper_v2/sections/A-protocol-history.tex)"
+}

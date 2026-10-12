@@ -1,0 +1,86 @@
+\section{Introduction}
+\label{sec:intro}
+
+Agents and assistants increasingly act on records that change: a user's clearance is revoked, a ticket is
+rerouted, a preference is replaced. The record usually keeps the history, and the model is told that only
+the latest entry counts. Retrieval benchmarks ask whether the model can then report the current value, and
+recent work shows that old values do intrude on such reports, especially after many overwrites
+\citep{wang2026unable,guo2026context,chattaraj2026dual}. A deployed system, however, rarely asks the model
+to restate a value. It asks the model to \emph{use} it. Two questions follow that retrieval accuracy does
+not answer. When a model can state the current value correctly, does the obsolete value still change the
+decision it takes, and under what conditions? And if it does, is the obsolete value acting as a superseded assignment of the queried
+attribute, or simply as a word that occurs in the context near the entity?
+
+The second question matters because the two accounts call for different evaluations. If the
+interference is tied to supersession, it is a failure of state tracking, the target of update-aware memory,
+historical marking or attention routing toward the current entry \citep{guo2026context}. If any nearby
+mention of a decision-relevant word does the same, the problem is contextual entrainment
+\citep{niu2025entrainment} reaching decisions. We test no mitigation, but either way an evaluation of one
+needs a matched mention control and decision-level outcomes.
+
+\paragraph{Design.} We hold the current state, policy, query and correct action fixed, and edit one
+obsolete state to imply either the wrong or the correct action. The paired difference in decision
+preference and generated answers measures interference (Figure~\ref{fig:example}). Matched controls keep
+the edited word and its position but change its role: an updated other attribute, an incidental entity
+mention, or an unattached word. Direct queries check current and initial retrieval on the same records.
+
+\paragraph{Findings.} Qwen3-8B was tested on held-out wording under a protocol frozen before confirmation;
+four further models used identical rows under dated amendments. Compact estimates use frozen-gate-selected
+cells; confirmation-selected and tracked-history analyses are post hoc robustness checks.
+\begin{enumerate}
+  \item \textbf{Obsolete states shift decision preferences.} Routing shifts were 1.085--4.785 nats across
+  five models and persisted in histories with correct current and initial retrieval
+  (\S\ref{sec:results-h1}, \S\ref{sec:results-replication}).
+  \item \textbf{Generated decisions vary across tested conditions.} In Qwen3-8B, the superseded net
+  switch rate was 0.185 on the original routing grid and 0.031 in an exploratory run where the other
+  entity's state supported the correct action. Different histories make this comparison descriptive.
+  Thinking-enabled generation produced no superseded switches in either Qwen3 model
+  (\S\ref{sec:results-conditions}).
+  \item \textbf{Interference requires neither supersession nor queried-attribute assignment.} Incidental
+  mentions shifted preferences in every model. A never-updated other attribute was unresolved from, or
+  exceeded, the superseded assignment in the two Qwen3 models. Mention-versus-superseded switch
+  differences varied by model (\S\ref{sec:results-h2}, \S\ref{sec:results-replication}).
+  \item \textbf{Easy-query sensitivity did not improve failure prediction} beyond the specified
+  pre-decision features in any model (\S\ref{sec:results-h3}).
+\end{enumerate}
+
+\paragraph{What is and is not new.} That stale context interferes with answers is established
+\citep{wang2026unable,guo2026context,qian2026forget,chao2026stale}, as is the fact that mentioned tokens
+gain probability \citep{niu2025entrainment}. Our contribution is a controlled test connecting these phenomena to policy decisions. Minimal-pair
+edits hold the correct action fixed; matched controls compare supersession, other-attribute assignment
+and incidental mention. We report scores, generated answers and retrieval checks, a negative result for
+sensitivity-based prediction, and measurement problems involving chat-format events and reduced-precision
+scoring (Appendix~\ref{app:history}).
+
+\begin{figure*}[t]
+\centering
+\begin{prompt}
+Read the dated record. Only the final assignment governs the decision.
+Initially, EvbUnit0096A had routing state pending.        <- edited: pending | suspended
+Initially, EvbUnit0096B had routing state suspended.
+Later, EvbUnit0096A had archive tag restricted.
+Finally, EvbUnit0096A had routing state restricted.
+Later, EvbUnit0096B had archive tag restricted.
+Finally, EvbUnit0096B had routing state pending.
+Policy: state to bin: restricted -> B0, suspended -> B1, pending -> B2,
+  active -> B3; bin to action: B0 -> EAST, B1 -> EAST, B2 -> WEST, B3 -> WEST
+Apply the supplied rule to the final assignment of EvbUnit0096A; give its action.
+Respond with exactly one label (EAST, WEST), with no other text.
+\end{prompt}
+\vspace{-0.5em}
+{\small
+\begin{tabular}{@{}ll@{}}
+\toprule
+Construction & Edited line (same word, same position) \\
+\midrule
+S, superseded assignment & \lit{Initially, EvbUnit0096A had routing state pending.} \\
+O, other attribute, updated & \lit{Initially, EvbUnit0096A had archive tag pending.} \\
+M, mentioned by entity & \lit{Initially, EvbUnit0096A mentioned the word pending.} \\
+U, unattached word & \lit{Initially, the unassigned word was pending.} \\
+\bottomrule
+\end{tabular}}
+\caption{One routing confirmation item (the arrow is not part of the prompt). The current state
+\lit{restricted} implies \lit{EAST}; the edited word is \lit{pending} (implies \lit{WEST}, wrong) or
+\lit{suspended} (correct). Below: the edited line in each construction.}
+\label{fig:example}
+\end{figure*}

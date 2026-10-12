@@ -1,0 +1,23 @@
+{
+  "protocol": "stale_decision_v2s",
+  "model": {
+    "id": "Qwen/Qwen3-8B",
+    "tokenizer_id": "Qwen/Qwen3-8B",
+    "revision": "b968826d9c46dd6066d109eabc6255188de91218",
+    "tokenizer_revision": "b968826d9c46dd6066d109eabc6255188de91218",
+    "dtype": "float32",
+    "quantization": "none",
+    "device_map": 0,
+    "attn_implementation": "sdpa",
+    "require_full_gpu": true,
+    "end_token": "<|im_end|>",
+    "end_suffix": "",
+    "load_class": "causal_lm",
+    "tokenizer_kwargs": {}
+  },
+  "max_new_tokens": 16,
+  "bootstrap_draws": 2000,
+  "part": "static_other",
+  "scorer": "kv_cache",
+  "status": "v2s: static other attribute on the v2 confirmation routing histories, Qwen/Qwen3-8B (paper_v2/sections/A-protocol-history.tex, part B)"
+}

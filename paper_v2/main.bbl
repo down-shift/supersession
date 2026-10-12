@@ -1,0 +1,175 @@
+\begin{thebibliography}{21}
+\providecommand{\natexlab}[1]{#1}
+
+\bibitem[{Chao et~al.(2026)Chao, Bai, Sheng, Li, and Sun}]{chao2026stale}
+H.~Chao, Y.~Bai, R.~Sheng, T.~Li, and Y.~Sun. 2026.
+\newblock \href {https://doi.org/10.48550/arXiv.2605.06527} {{STALE}: Can {LLM}
+  agents know when their memories are no longer valid?}
+\newblock \emph{arXiv preprint arXiv:2605.06527}.
+
+\bibitem[{Chattaraj and Raj(2026)}]{chattaraj2026dual}
+S.~Chattaraj and K.~Raj. 2026.
+\newblock \href {https://doi.org/10.48550/arXiv.2603.00270} {{LLMs} remember
+  first, forget last: Dual-process interference in large language models}.
+\newblock \emph{arXiv preprint arXiv:2603.00270}.
+
+\bibitem[{Dettmers et~al.(2022)Dettmers, Lewis, Belkada, and
+  Zettlemoyer}]{dettmers2022llmint8}
+T.~Dettmers, M.~Lewis, Y.~Belkada, and L.~Zettlemoyer. 2022.
+\newblock \href {https://arxiv.org/abs/2208.07339} {{LLM.int8()}: 8-bit matrix
+  multiplication for transformers at scale}.
+\newblock In \emph{Advances in Neural Information Processing Systems
+  (NeurIPS)}.
+
+\bibitem[{Feng and Steinhardt(2024)}]{feng2024bind}
+J.~Feng and J.~Steinhardt. 2024.
+\newblock \href {https://doi.org/10.48550/arXiv.2310.17191} {How do language
+  models bind entities in context?}
+\newblock In \emph{International Conference on Learning Representations
+  (ICLR)}, pages 36391--36413.
+
+\bibitem[{Guo et~al.(2026)Guo, Fang, Gu, Spanos, Demmel, and
+  Lavaei}]{guo2026context}
+J.~Guo, Y.~Fang, S.~Gu, C.~Spanos, J.~Demmel, and J.~Lavaei. 2026.
+\newblock \href {https://doi.org/10.48550/arXiv.2609.38866} {When context
+  changes: Understanding update failures in {LLMs}}.
+\newblock \emph{arXiv preprint arXiv:2609.38866}.
+
+\bibitem[{Gur-Arieh et~al.(2026)Gur-Arieh, Geva, and
+  Geiger}]{gurarieh2026mixing}
+Y.~Gur-Arieh, M.~Geva, and A.~Geiger. 2026.
+\newblock \href {https://doi.org/10.48550/arXiv.2510.06182} {Mixing mechanisms:
+  How language models retrieve bound entities in-context}.
+\newblock In \emph{International Conference on Learning Representations
+  (ICLR)}, pages 27757--27786.
+
+\bibitem[{Kim and Schuster(2023)}]{kim2023entity}
+N.~Kim and S.~Schuster. 2023.
+\newblock \href {https://doi.org/10.18653/v1/2023.acl-long.213} {Entity
+  tracking in language models}.
+\newblock In \emph{Proceedings of the 61st Annual Meeting of the Association
+  for Computational Linguistics (Volume 1: Long Papers)}, pages 3835--3855.
+
+\bibitem[{Niu et~al.(2025)Niu, Yuan, Wang, Saghir, and
+  Abdi}]{niu2025entrainment}
+J.~Niu, X.~Yuan, T.~Wang, H.~Saghir, and A.~H. Abdi. 2025.
+\newblock \href {https://doi.org/10.18653/v1/2025.acl-long.791} {Llama see,
+  llama do: A mechanistic perspective on contextual entrainment and distraction
+  in {LLMs}}.
+\newblock In \emph{Proceedings of the 63rd Annual Meeting of the Association
+  for Computational Linguistics (Volume 1: Long Papers)}, pages 16218--16239.
+
+\bibitem[{Paszke et~al.(2019)Paszke, Gross, Massa, Lerer, Bradbury, Chanan,
+  Killeen, Lin, Gimelshein, Antiga, Desmaison, K{\"o}pf, Yang, DeVito, Raison,
+  Tejani, Chilamkurthy, Steiner, Fang, Bai, and Chintala}]{paszke2019pytorch}
+A.~Paszke, S.~Gross, F.~Massa, A.~Lerer, J.~Bradbury, G.~Chanan, T.~Killeen,
+  Z.~Lin, N.~Gimelshein, L.~Antiga, A.~Desmaison, A.~K{\"o}pf, E.~Yang,
+  Z.~DeVito, M.~Raison, A.~Tejani, S.~Chilamkurthy, B.~Steiner, L.~Fang, and 2
+  others. 2019.
+\newblock \href {https://doi.org/10.48550/arXiv.1912.01703} {{PyTorch}: An
+  imperative style, high-performance deep learning library}.
+\newblock In \emph{Advances in Neural Information Processing Systems
+  (NeurIPS)}, volume~32.
+
+\bibitem[{Pedregosa et~al.(2011)Pedregosa, Varoquaux, Gramfort, Michel,
+  Thirion, Grisel, Blondel, Prettenhofer, Weiss, Dubourg, Vanderplas, Passos,
+  Cournapeau, Brucher, Perrot, and Duchesnay}]{pedregosa2011sklearn}
+F.~Pedregosa, G.~Varoquaux, A.~Gramfort, V.~Michel, B.~Thirion, O.~Grisel,
+  M.~Blondel, P.~Prettenhofer, R.~Weiss, V.~Dubourg, J.~Vanderplas, A.~Passos,
+  D.~Cournapeau, M.~Brucher, M.~Perrot, and E.~Duchesnay. 2011.
+\newblock Scikit-learn: Machine learning in {P}ython.
+\newblock \emph{Journal of Machine Learning Research}, 12:2825--2830.
+
+\bibitem[{Prakash et~al.(2026)Prakash, Shapira, Sen~Sharma, Riedl, Belinkov,
+  Rott~Shaham, Bau, and Geiger}]{prakash2026lookbacks}
+N.~Prakash, N.~Shapira, A.~Sen~Sharma, C.~Riedl, Y.~Belinkov, T.~Rott~Shaham,
+  D.~Bau, and A.~Geiger. 2026.
+\newblock \href {https://doi.org/10.48550/arXiv.2505.14685} {Language models
+  use lookbacks to track beliefs}.
+\newblock In \emph{International Conference on Learning Representations
+  (ICLR)}, pages 7657--7694.
+
+\bibitem[{Qian et~al.(2026)Qian, Yang, Ding, Li, and Xie}]{qian2026forget}
+Y.~Qian, Z.~Yang, W.~Ding, H.~Li, and Y.~Xie. 2026.
+\newblock \href
+  {https://proceedings.iclr.cc/paper_files/paper/2026/hash/b13d00a62d438856cfe6fbd13b6b2cb8-Abstract-Conference.html}
+  {Do {LLMs} forget what they should? evaluating in-context forgetting in large
+  language models}.
+\newblock In \emph{International Conference on Learning Representations
+  (ICLR)}, pages 108956--108983.
+
+\bibitem[{Qiao et~al.(2026)Qiao, Guo, Yang, Li, Zhou, Hu, and
+  Song}]{qiao2026retrieval}
+B.~Qiao, S.~Guo, X.~Yang, K.~Li, W.~Zhou, S.~Hu, and Y.~Song. 2026.
+\newblock \href {https://doi.org/10.48550/arXiv.2603.12271} {Diagnosing
+  retrieval bias under multiple in-context knowledge updates in large language
+  models}.
+\newblock \emph{arXiv preprint arXiv:2603.12271}.
+
+\bibitem[{Shi et~al.(2023)Shi, Chen, Misra, Scales, Dohan, Chi, Sch{\"a}rli,
+  and Zhou}]{shi2023distracted}
+F.~Shi, X.~Chen, K.~Misra, N.~Scales, D.~Dohan, E.~H. Chi, N.~Sch{\"a}rli, and
+  D.~Zhou. 2023.
+\newblock \href {https://doi.org/10.48550/arXiv.2302.00093} {Large language
+  models can be easily distracted by irrelevant context}.
+\newblock In \emph{Proceedings of the 40th International Conference on Machine
+  Learning (ICML)}, volume 202 of \emph{Proceedings of Machine Learning
+  Research}, pages 31210--31227.
+
+\bibitem[{Tang et~al.(2026)Tang, Zhao, Franco, Wijaya, Mueller, Schuster, and
+  Kim}]{tang2026entities}
+Z.~Tang, Q.~Zhao, G.~Franco, D.~T. Wijaya, A.~Mueller, S.~Schuster, and N.~Kim.
+  2026.
+\newblock \href {https://proceedings.mlr.press/v306/tang26ah.html} {Do language
+  models track entities across state changes?}
+\newblock In \emph{Proceedings of the 43rd International Conference on Machine
+  Learning}, volume 306 of \emph{Proceedings of Machine Learning Research},
+  pages 119466--119503.
+
+\bibitem[{Wang and Sun(2026)}]{wang2026unable}
+C.~Wang and J.~V. Sun. 2026.
+\newblock \href {https://doi.org/10.48550/arXiv.2506.08184} {Unable to forget:
+  Proactive interference reveals working memory limits in {LLMs} beyond context
+  length}.
+\newblock In \emph{Conference on Language Modeling (COLM)}.
+
+\bibitem[{Wolf et~al.(2020)Wolf, Debut, Sanh, Chaumond, Delangue, Moi, Cistac,
+  Rault, Louf, Funtowicz, Davison, Shleifer, von Platen, Ma, Jernite, Plu, Xu,
+  Le~Scao, Gugger, Drame, Lhoest, and Rush}]{wolf2020transformers}
+T.~Wolf, L.~Debut, V.~Sanh, J.~Chaumond, C.~Delangue, A.~Moi, P.~Cistac,
+  T.~Rault, R.~Louf, M.~Funtowicz, J.~Davison, S.~Shleifer, P.~von Platen,
+  C.~Ma, Y.~Jernite, J.~Plu, C.~Xu, T.~Le~Scao, S.~Gugger, and 3 others. 2020.
+\newblock \href {https://doi.org/10.18653/v1/2020.emnlp-demos.6} {Transformers:
+  State-of-the-art natural language processing}.
+\newblock In \emph{Proceedings of the 2020 Conference on Empirical Methods in
+  Natural Language Processing: System Demonstrations}, pages 38--45.
+
+\bibitem[{Xu et~al.(2024)Xu, Qi, Guo, Wang, Wang, Zhang, and
+  Xu}]{xu2024conflicts}
+R.~Xu, Z.~Qi, Z.~Guo, C.~Wang, H.~Wang, Y.~Zhang, and W.~Xu. 2024.
+\newblock \href {https://doi.org/10.18653/v1/2024.emnlp-main.486} {Knowledge
+  conflicts for {LLMs}: A survey}.
+\newblock In \emph{Proceedings of the 2024 Conference on Empirical Methods in
+  Natural Language Processing (EMNLP)}, pages 8541--8565.
+
+\bibitem[{Yang et~al.(2025)}]{yang2025qwen3}
+A.~Yang et~al. 2025.
+\newblock \href {https://doi.org/10.48550/arXiv.2505.09388} {Qwen3 technical
+  report}.
+\newblock \emph{arXiv preprint arXiv:2505.09388}.
+
+\bibitem[{Yang et~al.(2026{\natexlab{a}})Yang, Liu, Li, and
+  Lei}]{yang2026conflicts}
+X.~Yang, Z.~Liu, R.~Li, and Y.~Lei. 2026{\natexlab{a}}.
+\newblock \href {https://doi.org/10.48550/arXiv.2609.03148} {Large language
+  models in resolving contextual knowledge conflicts}.
+\newblock \emph{arXiv preprint arXiv:2609.03148}.
+
+\bibitem[{Yang et~al.(2026{\natexlab{b}})Yang, Levy, Goldberg, and
+  Wallace}]{yang2026compared}
+Z.~Yang, M.~Levy, Y.~Goldberg, and B.~C. Wallace. 2026{\natexlab{b}}.
+\newblock \href {https://doi.org/10.48550/arXiv.2605.01048} {Compared to what?
+  baselines and metrics for counterfactual prompting}.
+\newblock In \emph{Conference on Language Modeling (COLM)}.
+
+\end{thebibliography}

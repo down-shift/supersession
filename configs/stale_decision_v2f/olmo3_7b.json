@@ -1,0 +1,25 @@
+{
+  "protocol": "stale_decision_v2f",
+  "model": {
+    "id": "allenai/Olmo-3-7B-Instruct",
+    "tokenizer_id": "allenai/Olmo-3-7B-Instruct",
+    "revision": "6e5971d9eba42665f5bd5a0fcf047f299ce1dccc",
+    "tokenizer_revision": "6e5971d9eba42665f5bd5a0fcf047f299ce1dccc",
+    "dtype": "float32",
+    "quantization": "none",
+    "device_map": 0,
+    "attn_implementation": "sdpa",
+    "require_full_gpu": true,
+    "end_token": "<|im_end|>",
+    "end_suffix": "",
+    "load_class": "causal_lm",
+    "tokenizer_kwargs": {}
+  },
+  "max_new_tokens": 16,
+  "bootstrap_draws": 2000,
+  "development_replicates": 1,
+  "gate_replicates": 2,
+  "confirmation_replicates": 4,
+  "status": "v2f: allenai/Olmo-3-7B-Instruct (paper_v2/sections/A-protocol-history.tex)",
+  "scorer": "kv_cache"
+}

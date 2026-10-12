@@ -1,0 +1,23 @@
+{
+  "protocol": "stale_decision_v2m",
+  "model": {
+    "id": "Qwen/Qwen3-8B",
+    "tokenizer_id": "Qwen/Qwen3-8B",
+    "revision": "b968826d9c46dd6066d109eabc6255188de91218",
+    "tokenizer_revision": "b968826d9c46dd6066d109eabc6255188de91218",
+    "dtype": "float32",
+    "quantization": "none",
+    "device_map": 0,
+    "attn_implementation": "sdpa",
+    "require_full_gpu": true,
+    "end_token": "<|im_end|>",
+    "end_suffix": ""
+  },
+  "max_new_tokens": 16,
+  "bootstrap_draws": 2000,
+  "development_replicates": 1,
+  "gate_replicates": 2,
+  "confirmation_replicates": 4,
+  "status": "v2m: Qwen3-8B (identical to v2 behaviour; reference only)",
+  "scorer": "kv_cache"
+}

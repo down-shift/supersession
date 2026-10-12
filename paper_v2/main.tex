@@ -1,0 +1,58 @@
+\documentclass[11pt]{article}
+
+% "review" for anonymous submission; "final" for camera-ready; "preprint" for a non-anonymous version.
+\usepackage[review]{acl}
+
+\usepackage{times}
+\usepackage{latexsym}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{microtype}
+\usepackage{inconsolata}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{fancyvrb}
+
+\DeclareUnicodeCharacter{2212}{\ensuremath{-}}
+\DeclareUnicodeCharacter{00D7}{\ensuremath{\times}}
+
+\newcommand{\lit}[1]{\texttt{#1}}
+\DefineVerbatimEnvironment{prompt}{Verbatim}{frame=single,fontsize=\footnotesize,xleftmargin=0.3em,xrightmargin=0.3em}
+
+% Model count: single source of truth, updated when the replication models (Appendix A) finish.
+\newcommand{\modelcount}{five models}
+\newcommand{\modelcountconclusion}{Two further models could not perform the base task reliably enough to be
+evaluated.}
+
+
+\input{data/tables/macros}
+
+\title{Obsolete and Incidental Words Shift Language-Model Decision Preferences}
+
+\author{Anonymous ACL submission}
+
+\begin{document}
+\maketitle
+
+\input{sections/00-abstract}
+\input{sections/01-introduction}
+\input{sections/02-related-work}
+\input{sections/03-design}
+\input{sections/04-protocol}
+\input{sections/05-results}
+\input{sections/06-discussion}
+\input{sections/07-conclusion}
+\input{sections/08-limitations}
+\input{sections/09-ethics}
+
+\bibliography{references}
+
+\appendix
+\input{sections/A-protocol-history}
+\input{sections/B-tables}
+\input{sections/C-reproducibility}
+
+\end{document}

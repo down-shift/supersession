@@ -13,9 +13,17 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 def code_hash():
-    files = ['src/data/stale_decision_v1.py', 'src/experiments/stale_decision_v1.py',
-             'src/analysis/stale_decision_v1.py', 'scripts/stale_decision_v1.py',
-             'src/cross_model/scoring.py', 'src/cross_model/tokens.py', 'docs/stale_decision_v1.md']
+    files = [
+        'src/data/stale_decision_v1.py',
+        'src/experiments/stale_decision_v1.py',
+        'src/analysis/stale_decision_v1.py',
+        'scripts/stale_decision_v1.py',
+        'src/cross_model/scoring.py',
+        'src/cross_model/tokens.py',
+        'paper_v2/sections/A-protocol-history.tex',
+        'paper_v2/sections/03-design.tex',
+        'paper_v2/sections/04-protocol.tex',
+    ]
     return digest({p: (ROOT / p).read_text() for p in files})
 
 
