@@ -1,0 +1,19 @@
+{
+  "protocol": "stale_decision_v2b",
+  "model": {
+    "id": "Qwen/Qwen3-8B",
+    "tokenizer_id": "Qwen/Qwen3-8B",
+    "revision": "b968826d9c46dd6066d109eabc6255188de91218",
+    "tokenizer_revision": "b968826d9c46dd6066d109eabc6255188de91218",
+    "dtype": "float32",
+    "quantization": "none",
+    "device_map": 0,
+    "attn_implementation": "sdpa",
+    "require_full_gpu": true
+  },
+  "max_new_tokens": 16,
+  "bootstrap_draws": 2000,
+  "status": "v2b: balanced other-entity subset, Qwen3-8B (docs/stale_decision_v2_balanced.md)",
+  "scorer": "kv_cache",
+  "balanced_replicates": 2
+}

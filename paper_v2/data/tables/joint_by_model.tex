@@ -2,6 +2,7 @@
 \centering
 \small
 \setlength{\tabcolsep}{3pt}
+\resizebox{\columnwidth}{!}{%
 \begin{tabular}{@{}llccc@{}}
 \toprule
 Model & Construction & Kept & Net switch rate & Switched \\
@@ -15,8 +16,23 @@ Qwen3-14B & superseded & 376/384 & $+0.165$ {\scriptsize $[+0.128, +0.205]$} & 6
  & other attr. & 367/384 & $+0.136$ {\scriptsize $[+0.101, +0.174]$} & 52 / 2 \\
  & mention & 363/384 & $+0.168$ {\scriptsize $[+0.132, +0.207]$} & 61 / 0 \\
  & unattached & 375/384 & $+0.024$ {\scriptsize $[+0.000, +0.051]$} & 16 / 7 \\
+\midrule
+Gemma 4 12B & superseded & 349/384 & $+0.143$ {\scriptsize $[+0.109, +0.181]$} & 50 / 0 \\
+ & other attr. & 349/384 & $+0.006$ {\scriptsize $[-0.012, +0.026]$} & 7 / 5 \\
+ & mention & 339/384 & $+0.068$ {\scriptsize $[+0.041, +0.094]$} & 23 / 0 \\
+ & unattached & 343/384 & $+0.009$ {\scriptsize $[-0.015, +0.032]$} & 10 / 7 \\
+\midrule
+Qwen3.5 9B & superseded & 326/384 & $+0.233$ {\scriptsize $[+0.184, +0.279]$} & 77 / 1 \\
+ & other attr. & 328/384 & $+0.085$ {\scriptsize $[+0.058, +0.116]$} & 28 / 0 \\
+ & mention & 314/384 & $+0.191$ {\scriptsize $[+0.150, +0.236]$} & 60 / 0 \\
+ & unattached & 345/384 & $+0.038$ {\scriptsize $[+0.014, +0.064]$} & 17 / 4 \\
+\midrule
+Granite 4.1 8B & superseded & 331/384 & $+0.145$ {\scriptsize $[+0.109, +0.184]$} & 48 / 0 \\
+ & other attr. & 340/384 & $+0.124$ {\scriptsize $[+0.091, +0.159]$} & 42 / 0 \\
+ & mention & 310/384 & $+0.326$ {\scriptsize $[+0.274, +0.377]$} & 101 / 0 \\
+ & unattached & 326/384 & $+0.175$ {\scriptsize $[+0.135, +0.218]$} & 58 / 1 \\
 \bottomrule
-\end{tabular}
-\caption{Routing histories the model demonstrably tracks (criteria of Table~\ref{tab:joint}), per model and construction. Condition (ii), initial-state retrieval, is asked only on the superseded members and is applied at the history level to all four constructions. Net switch rate with 95\% history-bootstrap intervals; switched: histories switched to the wrong / to the correct action.}
+\end{tabular}}
+\caption{Routing histories each model tracks (criteria of \S\ref{sec:results-h1}), with 95\% intervals. Retained sets differ by construction; Table~\ref{tab:tracked-models} uses a common set.}
 \label{tab:joint-by-model}
 \end{table}

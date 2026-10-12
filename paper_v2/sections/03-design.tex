@@ -14,16 +14,16 @@ define the cells: \emph{sequential} (both initial entries, then both final block
 archived discussions that quote decision-relevant state words for the two entities). The factorial
 crosses task, cell, vocabulary, correct action, historical order, current order and entity orientation:
 192 histories per replicate. State-to-label assignments rotate so that every state appears in every role.
-In every history the other entity's current state implies the wrong action. Confusing the two entities is
-therefore always an error, but it is identical in both members of a pair and cancels in the paired
-contrasts below.
+In every history the other entity's current state implies the wrong action, so confusing the two entities
+is always an error. The other entity's current state is fixed across the two members of a pair;
+interactions between the edited word and entity confusion remain possible.
 
 \paragraph{Constructions.} For the queried entity, the obsolete line takes one of four forms, all with the
 same edited word in the same slot:
-\emph{superseded} (the queried attribute was initially assigned the word and later reassigned);
-\emph{updated other attribute} (the archive tag was initially the word and was later updated);
-\emph{entity mention} (the entity mentioned the word, with no assignment); and
-\emph{unattached} (\lit{the unassigned word was}~\ldots). Every history also contains a
+\emph{superseded}, S (the queried attribute was initially assigned the word and later reassigned);
+\emph{updated other attribute}, O (the archive tag was initially the word and was later updated);
+\emph{entity mention}, M (the entity mentioned the word, with no assignment); and
+\emph{unattached}, U (\lit{the unassigned word was}~\ldots). Every history also contains a
 \emph{current-only} item with no initial lines, which measures whether the model can apply the policy at
 all, and a \emph{live} item that edits the final assignment itself, which shows the size of a legitimate
 change. The constructions share the policy, query, archive-tag update, final assignments and surrounding
@@ -39,11 +39,12 @@ $x^{-}_{h,c}$ it implies the wrong action, and in $x^{+}_{h,c}$ the correct one.
 D_c = \frac{1}{|H|}\sum_{h \in H} \bigl[L(x^{-}_{h,c}) - L(x^{+}_{h,c})\bigr].
 \end{equation}
 $D_c > 0$ means the obsolete content pushes preference toward the action it implies. It is a preference
-shift in nats, not an error rate. The two hypothesis contrasts are
-$\Delta_{\mathrm{semantic}} = D_{\mathrm{superseded}} - D_{\mathrm{updated\,other}}$, which asks whether
-the assignment's attribute matters, and
-$\Delta_{\mathrm{mention}} = D_{\mathrm{superseded}} - D_{\mathrm{entity\,mention}}$, which asks whether
-assignment adds anything to an incidental mention.
+shift in nats, not an error rate. We write $D_{\mathrm{S}}$, $D_{\mathrm{O}}$, $D_{\mathrm{M}}$ and
+$D_{\mathrm{U}}$ for the four constructions, and $\Delta_{XY} = D_X - D_Y$ for a contrast. The two hypothesis
+contrasts are $\Delta_{\mathrm{SO}}$, which compares a superseded assignment to the queried attribute with an
+updated assignment to an unrelated attribute (both lines are later updated, so it does not isolate
+supersession itself), and $\Delta_{\mathrm{SM}}$, which asks whether assignment adds anything to an
+incidental mention.
 
 \paragraph{Generated switches.} With greedy decoding, a history scores $+1$ for construction $c$ if the
 model answers wrongly under $x^{-}$ and not under $x^{+}$, $-1$ for the reverse, and $0$ otherwise. The

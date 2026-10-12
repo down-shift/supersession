@@ -1,0 +1,19 @@
+{
+  "protocol": "stale_decision_think",
+  "model": {
+    "id": "mistralai/Ministral-3-14B-Reasoning-2512",
+    "revision": "51f9210f3cd20f3452a80d5819d15dc61cc50630",
+    "dtype": "float32",
+    "attn_implementation": "sdpa",
+    "load_class": "image_text_to_text",
+    "tokenizer_kwargs": {
+      "fix_mistral_regex": true
+    },
+    "end_token": "</s>",
+    "think_close": "[/THINK]"
+  },
+  "max_new_tokens": 4096,
+  "bootstrap_draws": 2000,
+  "histories": "all",
+  "status": "thinking mode: mistralai/Ministral-3-14B-Reasoning-2512 (docs/stale_decision_think.md)"
+}

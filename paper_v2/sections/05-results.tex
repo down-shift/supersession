@@ -2,7 +2,8 @@
 \label{sec:results}
 
 All numbers in this section come from the frozen confirmation (Qwen3-8B, held-out template, 384 histories
-per task) unless marked otherwise.
+per task) unless marked otherwise. We give intervals only for the primary estimates; ``not resolved'' means
+that the interval includes zero. All intervals are in the tables of Appendix~\ref{app:tables}.
 
 \subsection{Competence}
 \label{sec:results-competence}
@@ -24,10 +25,8 @@ access int.   & 0.945 & 0.875 & 0.858 & no \\
 access comp.  & 0.908 & 0.859 & 0.867 & no \\
 \bottomrule
 \end{tabular}
-\caption{Strict accuracy on the confirmation data. \emph{Direct}: current state of the queried entity,
-asked directly. \emph{No history}: decision on the current-only item. \emph{History}: decision over all
-historical-construction items. Competent: direct $\ge 0.95$, no history $\ge 0.90$, invalid $\le 0.05$.
-No answer was invalid.}
+\caption{Qwen3-8B, strict accuracy on the confirmation data. Direct: current state asked directly. No
+answer was invalid.}
 \label{tab:competence}
 \end{table}
 
@@ -38,150 +37,131 @@ then, the model reports the current state, reports the initial state, and applie
 history at or above 0.95. Access results are reported below as fixed-grid averages over cells that do not
 meet the competence criteria.
 
-\subsection{Obsolete states change decisions}
+\subsection{Obsolete states shift scores and decisions}
 \label{sec:results-h1}
 
-\begin{figure*}[t]
-\centering
-\includegraphics[width=\textwidth]{figures/constructions.pdf}
-\caption{Decision effects by construction (confirmation, 384 histories per task, 95\% history-bootstrap
-intervals). (a) $D_c$: increase in the wrong action's log-odds when the edited word implies the wrong
-rather than the correct action. (b) Net switch rate toward the wrong action (mean over histories of $+1$,
-$0$ or $-1$). Routing cells meet the competence criteria on the confirmation data; access cells do not.}
-\label{fig:constructions}
-\end{figure*}
-
 H1 is supported in both tasks. In routing, when the superseded state implied the wrong action rather
-than the correct one, the wrong action's log-odds rose by $D_{\mathrm{superseded}} = 3.133$ nats
+than the correct one, the wrong action's log-odds rose by $D_{\mathrm{S}} = 3.133$ nats
 (97.5\% interval $[2.743, 3.516]$). In access, where cells do not meet the competence criteria, the shift
-was $3.904$ $[3.474, 4.346]$. For scale, editing the \emph{current} state itself, which legitimately
+was $3.904$. For scale, editing the \emph{current} state itself, which legitimately
 changes the correct action, moved the same quantity by $-8.197$ (routing) and $-10.100$ nats (access).
 
 The shift reaches generated answers. In routing, the net switch rate toward the wrong action was $0.185$
 $[0.143, 0.227]$: 75 histories switched to the wrong action and 4 to the correct one. In each routing
-cell, it was between 0.164 and 0.227 (Table~\ref{tab:switch-cells}). In access it was $0.167$
-$[0.130, 0.206]$ (65 against 1). Figure~\ref{fig:competence} shows the same effect as accuracy. In every
+cell, it was between 0.164 and 0.227 (Table~\ref{tab:switch-cells}). In access it was $0.167$ (65 against 1). Figure~\ref{fig:competence} in Appendix~\ref{app:tables} shows the same effect as accuracy. In every
 routing cell, decisions were correct in 0.906--0.953 of histories when the superseded state implied the
-correct action, and in 0.727--0.750 when it implied the wrong one. The same records gave current- and
-initial-state retrieval at or above 0.98.
+correct action, and in 0.727--0.750 when it implied the wrong one.
 
 \paragraph{Histories the model demonstrably tracks.} Aggregate retrieval accuracy does not show that the
-switching histories are ones the model reads correctly. We therefore kept a history only if three
+switching histories are ones the model reads correctly. In a post hoc analysis, defined after the
+Qwen3-8B confirmation results and applied unchanged to Qwen3-14B, we kept a history only if three
 conditions held on the same records: the model retrieved the current state correctly under both members
 of the pair, retrieved the initial state correctly under both superseded members, and decided the
 current-only item correctly. This kept 348 of 384 routing histories for the superseded construction
-(Table~\ref{tab:joint}). In them, the net switch rate toward the wrong action was $0.158$
-$[0.118, 0.198]$: 58 histories switched to the wrong action and 3 to the correct one. The preference
-shift was $2.990$ nats $[2.661, 3.342]$. Each routing cell keeps a net switch rate between 0.129 and
-0.202. The effect is therefore not carried by histories in which the model misreads the record. In
-access, the same restriction keeps 284 of 384 histories and gives a net switch rate of $0.176$
-$[0.134, 0.218]$ (50 against 0).
+(Table~\ref{tab:joint} in Appendix~\ref{app:tables}). In them, the net switch rate toward the wrong action was $0.158$
+(58 histories to the wrong action, 3 to the correct one) and the preference shift $2.990$ nats. The effect is therefore not carried by histories in which the model misreads the record. In
+access, the same restriction keeps 284 of 384 histories and gives a net switch rate of $0.176$ (50 against 0). In every one of these histories, though, the other entity's current state
+also implies the wrong action; \S\ref{sec:results-conditions} removes that cue.
 
-\begin{table}[t]
-\centering
-\small
-\setlength{\tabcolsep}{3pt}
-\resizebox{\columnwidth}{!}{%
-\begin{tabular}{@{}lcccc@{}}
-\toprule
-& Kept & $D_{\mathrm{superseded}}$ & Net switch rate & Switched \\
-\midrule
-routing seq.  & 118/128 & 2.959 & 0.144 $[0.076, 0.220]$ & 19 / 2 \\
-routing int.  & 114/128 & 3.252 & 0.202 $[0.132, 0.281]$ & 24 / 1 \\
-routing comp. & 116/128 & 2.764 & 0.129 $[0.069, 0.190]$ & 15 / 0 \\
-routing, all  & 348/384 & 2.990 & 0.158 $[0.118, 0.198]$ & 58 / 3 \\
-\midrule
-access, all   & 284/384 & 4.059 & 0.176 $[0.134, 0.218]$ & 50 / 0 \\
-\bottomrule
-\end{tabular}}
-\caption{Superseded construction, restricted to histories with correct current-state retrieval under both
-members, correct initial-state retrieval under both members, and a correct current-only decision. Kept:
-histories retained out of those in the cell. Switched: histories switched to the wrong / to the correct
-action. 95\% history-bootstrap intervals. Retained sets differ slightly across constructions because
-condition (i) is checked per construction. Condition (ii) is checked on the history's superseded members for
-every construction, because the initial-state query is asked only there.}
-\label{tab:joint}
-\end{table}
 
-\begin{figure*}[t]
-\centering
-\includegraphics[width=\textwidth]{figures/competence.pdf}
-\caption{Retrieval and decision accuracy on the same confirmation records, per cell. Initial-state
-retrieval is reported per task. Routing (left) meets the competence criteria on the confirmation data; access (right) does not.}
-\label{fig:competence}
-\end{figure*}
 
-\subsection{Supersession adds pressure; a mention adds comparable pressure}
+\subsection{Attribute and mention contrasts}
 \label{sec:results-h2}
 
-This section reports Qwen3-8B, where a mention adds more pressure than a superseded assignment;
-\S\ref{sec:results-replication} shows that in Qwen3-14B it adds comparable pressure. H2 compares the
-superseded assignment with an assignment of the same word to a different attribute that was later updated. It is supported in routing, $\Delta_{\mathrm{semantic}} = +1.224$ $[0.973, 1.485]$, with
-generated switches agreeing ($+0.120$ $[0.076, 0.164]$). In routing, then, the attribute that was
-superseded matters. In access (non-competent cells) the contrast is inconclusive: $+0.035$
-$[-0.318, 0.400]$, switches $+0.029$ $[-0.016, 0.073]$.
+\input{data/tables/tracked}
+
+This section reports Qwen3-8B; \S\ref{sec:results-replication} gives the other models. H2 compares the
+superseded assignment with an assignment of the same word to a different attribute that was later updated. It is supported in routing, $\Delta_{\mathrm{SO}} = +1.224$ (97.5\% interval $[0.973, 1.485]$), with
+generated switches agreeing (paired difference $+0.120$). In routing, then, a superseded
+assignment to the queried attribute produces more interference than an updated assignment to an
+unrelated attribute. In access
+(non-competent cells) neither the contrast ($+0.035$) nor its switch difference is resolved.
 
 The mention control, a secondary outcome, shows that supersession is not the largest source of pressure
 in Qwen3-8B.
 When the same entity only \emph{mentioned} the word, the effect was larger than for the superseded
-assignment. In routing, $D_{\mathrm{entity\,mention}} = 4.807$ against $3.133$, so
-$\Delta_{\mathrm{mention}} = -1.675$ $[-1.896, -1.441]$. Net switches were $0.294$ (113 to wrong, 0 to
-correct) against $0.185$, difference $-0.109$ $[-0.156, -0.065]$. In access, $5.182$ against $3.904$
-($\Delta_{\mathrm{mention}} = -1.278$ $[-1.579, -0.977]$). Switches there were $0.195$ (76 against 1)
-against $0.167$, an inconclusive difference. A word attached to no entity still shifted preference
+assignment. In routing, $D_{\mathrm{M}} = 4.807$ against $3.133$, so
+$\Delta_{\mathrm{SM}} = -1.675$. Net switch rates were $0.294$ (113 to wrong, 0 to
+correct) against $0.185$, a paired difference (M $-$ S) of $+0.109$. In access, $D_{\mathrm{M}} = 5.182$ against
+$3.904$ ($\Delta_{\mathrm{SM}} = -1.278$); the switch difference there is not resolved. A word attached to no entity still shifted preference
 substantially, by $2.496$ (routing) and $3.043$ nats (access), but rarely changed a generated decision
-($0.039$ and $0.062$). Score shifts of similar size can thus have very different behavioral
-consequences. The ordering holds in the restricted routing histories of Table~\ref{tab:joint}. Net switch
-rates there are $0.278$ for the mention, $0.158$ for the superseded assignment, $0.048$ for the updated
-unrelated attribute and $0.034$ for the unattached word.
+($0.039$ and $0.062$). On the routing histories tracked under all four constructions (Table~\ref{tab:tracked}; post hoc), the mention
+exceeded the superseded assignment in net switch rate, and the superseded assignment exceeded the updated unrelated
+attribute; the unrelated attribute and the unattached word were not resolved.
 
-Across four earlier, non-confirmatory splits, $\Delta_{\mathrm{mention}}$ never favored the superseded
+\paragraph{An other attribute that is never updated.} A fifth construction, N, added by a dated amendment before
+its data were scored, removes the later update of the other attribute (a filler line of the same length
+replaces it) on the 384 routing confirmation histories of both Qwen3 models (Table~\ref{tab:static-other} in
+Appendix~\ref{app:tables}). As predicted, the update reduced interference ($\Delta_{\mathrm{ON}} =
+-1.204$ and $-1.942$ nats). Never updated, the other attribute was not resolved from the superseded
+assignment in Qwen3-8B ($\Delta_{\mathrm{SN}} = +0.020$, switches $-0.008$) and interfered more in Qwen3-14B
+($-1.076$, switches $-0.096$). $\Delta_{\mathrm{SO}}$ thus compares the queried attribute with one whose value
+was later replaced; it does not show that assignment to the queried attribute matters.
+
+Across four earlier, non-confirmatory splits, $\Delta_{\mathrm{SM}}$ never favored the superseded
 assignment, but its size varied with the template (Appendix~\ref{app:tables}, Figure~\ref{fig:replication}).
 
-\subsection{Easy-query sensitivity adds nothing to failure prediction}
+\subsection{Easy-query sensitivity did not improve failure prediction}
 \label{sec:results-h3}
 
-
-
 The edit strongly affected easy retrieval scores: the mean $R_{\mathrm{easy}}$ on superseded items was
-$8.096$ nats in access and $10.878$ in routing. That sensitivity added nothing beyond the pre-decision
-features under the specified logistic model (Table~\ref{tab:h3} in Appendix~\ref{app:tables}). Pre-decision features reduced log loss from $0.414$ to
-$0.346$ and reached AUROC $0.780$. Adding $R_{\mathrm{easy}}$ changed log loss by $+0.0004$ nats,
-interval $[-0.0011, 0.0019]$; the upper end is under 3\% of what the simple features already gain. The
-result is the same in each task and for the wrong-answer outcome. It replicates in Qwen3-14B: AUROC
-$0.684$ without and $0.685$ with $R_{\mathrm{easy}}$, log-loss gain $-0.0001$ $[-0.0027, 0.0022]$. Within
-this design,
-$R_{\mathrm{easy}}$ describes how retrieval scores respond to the edit; it does not diagnose decision
-vulnerability.
+$8.096$ nats in access and $10.878$ in routing. That sensitivity did not improve prediction beyond the
+specified pre-decision features under the specified logistic model (Table~\ref{tab:h3} in Appendix~\ref{app:tables}). Pre-decision features reduced log loss from $0.414$ to
+$0.346$ and reached AUROC $0.780$. Adding $R_{\mathrm{easy}}$ reduced log loss by $0.0004$ nats (not resolved); the upper end of its interval is
+under 3\% of what the simple features already gain. The
+result is the same in each task, for the wrong-answer outcome, and in every further model.
 
-\subsection{Replication in Qwen3-14B, and a model that was not eligible}
+\subsection{When score shifts change decisions}
+\label{sec:results-conditions}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{figures/conditions.pdf}
+\caption{Qwen3-8B, routing, per construction, with 95\% intervals. Thinking mode has no scores.}
+\label{fig:conditions}
+\end{figure}
+
+Two further runs on Qwen3-8B ask when the score shift becomes a different decision
+(Figure~\ref{fig:conditions}; Table~\ref{tab:conditions}). In the main design, confusing the two entities gives the wrong action, because
+the other entity's current state implies it. A balanced subset, recorded before its data were scored, sets
+the other entity's current state to the queried entity's, so that it implies the correct action (192 new
+routing histories, held-out template; Appendix~\ref{app:history}). The model retrieved both states and
+decided correctly without history in every balanced history. $D_{\mathrm{S}}$ stayed positive
+($3.895$), but the net switch rate fell to $0.031$ (6 histories to wrong, none to correct), against $0.185$
+in the main design. The mention kept a net switch rate of $0.177$ (34 against 0). In this model, then, the superseded assignment shifts scores with or without
+the second cue, but mostly changes decisions when that cue also points to the wrong action; the mention
+depends less on it. The balanced histories differ from the main ones, and identical current states may make
+the decision easier, so the comparison is descriptive.
+
+Second, we generated answers with thinking enabled on the main-design routing rows (greedy, at most 4,096
+new tokens; no scores). In Qwen3-8B, current-only accuracy was $1.000$ and 2 of 3,456 items were invalid. No
+history switched for the superseded, other-attribute or unattached constructions; the mention switched 7 to
+the wrong action ($0.018$). In Qwen3-14B (current-only accuracy $1.000$, none invalid), only
+2 other-attribute and 1 mention histories switched, all to the wrong action. Thinking and direct answers are
+different generation processes, and no test was prespecified.
+
+\subsection{Further models}
 \label{sec:results-replication}
 \label{sec:results-gemma}
 
 \input{data/tables/cross_model}
 
-Qwen3-14B was added under an amendment dated before any of its data were scored, with the same rows, rules
-and runtime (Appendix~\ref{app:history}). Its frozen gate passed in all three routing cells and in no access
-cell (Table~\ref{tab:models-gate}). On the confirmation, routing retrieval was 0.989--0.997 for the current
-state and 0.997 for the initial state. Current-only decisions were 0.977--0.992 correct.
+Four further models were run under amendments dated before any of their data were scored, with the same
+rows, rules and runtime (Appendix~\ref{app:history}): Qwen3-14B, then Gemma 4 12B, Qwen3.5 9B and Granite 4.1
+8B. Table~\ref{tab:cross-model} gives each on the cells competent on the confirmation data: all three routing
+cells for Qwen3-14B, two for the others, and access only for Gemma 4 12B.
 
-Table~\ref{tab:cross-model} compares the two models on the cells competent on the confirmation data. The obsolete-state effect
-replicates. In routing, $D_{\mathrm{superseded}} = 4.785$ nats and the net switch rate is $0.167$ (67
-histories switched to wrong, 3 to correct). In the routing histories Qwen3-14B demonstrably tracks (376 of
-384), it is $0.165$ $[0.128, 0.205]$ (Table~\ref{tab:joint-by-model}). Supersession again adds preference
-over an updated unrelated attribute: $\Delta_{\mathrm{semantic}} = +0.866$ $[0.417, 1.328]$ in routing.
-In generated switches, however, the two constructions are close in this model ($0.167$ against $0.146$).
-The mention result differs from Qwen3-8B. In Qwen3-14B the mention moves routing decisions as much as the
-superseded assignment does: net switch rates are $0.169$ against $0.167$ over all routing histories, and
-$0.168$ against $0.165$ in the tracked histories (Table~\ref{tab:joint-by-model}), with
-$\Delta_{\mathrm{mention}} = +0.248$ $[-0.117, 0.601]$, an inconclusive difference. In access
-(non-competent cells) the superseded assignment moved preference more than the mention
-($\Delta_{\mathrm{mention}} = +0.845$ $[0.425, 1.255]$). In both models, then, an incidental mention
-produces interference of the same order as a superseded assignment. Whether it exceeds it is
-model-specific.
+The obsolete-state effect replicates in every model. In routing, $D_{\mathrm{S}}$ is
+1.072--4.785 nats, and the net switch rate in tracked histories is 0.143--0.233, with at most 3 histories
+switching to the correct action (Table~\ref{tab:joint-by-model}). $\Delta_{\mathrm{SO}}$ is positive in
+every model; its paired switch difference is resolved in Gemma 4 12B and Qwen3.5 9B, not in Qwen3-14B or
+Granite 4.1 8B. The mention comparison splits. In Granite 4.1 8B, as in Qwen3-8B, the mention moved scores and
+decisions more than the superseded assignment. In Gemma 4 12B the superseded assignment moved scores more
+($\Delta_{\mathrm{SM}} = +1.513$), with no resolved switch difference. In Qwen3-14B and
+Qwen3.5 9B neither difference is resolved; Qwen3.5 9B shows the smallest score shifts and the largest switch
+rate. We do not read the differences between models as a trend with size or family. Further Qwen3-14B
+estimates, and estimates under the gate rule, are in Appendix~\ref{app:tables}.
 
-Gemma 3 4B was added under a model list frozen before any of its data were scored. On the gate split, no
-cell met the criteria: current-only decision accuracy was 0.609--0.719, direct retrieval 0.916--0.964
-(Table~\ref{tab:models-gate}), while initial-state retrieval in development was 0.984. Gemma reads these
-records but does not apply the policy reliably, so no confirmation split was generated for it. This is an
-eligibility result, not evidence for or against stale-state interference in Gemma.
+Gemma 3 4B and Ministral 3 14B met no gate cell: current-only decision accuracy was 0.609--0.812 and direct
+retrieval 0.916--0.999 (Table~\ref{tab:models-gate}), so no confirmation split was generated. These are
+eligibility results, not evidence for or against stale-state interference in these models.

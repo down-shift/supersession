@@ -1,14 +1,16 @@
 \begin{abstract}
 A model that reads an updated record can report the current value correctly and still let the old value
-shape its decision. We test whether this happens, and whether it depends on the old value having been
+shape its decision. We test when this happens, and whether it depends on the old value having been
 superseded. In synthetic routing and access-control records, the current state, the policy and the
 correct action are fixed while one obsolete state is edited to imply the correct or the wrong action.
 Matched controls place the same word as an updated assignment of an unrelated attribute, as a word the
-entity merely mentioned, or as an unattached word. In a frozen confirmation on held-out wording
-(Qwen3-8B), we kept the routing histories in which the model retrieved the current and initial states and
-decided correctly without history (348 of 384). There, the obsolete state gave a net switch rate toward
-the wrong action of 0.158 (58 histories switched to wrong, 3 to correct). Across routing histories, a
-superseded assignment added 1.224 nats of wrong-action preference over an updated unrelated attribute.
-An incidental mention of the same word by the same entity moved decisions at least as much (net switch
-rate 0.278). \modelcountsentence
+entity merely mentioned, or as an unattached word. In a frozen confirmation on held-out wording (Qwen3-8B)
+and in four further open models on identical rows, the obsolete state shifted the preference toward the
+action it implies (1.072--4.785 nats in routing) while the models retrieved the current and initial states
+correctly. These shifts changed decisions mainly when another cue also pointed to the wrong action. With
+the other entity's current state implying it, the net switch rate toward the wrong action was 0.143--0.233
+in histories the models demonstrably track. In Qwen3-8B it fell to 0.031 when that state implied the
+correct action, and in both Qwen3 models to zero with thinking enabled. The interference does not require supersession: an
+incidental mention of the same word by the same entity shifted preferences in every model, and in Qwen3-8B
+changed more decisions than the superseded assignment in both designs.
 \end{abstract}

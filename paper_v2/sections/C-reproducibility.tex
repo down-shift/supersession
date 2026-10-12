@@ -3,9 +3,13 @@
 
 \paragraph{Models.} Qwen3-8B, Hugging Face revision \lit{b968826d9c46dd6066d109eabc6255188de91218}; Qwen3-14B,
 revision \lit{40c069824f4251a91eefaf281ebe4c544efd3e18}; Gemma 3 4B (instruction-tuned), revision
-\lit{093f9f388b31de276ce2de164bdc2081324b9767}. All ran in float32 without
+\lit{093f9f388b31de276ce2de164bdc2081324b9767}; Ministral 3 14B (instruction-tuned, BF16 repository), revision
+\lit{3cea74c1ebaf5ce5f5a2553de470e2ceab825142}; Gemma 4 12B (instruction-tuned), revision
+\lit{707f0a3b8a3c7ad586ed01e27eafbad8a27dd0f7}; Qwen3.5 9B, revision
+\lit{c202236235762e1c871ad0ccb60c8ee5ba337b9a}; Granite 4.1 8B, revision
+\lit{1504002f650e656a0a3789d99574df12e3e94ed0}. All ran in float32 without
 quantization, with SDPA attention, on one 80\,GB H100 GPU, using Transformers \citep{wolf2020transformers}
-and PyTorch \citep{paszke2019pytorch}. Licenses: Qwen3 (Apache 2.0) and Gemma 3 (Gemma Terms of Use), used for
+and PyTorch \citep{paszke2019pytorch}. Licenses: Gemma 3 (Gemma Terms of Use) and Apache 2.0 for all other models, used for
 non-commercial research within their terms.
 
 \paragraph{Artifacts.} Each dataset is regenerated deterministically from its seed and checked against
@@ -22,12 +26,16 @@ retrieval queries, one historical query where applicable, two scored action even
 generation). Qwen3-14B took 1.12 (development), 2.23 (gate) and 4.48 GPU hours (confirmation), 1.91 s per
 confirmation record. Both runs used the same GPU type, software versions (PyTorch 2.14.0, Transformers
 5.17.0), scorer and prompts (mean 199 prompt tokens). The times are wall-clock as logged. We did not record
-GPU sharing or clock state, so we cannot attribute the faster per-record time of the larger model. The
-whole program, including failed runs, development and gate splits and the ineligible model, used about
-32 GPU hours.
+GPU sharing or clock state, so we cannot attribute the faster per-record time of the larger model.
+Confirmation scoring took 4.29 (Gemma 4 12B), 7.59 (Qwen3.5 9B) and 2.67 GPU hours (Granite 4.1 8B); Qwen3.5
+ran its recurrent layers through the library's reference PyTorch path, without fused kernels. Generation
+with thinking enabled took 6.51 (Qwen3-8B) and 8.77 GPU hours (Qwen3-14B). The logged time of all 33 timed
+runs, including the v1b splits, development and gate splits, the ineligible models, the never-updated
+attribute, the balanced subset and thinking mode, sums to 77.8 GPU hours. Preflight and numerical checks,
+model downloads and runs stopped before completion were not timed and add to this.
 
 \paragraph{Code.} The anonymized archive submitted as supplementary software contains the generators,
 scoring and analysis code, tests, configuration files, the dated protocol records, the sealed analysis
-reports with their run records, the confirmation datasets and per-record scores of both confirmed models,
+reports with their run records, the confirmation datasets and per-record scores of the five confirmed models,
 and the scripts that derive every number, table and figure in this paper; run from the archive, they
 reproduce the paper's derived values exactly.

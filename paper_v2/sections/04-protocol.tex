@@ -2,7 +2,7 @@
 \label{sec:protocol}
 
 \paragraph{Model and runtime.} Qwen3-8B \citep{yang2025qwen3} at a pinned revision
-(Appendix~\ref{app:repro}), with thinking disabled through the chat template. Qwen3-14B and Gemma 3 4B were
+(Appendix~\ref{app:repro}), with thinking disabled through the chat template. Six further models were
 run later under dated amendments, with the same rows and rules (\S\ref{sec:results-replication}). Inference ran in float32
 without quantization on one GPU. We chose float32 after finding that 8-bit and bfloat16 inference made
 the log probability at a fixed position change by up to 0.843 and 0.875 nats when tokens were appended
@@ -17,17 +17,18 @@ entity-name pools. A development split (192 histories) was used only to check co
 formats. A frozen gate split (384 histories) decided eligibility. The confirmation split (768 histories,
 8{,}448 records, 11 per history) used a held-out paraphrase of the introduction and query. A task-cell
 was \emph{competent} if strict direct retrieval of the current state was at least 0.95, current-only
-decision accuracy at least 0.90, and invalid answers at most 0.05. Confirmation data were generated only
-after the gate, recomputed from its saved scores, showed at least one competent cell. The gate decided
-eligibility; competence labels in the results are computed on the confirmation data, except in
-Table~\ref{tab:models-gate}, which reports the gate. All cells are
-reported. Task-level estimates average the fixed grid, and estimates from non-competent cells are labeled
+decision accuracy at least 0.90, and invalid answers at most 0.05. Competence enters in three roles. (i) The frozen gate decided eligibility: confirmation data were
+generated only after the gate, recomputed from its saved scores, showed at least one competent cell. (ii)
+The replication amendment defined the cells behind each model's compact estimates as those competent on
+its frozen gate. (iii) Table~\ref{tab:competence}, Table~\ref{tab:cross-model} and the text instead use the
+cells competent on the confirmation data, a documented departure from (ii) made after the confirmation
+results; Appendix~\ref{app:tables} gives the estimates under (ii). All cells are reported. Task-level estimates average the fixed grid, and estimates from non-competent cells are labeled
 as such.
 
 \paragraph{Hypotheses and statistics.} The protocol fixed two primary hypotheses per task: H1,
-$D_{\mathrm{superseded}} > 0$; and H2, $\Delta_{\mathrm{semantic}} \neq 0$, two-sided. Both use 97.5\%
+$D_{\mathrm{S}} > 0$; and H2, $\Delta_{\mathrm{SO}} \neq 0$, two-sided. Both use 97.5\%
 percentile intervals from a history bootstrap (2{,}000 draws, fixed seed), Bonferroni-adjusted over the
-two tasks. Secondary outcomes use unadjusted 95\% intervals: $\Delta_{\mathrm{mention}}$, the other
+two tasks. Secondary outcomes use unadjusted 95\% intervals: $\Delta_{\mathrm{SM}}$, the other
 construction effects, net switch rates, and H3. Histories are the resampling unit. Both members, all
 constructions and all queries of a history stay together. The two tasks are never pooled, and an
 interval that includes zero is reported as inconclusive, not as evidence of no effect.
@@ -36,9 +37,9 @@ interval that includes zero is reported as inconclusive, not as evidence of no e
 query's margin between the current and the historical state, the historical candidate's log mass, easy
 confidence, the edited token's position, prompt length, and design indicators. The comparison adds
 $R_{\mathrm{easy}}$ to these. The outcome is a strict downstream failure on the historical constructions.
-Models are L2-regularized logistic regressions \citep[scikit-learn;][]{pedregosa2011sklearn} ($C=1$, no tuning) evaluated by five-fold cross-validation
-with folds grouped by history. Out-of-fold log loss with and without $R_{\mathrm{easy}}$ is compared by a
-paired history bootstrap. The downstream answer's own confidence is reported separately as a
+Models are L2-regularized logistic regressions \citep[scikit-learn;][]{pedregosa2011sklearn} with fixed
+settings, evaluated by history-grouped five-fold cross-validation; out-of-fold log loss with and without
+$R_{\mathrm{easy}}$ is compared by a paired history bootstrap (details in Appendix~\ref{app:tables}). The downstream answer's own confidence is reported separately as a
 contemporaneous reference, not as a predictor, because it comes from the decision query itself.
 
 \paragraph{Protocol history.} The confirmation protocol is the second redesign of a design frozen before

@@ -1,0 +1,27 @@
+{
+  "protocol": "stale_decision_v2f",
+  "model": {
+    "id": "mistralai/Ministral-3-14B-Instruct-2512-BF16",
+    "tokenizer_id": "mistralai/Ministral-3-14B-Instruct-2512-BF16",
+    "revision": "3cea74c1ebaf5ce5f5a2553de470e2ceab825142",
+    "tokenizer_revision": "3cea74c1ebaf5ce5f5a2553de470e2ceab825142",
+    "dtype": "float32",
+    "quantization": "none",
+    "device_map": 0,
+    "attn_implementation": "sdpa",
+    "require_full_gpu": true,
+    "end_token": "</s>",
+    "end_suffix": "",
+    "load_class": "image_text_to_text",
+    "tokenizer_kwargs": {
+      "fix_mistral_regex": true
+    }
+  },
+  "max_new_tokens": 16,
+  "bootstrap_draws": 2000,
+  "development_replicates": 1,
+  "gate_replicates": 2,
+  "confirmation_replicates": 4,
+  "status": "v2f: mistralai/Ministral-3-14B-Instruct-2512-BF16 (docs/stale_decision_v2_families.md)",
+  "scorer": "kv_cache"
+}

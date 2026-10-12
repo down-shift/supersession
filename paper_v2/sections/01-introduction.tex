@@ -8,16 +8,15 @@ recent work shows that old values do intrude on such reports, especially after m
 \citep{wang2026unable,guo2026context,chattaraj2026dual}. A deployed system, however, rarely asks the model
 to restate a value. It asks the model to \emph{use} it. Two questions follow that retrieval accuracy does
 not answer. When a model can state the current value correctly, does the obsolete value still change the
-decision it takes? And if it does, is the obsolete value acting as a superseded assignment of the queried
+decision it takes, and under what conditions? And if it does, is the obsolete value acting as a superseded assignment of the queried
 attribute, or simply as a word that occurs in the context near the entity?
 
-The second question matters because the remedies differ. If the interference is tied to supersession, it
-is a failure of state tracking, and update-aware memory, historical marking or attention routing toward the
-current entry \citep{guo2026context} are the natural fixes. If any nearby mention of a decision-relevant
-word does the same, the problem is contextual entrainment \citep{niu2025entrainment} reaching decisions.
-Removing or marking stale entries would then leave much of it in place, and evaluations that only vary
-update histories would misattribute it. The two accounts are not exclusive, and our design estimates
-both.
+The second question matters because the two accounts call for different evaluations. If the
+interference is tied to supersession, it is a failure of state tracking, the target of update-aware memory,
+historical marking or attention routing toward the current entry \citep{guo2026context}. If any nearby
+mention of a decision-relevant word does the same, the problem is contextual entrainment
+\citep{niu2025entrainment} reaching decisions. We test no mitigation, but either way an evaluation of one
+needs a matched mention control and decision-level outcomes.
 
 \paragraph{Design.} We hold everything that should determine the decision fixed: the current state, the
 policy that maps states to actions, the query, and the correct action. We edit one obsolete state. In one
@@ -30,26 +29,30 @@ a word the entity only mentioned, and a word attached to no entity. Before testi
 the same records that the model reports the current and the initial state correctly when asked.
 
 \paragraph{Findings.} The experiment ran under a protocol frozen before the confirmation data were
-generated, on a held-out prompt template, with Qwen3-8B. A larger model from the same family,
-Qwen3-14B, was run on identical rows under a dated amendment, and Gemma 3 4B was attempted. The routing
-task meets every competence criterion on the confirmation data in both Qwen models; the access task does not, and its estimates
-are reported second and labeled. Three conclusions hold for both confirmed models, with one
-model-specific difference:
+generated, on a held-out prompt template, with Qwen3-8B. Four further models (Qwen3-14B, Gemma 4 12B,
+Qwen3.5 9B, Granite 4.1 8B) were run on identical rows under a dated amendment; Gemma 3 4B and Ministral 3
+14B did not meet the competence gate. Routing meets the competence criteria on the confirmation data in all
+five models; access does so only in Gemma 4 12B, and other access estimates are reported second and labeled.
+Four findings follow:
 \begin{enumerate}
-  \item \textbf{Obsolete states change current decisions in models that track them correctly.} In the
-  routing histories where the model retrieved the current and initial states and decided correctly without
-  history, making the obsolete state imply the wrong action gave a net switch rate toward the wrong action
-  of 0.158 (Qwen3-8B) and 0.165 (Qwen3-14B), almost never in reverse (\S\ref{sec:results-h1},
+  \item \textbf{Obsolete states shift decision scores in models that track them correctly.} In all five
+  models, making the obsolete state imply the wrong action raised that action's log-odds (1.072--4.785 nats
+  in routing), while the models retrieved the current and initial states correctly
+  (\S\ref{sec:results-h1}, \S\ref{sec:results-replication}).
+  \item \textbf{The shifts change decisions mainly when another cue agrees.} In the main design the other
+  entity's current state implies the wrong action. There, the net switch rate toward the wrong action was
+  0.143--0.233 across models in histories the models demonstrably track, almost never in reverse. In
+  Qwen3-8B it fell to 0.031 when the other entity's state implied the correct action, and in both Qwen3
+  models to zero with thinking enabled, while preference shifts stayed (\S\ref{sec:results-conditions}).
+  \item \textbf{Neither supersession nor assignment to the queried attribute is needed.} In all five models a
+  superseded assignment interfered more in scores than an updated assignment to an unrelated attribute
+  (0.311--3.102 nats), but in the two Qwen3 models the same assignment never updated was not resolved from it
+  or interfered more. The same word mentioned in passing by the same entity shifted preferences in every
+  model; it changed more decisions than the superseded assignment in Qwen3-8B (also without the second cue)
+  and Granite 4.1 8B, and was not resolved from it in the other three (\S\ref{sec:results-h2},
   \S\ref{sec:results-replication}).
-  \item \textbf{Supersession adds decision pressure, and an incidental mention adds pressure of the same
-  order.} In routing, a superseded assignment moved preference more than an updated assignment of an
-  unrelated attribute, by 1.224 and 0.866 nats. The same word mentioned in passing by the same entity moved
-  decisions as much as the superseded assignment in Qwen3-14B, and more in Qwen3-8B. Whether a mention
-  \emph{exceeds} a superseded assignment therefore depends on the model, and in Qwen3-8B also on wording
-  (\S\ref{sec:results-h2}).
-  \item \textbf{A score-level sensitivity measure does not identify vulnerable items.} The edit's effect on
-  easy retrieval queries was large, but in both models it added nothing beyond the pre-decision features
-  under the specified logistic model (\S\ref{sec:results-h3}).
+  \item \textbf{Easy-query sensitivity did not improve failure prediction} beyond the specified pre-decision
+  features, in any model (\S\ref{sec:results-h3}).
 \end{enumerate}
 
 \paragraph{What is and is not new.} That stale context interferes with answers is established
@@ -57,8 +60,9 @@ model-specific difference:
 gain probability \citep{niu2025entrainment}. Our contribution is a controlled test that connects the two at
 the level of decisions. We measure interference on policy decisions in open models, on items whose
 current and historical states the model retrieves correctly. We use minimal-pair edits that hold the
-correct action fixed, report both scores and generated answers, and include the matched controls needed
-to ask whether supersession is the operative factor. We also report the negative result for a
+correct action fixed, report both scores and generated answers, and include matched controls that separate
+an assignment to the queried attribute from an assignment to another attribute and from an incidental
+mention. We also report the negative result for a
 sensitivity-based predictor and, in Appendix~\ref{app:history}, two measurement problems we found along
 the way: chat-format events that the model never generates, and log-probabilities that change when tokens
 are appended under 8-bit and bfloat16 inference.
@@ -84,16 +88,14 @@ Respond with exactly one label (EAST, WEST), with no other text.
 \toprule
 Construction & Edited line (same word, same position) \\
 \midrule
-Superseded assignment & \lit{Initially, EvbUnit0096A had routing state pending.} \\
-Other attribute, updated & \lit{Initially, EvbUnit0096A had archive tag pending.} \\
-Mentioned by entity & \lit{Initially, EvbUnit0096A mentioned the word pending.} \\
-Unattached word & \lit{Initially, the unassigned word was pending.} \\
+S, superseded assignment & \lit{Initially, EvbUnit0096A had routing state pending.} \\
+O, other attribute, updated & \lit{Initially, EvbUnit0096A had archive tag pending.} \\
+M, mentioned by entity & \lit{Initially, EvbUnit0096A mentioned the word pending.} \\
+U, unattached word & \lit{Initially, the unassigned word was pending.} \\
 \bottomrule
 \end{tabular}}
-\caption{One confirmation item (routing task, sequential order, held-out template; the annotation arrow is
-not part of the prompt). The current state \lit{restricted} maps to \lit{EAST}. The obsolete state is
-edited between \lit{pending} (implies \lit{WEST}, wrong) and \lit{suspended} (implies \lit{EAST}, correct);
-everything else is identical. The table shows how the edited line reads in each construction. The decision
-effect $D_c$ compares the model's preference for the wrong action across the two edits.}
+\caption{One routing confirmation item (the arrow is not part of the prompt). The current state
+\lit{restricted} implies \lit{EAST}; the edited word is \lit{pending} (implies \lit{WEST}, wrong) or
+\lit{suspended} (correct). Below: the edited line in each construction.}
 \label{fig:example}
 \end{figure*}

@@ -37,6 +37,11 @@ MODEL_RUNS = {
        for label, name in [('Qwen3-14B', 'qwen3_14b'), ('Gemma 3 12B', 'gemma3_12b'),
                            ('Granite 3.1 8B', 'granite31_8b'), ('Mistral 7B v0.3', 'mistral7b'),
                            ('Falcon3 7B', 'falcon3_7b')]},
+    # further families (docs/stale_decision_v2_families.md); OLMo 3 not run (causality 2.8e-5 nats)
+    **{label: {'gate': OUT / f'stale_decision_v2f/{name}/gate/gate_report.json',
+               'confirmation': OUT / f'stale_decision_v2f/{name}/confirmation/confirmation_report.json'}
+       for label, name in [('Ministral 3 14B', 'ministral3_14b'), ('Gemma 4 12B', 'gemma4_12b'),
+                           ('Qwen3.5 9B', 'qwen35_9b'), ('Granite 4.1 8B', 'granite41_8b')]},
 }
 TASKS = ('access', 'routing')
 CELLS = ('sequential', 'interleaved', 'competing')
@@ -96,6 +101,22 @@ def run_stats(conf_dir):
             'mean_prompt_tokens': sum(x['prompt_tokens'] for x in scores) / len(scores)}
 
 
+def access_diagnosis(conf_dir):
+    """Plan Phase 4: current-only access accuracy broken down by vocabulary, correct action and current state."""
+    rows, scores, _ = checked_scores(conf_dir)
+    g = defaultdict(lambda: [0, 0])
+    for sc in scores:
+        r = rows[sc['example_id']]
+        if r['family'] != 'current_only' or r['task'] != 'access':
+            continue
+        ok = sc['generated']['classification'] == 'correct'
+        for key in ('all', f"vocabulary:{r['vocabulary']}", f"answer:{r['answer']}", f"state:{r['correct_state']}",
+                    f"vocabulary_answer:{r['vocabulary']}:{r['answer']}"):
+            g[key][0] += ok
+            g[key][1] += 1
+    return {k: {'correct': c, 'n': n, 'accuracy': c / n} for k, (c, n) in sorted(g.items())}
+
+
 def competent_effects(report, cells):
     """Compact cross-model entries: confirmation histories pooled over the model's gate-competent cells of a task."""
     out = {}
@@ -114,7 +135,12 @@ def competent_effects(report, cells):
                   'Delta_semantic': ci(bootstrap([h['superseded']['D'] - h['updated_other']['D'] for h in hh], level=.975)),
                   'Delta_mention': ci(bootstrap([h['superseded']['D'] - h['entity_mention']['D'] for h in hh])),
                   'switch_superseded': ci(bootstrap([h['superseded']['wrong_rate_delta'] for h in hh])),
-                  'switch_entity_mention': ci(bootstrap([h['entity_mention']['wrong_rate_delta'] for h in hh]))}
+                  'switch_entity_mention': ci(bootstrap([h['entity_mention']['wrong_rate_delta'] for h in hh])),
+                  # paired behavioral counterparts of the score contrasts (per-history switch indicators)
+                  'switch_diff_attribute': ci(bootstrap([h['superseded']['wrong_rate_delta'] -
+                                                         h['updated_other']['wrong_rate_delta'] for h in hh])),
+                  'switch_diff_mention_minus_superseded': ci(bootstrap([h['entity_mention']['wrong_rate_delta'] -
+                                                                        h['superseded']['wrong_rate_delta'] for h in hh]))}
     return out
 
 
@@ -143,8 +169,10 @@ def model_summaries():
                                            {'overall': conf['H3_v1b']['failure']['overall']},
                                      'constructions': construction_effects(conf),
                                      'joint_correctness': joint_correctness(cpath.parent),
+                                     'joint_intersection': joint_intersection(cpath.parent),
                                      'member_accuracy': member_accuracy(cpath.parent)[0],
-                                     'run': run_stats(cpath.parent)}
+                                     'run': run_stats(cpath.parent),
+                                     'access_diagnosis': access_diagnosis(cpath.parent)}
             # the per-history switch must reproduce the report's switch rate
             for t in TASKS:
                 hh = [h for h in conf['history_effects'] if h['task'] == t and h['family'] == 'superseded']
@@ -197,6 +225,118 @@ def joint_correctness(conf_dir=CONF):
     return out
 
 
+def joint_intersection(conf_dir=CONF):
+    """Post hoc (defined after Qwen3-8B's confirmation results): the tracked-history criteria of
+    joint_correctness, required to hold for ALL four constructions of a history, so every construction is
+    compared on the same histories. Per task: retained n, D and net switch rate per construction, and paired
+    differences between constructions (95% history bootstrap)."""
+    rows, scores, _ = checked_scores(conf_dir)
+    hist = defaultdict(dict)
+    for sc in scores:
+        r = rows[sc['example_id']]
+        hist[r['history_id']][(r['family'], r['member'])] = (r, sc)
+    kept, totals = defaultdict(list), defaultdict(int)
+    for items in hist.values():
+        task = items[('superseded', 0)][0]['task']
+        totals[task] += 1
+        initial_ok = all(items[('superseded', m)][1]['historical']['generated']['classification'] == 'correct' for m in (0, 1))
+        current_only_ok = items[('current_only', 0)][1]['generated']['classification'] == 'correct'
+        retrieval_ok = all(items[(f, m)][1]['easy_generated']['classification'] == 'correct' for f in FAMILIES for m in (0, 1))
+        if not (initial_ok and current_only_ok and retrieval_ok):
+            continue
+        h = {}
+        for f in FAMILIES:
+            (a, sa), (b, sb) = items[(f, 0)], items[(f, 1)]
+            wrong, correct = a['wrong_action'], a['answer']
+            h[f] = {'D': (sa['action_logp'][wrong] - sa['action_logp'][correct]) -
+                         (sb['action_logp'][wrong] - sb['action_logp'][correct]),
+                    'switch': int(sa['generated']['classification'] == 'wrong') - int(sb['generated']['classification'] == 'wrong')}
+        kept[task].append(h)
+    pairs = {'mention_minus_superseded': ('entity_mention', 'superseded'), 'superseded_minus_other': ('superseded', 'updated_other'),
+             'superseded_minus_unattached': ('superseded', 'unassigned'), 'other_minus_unattached': ('updated_other', 'unassigned')}
+    out = {}
+    for t in TASKS:
+        hh = kept[t]
+        out[t] = {'n_total': totals[t], 'n_retained': len(hh),
+                  'constructions': {f: {'D': ci(bootstrap([h[f]['D'] for h in hh])),
+                                        'switch': ci(bootstrap([h[f]['switch'] for h in hh])),
+                                        'to_wrong': sum(h[f]['switch'] == 1 for h in hh),
+                                        'to_correct': sum(h[f]['switch'] == -1 for h in hh)} for f in FAMILIES},
+                  'differences': {k: {'D': ci(bootstrap([h[a]['D'] - h[b]['D'] for h in hh])),
+                                      'switch': ci(bootstrap([h[a]['switch'] - h[b]['switch'] for h in hh]))}
+                                  for k, (a, b) in pairs.items()}}
+    return out
+
+
+STATIC = {'Qwen3-8B': OUT / 'stale_decision_v2s/qwen3_8b/static_report.json',
+          'Qwen3-14B': OUT / 'stale_decision_v2s/qwen3_14b/static_report.json'}
+
+
+def static_other():
+    """Part B of docs/stale_decision_v2_balanced.md: five constructions on the 384 confirmation routing histories."""
+    out, inputs = {}, {}
+    for m, path in STATIC.items():
+        if not path.exists():
+            continue
+        r = json.loads(path.read_text())
+        inputs[f'static_other:{m}'] = {'path': str(path.relative_to(ROOT)), 'sha256': sha(path)}
+        out[m] = {'n': r['n_histories'],
+                  'constructions': {f: {'D': ci(v['D']), 'switch': ci(v['switch']), 'to_wrong': v['to_wrong'],
+                                        'to_correct': v['to_correct']} for f, v in r['constructions'].items()},
+                  'contrasts': {k: {'D': ci(v['D']), 'switch': ci(v['switch'])} for k, v in r['contrasts'].items()},
+                  'prediction_Delta_update_le_0': r['prediction_Delta_update_le_0'],
+                  'static_other_direct_retrieval': r['static_other_direct_retrieval'],
+                  'static_other_invalid_rate': r['static_other_invalid_rate'],
+                  'reproducibility': r['reproducibility']}
+    return out, inputs
+
+
+BALANCED = OUT / 'stale_decision_v2b'
+THINK = {'Qwen3-8B': OUT / 'stale_decision_think/qwen3_8b', 'Qwen3-14B': OUT / 'stale_decision_think/qwen3_14b'}
+FAMILIES = ('superseded', 'updated_other', 'entity_mention', 'unassigned')
+
+
+def balanced():
+    """docs/stale_decision_v2_balanced.md: other entity's current state implies the correct action (Qwen3-8B)."""
+    path, cpath = BALANCED / 'balanced_report.json', BALANCED / 'causality_check.json'
+    if not path.exists():
+        return {}, {}
+    r, c = json.loads(path.read_text()), json.loads(cpath.read_text())
+    inputs = {k: {'path': str(q.relative_to(ROOT)), 'sha256': sha(q)} for k, q in
+              (('balanced', path), ('balanced:causality', cpath))}
+    vals = [x['max_abs_top20'] for x in c['checks']]
+    out = {'n': r['n_histories'], 'direct_retrieval': r['direct_retrieval'],
+           'historical_retrieval': r['historical_retrieval'], 'current_only_accuracy': ci(r['current_only_accuracy']),
+           'constructions': {f: {'D': ci(r[f'D_{f}']), 'switch': ci(r[f'switch_{f}']), **r[f'switch_counts_{f}']}
+                             for f in FAMILIES},
+           'causality': {'checks': len(vals), 'zero': sum(v == 0.0 for v in vals), 'max': max(vals)}}
+    return out, inputs
+
+
+def think():
+    """docs/stale_decision_think.md: routing confirmation rows generated with thinking enabled."""
+    out, inputs = {}, {}
+    for m, d in THINK.items():
+        path = d / 'report.json'
+        if not path.exists():
+            continue
+        r = json.loads(path.read_text())
+        inputs[f'think:{m}'] = {'path': str(path.relative_to(ROOT)), 'sha256': sha(path)}
+        t = json.loads((d / 'records.jsonl.timing.json').read_text())
+        out[m] = {'n': r['n_histories'], 'items': r['items'], 'current_only_accuracy': ci(r['current_only_accuracy']),
+                  'invalid_rate': r['invalid_rate'], 'invalid_items': round(r['invalid_rate'] * r['items']),
+                  'truncated_rate': r['truncated_rate'], 'unclosed_rate': r['unclosed_rate'],
+                  'generated_tokens': r['generated_tokens'], 'gpu_hours': t['seconds'] / 3600,
+                  'constructions': {f: {'switch': ci(r[f'switch_{f}']), **r[f'switch_counts_{f}']} for f in FAMILIES}}
+    return out, inputs
+
+
+def compute():
+    """Logged wall-clock GPU time of every timed run (scoring and generation; untimed checks not included)."""
+    files = sorted(f for f in OUT.rglob('*.timing.json') if not f.relative_to(OUT).parts[0].startswith('_'))
+    return {'runs': len(files), 'gpu_hours': sum(json.loads(f.read_text())['seconds'] for f in files) / 3600}
+
+
 def summary(report):
     p = report['primary']
     return {t: {k: ci(v) for k, v in p[t].items()} for t in TASKS}
@@ -228,8 +368,16 @@ def main():
         'gates': {k: reports[k]['gates'] for k in ('v1b_gate', 'v2_gate', 'gemma_development', 'gemma_gate')},
     }
     derived['confirmation']['joint_correctness'] = joint_correctness()
+    derived['confirmation']['joint_intersection'] = joint_intersection()
     derived['models'], model_inputs = model_summaries()
     derived['inputs'].update(model_inputs)
+    derived['static_other'], static_inputs = static_other()
+    derived['inputs'].update(static_inputs)
+    derived['balanced'], balanced_inputs = balanced()
+    derived['inputs'].update(balanced_inputs)
+    derived['think'], think_inputs = think()
+    derived['inputs'].update(think_inputs)
+    derived['compute'] = compute()
     for o in derived['confirmation']['H3'].values():
         for v in o.values():  # log loss of the constant (prevalence-only) predictor, for scale
             p = v['events'] / v['n']
