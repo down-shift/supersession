@@ -1,0 +1,16 @@
+\begin{table}[t]
+\centering
+\begin{tabular}{@{}lrr@{}}
+\toprule
+Model & Live score & 95\% interval \\
+\midrule
+Qwen3-8B & $-8.197$ & $[-8.724, -7.714]$ \\
+Qwen3-14B & $-17.102$ & $[-17.993, -16.217]$ \\
+Gemma 4 12B & $-25.482$ & $[-25.833, -25.122]$ \\
+Qwen3.5 9B & $-3.164$ & $[-3.364, -2.969]$ \\
+Granite 4.1 8B & $-7.754$ & $[-8.297, -7.215]$ \\
+\bottomrule
+\end{tabular}
+\caption{Live-state calibration on 384 routing confirmation histories per model. The edit reverses the correct action. Negative values in the saved scoring convention indicate a shift toward the action that is correct in the second member. Units are nats.}
+\label{tab:live}
+\end{table}

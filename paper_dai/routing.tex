@@ -2,7 +2,7 @@
 \centering
 \begin{tabular}{@{}llrcccc@{}}
 \toprule
-Model & Cells & $n$ & $D_S$ (nats) & S net & M net & M $-$ S net \\
+Model & Layouts & $n$ & S score (nats) & S net & M net & M $-$ S net \\
 \midrule
 Qwen3-8B & int., seq. & 256 & $3.248$ ${[2.768, 3.751]}$ & 0.195 & 0.312 & $0.117$ ${[0.055, 0.180]}$ \\
 Qwen3-14B & comp., int., seq. & 384 & $4.785$ ${[4.244, 5.354]}$ & 0.167 & 0.169 & $0.003$ ${[-0.039, 0.044]}$ \\
@@ -11,6 +11,6 @@ Qwen3.5 9B & comp., seq. & 256 & $1.085$ ${[0.975, 1.190]}$ & 0.230 & 0.215 & $-
 Granite 4.1 8B & int., seq. & 256 & $3.441$ ${[2.977, 3.973]}$ & 0.168 & 0.355 & $0.188$ ${[0.129, 0.246]}$ \\
 \bottomrule
 \end{tabular}
-\caption{Routing confirmation on cells selected by the frozen gate. $n$ counts histories. Seq., int., and comp. denote sequential, interleaved, and competing. The score interval is 97.5\%. The paired net switch difference interval is 95\%.}
+\caption{Routing confirmation on cells selected by the frozen gate. $n$ counts histories. Seq., int., and comp. denote sequential, interleaved, and competing. S is the superseded assignment and M is the entity mention. Net is the change in wrong-action frequency. Intervals are 97.5\% for the S score shift and 95\% for the paired difference in net switches.}
 \label{tab:routing}
 \end{table*}

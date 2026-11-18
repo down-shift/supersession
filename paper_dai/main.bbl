@@ -1,4 +1,4 @@
-\begin{thebibliography}{3}
+\begin{thebibliography}{5}
 \providecommand{\natexlab}[1]{#1}
 
 \bibitem[{Chao et~al.(2026)Chao, Bai, Sheng, Li, and Sun}]{chao2026stale}
@@ -20,5 +20,17 @@ Niu, J.; Yuan, X.; Wang, T.; Saghir, H.; and Abdi, A.~H. 2025.
   Entrainment and Distraction in {LLMs}.
 \newblock In \emph{Proceedings of the 63rd Annual Meeting of the Association
   for Computational Linguistics (Volume 1: Long Papers)}, 16218--16239.
+
+\bibitem[{Yang et~al.(2026)Yang, Levy, Goldberg, and
+  Wallace}]{yang2026compared}
+Yang, Z.; Levy, M.; Goldberg, Y.; and Wallace, B.~C. 2026.
+\newblock Compared to What? Baselines and Metrics for Counterfactual Prompting.
+\newblock \emph{arXiv preprint arXiv:2605.01048}.
+
+\bibitem[{Zhang, Koyejo, and Yang(2026)}]{zhang2026illusion}
+Zhang, Y.; Koyejo, S.; and Yang, D. 2026.
+\newblock The Illusion of Robustness: Aggregate Accuracy Hides Prediction Flips
+  under Task-Irrelevant Context.
+\newblock \emph{arXiv preprint arXiv:2607.12963}.
 
 \end{thebibliography}

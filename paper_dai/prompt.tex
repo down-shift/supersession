@@ -1,0 +1,30 @@
+\begin{figure*}[t]
+\begin{minipage}{\textwidth}
+\begin{verbatim}
+Read the dated record. Only the final assignment governs the decision.
+Initially, EvbUnit0096A had routing state pending.
+Initially, EvbUnit0096B had routing state suspended.
+Later, EvbUnit0096A had archive tag restricted.
+Finally, EvbUnit0096A had routing state restricted.
+Later, EvbUnit0096B had archive tag restricted.
+Finally, EvbUnit0096B had routing state pending.
+Policy: state to bin: restricted -> B0, suspended -> B1,
+  pending -> B2, active -> B3;
+  bin to action: B0 -> EAST, B1 -> EAST, B2 -> WEST, B3 -> WEST
+Apply the supplied rule to the final assignment of
+  EvbUnit0096A; give its action.
+Respond with exactly one label (EAST, WEST), with no other text.
+
+O: Initially, EvbUnit0096A had archive tag pending.
+   Initially, EvbUnit0096B had archive tag suspended.
+
+M: Initially, EvbUnit0096A mentioned the word pending.
+   Initially, EvbUnit0096B mentioned the word suspended.
+
+U: Initially, the unassigned word was pending.
+   Initially, the unassigned word was suspended.
+\end{verbatim}
+\end{minipage}
+\caption{Full confirmation prompt for the wrong-word S member of Table~\ref{tab:example}. Long lines are wrapped for display. The correct action is EAST. The lines below the prompt replace its two initial lines for O, M, or U. For the correct-word member of each pair, replace only the first \texttt{pending} in the record with \texttt{suspended}.}
+\label{app:prompt}
+\end{figure*}
