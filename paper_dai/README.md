@@ -1,0 +1,31 @@
+# AAAI-27 Deployable AI review draft
+
+Build from this directory with TeX Live and BibTeX.
+
+```sh
+latexmk -pdf -interaction=nonstopmode -halt-on-error main.tex
+```
+
+The build uses the unmodified `aaai2027.sty` and `aaai2027.bst` from the official AAAI-27 author kit. For the temporary TeX package tree used locally, prefix the command with `TEXMFHOME=/tmp/dai-tex`. A normal TeX Live installation with the style's dependencies does not need that prefix. The source is `main.tex`, `routing.tex`, `appendix.tex`, `appendix_tables.tex`, and `references.bib`. The main text ends on page 3. The six-page PDF includes the references and appendix.
+
+## Evidence audit (author only)
+
+All JSON paths below are relative to `paper_v2/data/derived.json`. S is the superseded state, O the updated other attribute, M the incidental entity mention, U the unattached mention, and N the never-updated other attribute. History is the denominator for score effects, switches and their paired differences. Rates are fractions. Interval endpoints are from the matching bootstrap, including when the sign is reversed to describe a reduction.
+
+| Manuscript result | Exact source and population | Status and interval |
+| --- | --- | --- |
+| Main routing table and model-specific ordering | `models.<model>.confirmation.competent.routing`. Qwen3-8B and Granite 4.1 8B use interleaved and sequential (256 each). Qwen3-14B and Gemma 4 12B use all three cells (384 each). Qwen3.5 9B uses competing and sequential (256). Read `D_superseded`, `switch_superseded`, `switch_entity_mention`, and `switch_diff_mention_minus_superseded` directly. | Frozen-gate-selected confirmation. Score shift in nats, primary 97.5%. Switches and paired M−S secondary 95%. M is 0.3125 in Qwen3-8B before rounding. |
+| S−O score contrast | Same rows, `Delta_semantic`. | Primary, 97.5%. |
+| Positive mention score in each model | `models.<model>.confirmation.constructions["routing:entity_mention"]`. Full grid, 384 per model. | Secondary, 95%. |
+| Qwen3-8B full-grid S switches | `confirmation.switches["routing:all"].switch_counts.superseded` and `switch_superseded` in that block. 75 toward and four away, 384 histories. | Secondary, 95%. The appendix condition table uses the separate `confirmation.constructions["routing:<construction>"]` 95% score intervals, including for S. |
+| Tracking | `models.<model>.confirmation.joint_intersection.routing`, including `n_retained`, `n_total`, `constructions.<construction>.switch`, and `differences.mention_minus_superseded.switch`. In main-table order the retained counts are 335, 359, 339, 294, 299 out of 384 each. | Post hoc common set, paired contrast 95%. The construction-specific tracked table was checked for agreement with its generator and was not used for cross-construction comparisons. |
+| N control | `static_other.<Qwen3 model>.contrasts.Delta_update.D` (O−N) and `contrasts.superseded_minus_static.D` (S−N). Both use all 384 routing confirmation histories per model. | Follow-up, O−N direction fixed before follow-up scoring, 95% intervals. |
+| Thinking | `think.<Qwen3 model>.constructions.<construction>.to_wrong` and `to_correct`, 384 original routing histories per model. `invalid_items` over `items` (3,456 per model). | Exploratory, generation only. The paper reports counts. |
+| Balanced follow-up | `balanced.constructions.<construction>` for D, switch and directional counts in Qwen3-8B on 192 new histories. | Descriptive, 95%. Distinct histories and identical current states. |
+| Gate and confirmation competence | `models.<model>.gate_cells` and `models.<model>.confirmation.competence`, using `score_eligible`. Per cell, 64 gate or 128 confirmation histories, with 11 items per history for direct retrieval and invalid rates, one for current-only decisions and eight for historical decisions. Confirmation invalid counts use `invalid_rate × n`. OLMo exclusion is documented in the original protocol history. | Descriptive accuracies and invalid rates; eligibility thresholds frozen. |
+| Access | Gate-selected `models.<model>.confirmation.competent.access` for Qwen3-8B interleaved and Gemma 4 12B competing (128 each). Full-grid rows use `constructions["access:superseded"]` and `switches["access:all"].switch_superseded` within each model's confirmation (384 each). | Original gate-selected score 97.5%, switch 95%. Full-grid construction-summary intervals 95%. |
+| H3 | `models.<model>.confirmation.H3` (Qwen3-8B nests tasks under `failure`), then `<task>.R_incremental_log_loss_improvement`. 3,072 historical items grouped into 384 histories per task per model. | Secondary paired 95% intervals. |
+
+The shortened worked prompt comes from `paper_v2/sections/01-introduction.tex`. Design constants and protocol status were checked against the project guide, protocol, history appendix and analysis code. The original table functions reproduced seven committed tables byte-for-byte from the checked-in JSON: cross_model, cross_model_ci, tracked_models, joint_by_model, static_other, conditions, and models_gate. The main table uses exact JSON estimates before rounding, with an explicit denominator and interval-level check for each selected cell set. The paired switch differences were checked against the unrounded marginal means. Intervals were taken directly from the paired analyses.
+
+The checkout, nearby project storage and Git history did not yield the sealed inputs. None of the 25 paths recorded under `inputs` were present at their recorded locations. No raw responses, score hashes, or completion records could be checked and the original analysis was not reproduced from raw inputs. No inference was run. If sealed inputs become available, use the revisions recorded by their run manifests and the original provenance checks. Keep this author-only note out of the submission package. The PDF includes reproducibility details and no external artifact link.

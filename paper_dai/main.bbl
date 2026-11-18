@@ -1,0 +1,24 @@
+\begin{thebibliography}{3}
+\providecommand{\natexlab}[1]{#1}
+
+\bibitem[{Chao et~al.(2026)Chao, Bai, Sheng, Li, and Sun}]{chao2026stale}
+Chao, H.; Bai, Y.; Sheng, R.; Li, T.; and Sun, Y. 2026.
+\newblock {STALE}: Can {LLM} Agents Know When Their Memories Are No Longer
+  Valid?
+\newblock \emph{arXiv preprint arXiv:2605.06527}.
+
+\bibitem[{Guo et~al.(2026)Guo, Fang, Gu, Spanos, Demmel, and
+  Lavaei}]{guo2026context}
+Guo, J.; Fang, Y.; Gu, S.; Spanos, C.; Demmel, J.; and Lavaei, J. 2026.
+\newblock When Context Changes: Understanding Update Failures in {LLMs}.
+\newblock \emph{arXiv preprint arXiv:2609.38866}.
+
+\bibitem[{Niu et~al.(2025)Niu, Yuan, Wang, Saghir, and
+  Abdi}]{niu2025entrainment}
+Niu, J.; Yuan, X.; Wang, T.; Saghir, H.; and Abdi, A.~H. 2025.
+\newblock Llama See, Llama Do: A Mechanistic Perspective on Contextual
+  Entrainment and Distraction in {LLMs}.
+\newblock In \emph{Proceedings of the 63rd Annual Meeting of the Association
+  for Computational Linguistics (Volume 1: Long Papers)}, 16218--16239.
+
+\end{thebibliography}

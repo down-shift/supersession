@@ -1,0 +1,87 @@
+\documentclass[letterpaper]{article}
+\usepackage[submission]{aaai2027}
+\usepackage[hyphens]{url}
+\usepackage{graphicx}
+\urlstyle{rm}
+\def\UrlFont{\rm}
+\usepackage{natbib}
+\usepackage{caption}
+\usepackage{booktabs}
+\pdfinfoomitdate=1
+\pdfinfo{/TemplateVersion (2027.1)}
+\frenchspacing
+\setcounter{secnumdepth}{0}
+\title{When Stale Context Changes Decisions:\\The Importance of Incidental-Mention Controls}
+\author{Anonymous authors}
+\affiliations{}
+\begin{document}
+\maketitle
+\begin{abstract}
+A routing record can retain words that are irrelevant under its current policy. Can an evaluation tell whether a decision changes because a word was once a valid assignment or because the word appears at all? In synthetic two-entity records, we change one word while preserving the current assignment, policy, and correct action. Across five language models, edits to superseded assignments and incidental entity mentions shift action preferences and generated answers on routing conditions selected by a frozen competence gate. The paired net switch difference favors the mention in two models and the superseded assignment in one, with inconclusive differences in two. On a post hoc subset, decision sensitivity persists despite correct answers to separate questions about the initial and current assignments. Evaluations of decisions from versioned records should pair state retrieval with action tests that vary policy-irrelevant words in multiple roles.
+\end{abstract}
+
+\section{Introduction}
+A record tracks two units. The routing policy sends the target unit EAST because its current state is \texttt{restricted}. Its earlier state is \texttt{pending}. Replacing that earlier word with \texttt{suspended} preserves the current state, policy, and correct action. A model that changes its answer is sensitive to a policy-irrelevant edit. Would it also change its answer if the same word appeared only as a mention?
+
+An evaluation that edits only obsolete assignments leaves that question open. We apply the same type of one-word edit within four prompt constructions. The word can be a superseded state, an earlier value of a different attribute that is also updated, an incidental mention associated with the entity, or an unattached mention. We measure the change in action scores and the change in greedy decisions. We focus on synthetic routing records, where the decision is an explicit state-to-bin-to-action lookup. The separate access task is reported in the appendix because competence there was limited.
+
+\paragraph{Related work.}
+STALE documents a gap between retrieving updated evidence and acting on it \citep{chao2026stale}. Controlled In-Context Memory studies how models return obsolete values after updates \citep{guo2026context}. Contextual entrainment experiments show that irrelevant mentions can raise token probabilities and distract models \citep{niu2025entrainment}. Our evaluation combines one-word pairs with a fixed correct action and alternate roles for the edited word. This permits direct comparison of how an obsolete assignment and an incidental mention affect the same downstream decision.
+
+\input{routing}
+\section{Design and measurements}
+\begin{table}[t]
+\centering
+\begin{tabular}{@{}lp{0.88\columnwidth}@{}}
+\toprule
+ & Earlier line for each construction \\
+\midrule
+S & Initially, A had routing state \textbf{[word]}.\\
+O & Initially, A had archive tag \textbf{[word]}.\\
+M & Initially, A mentioned the word \textbf{[word]}.\\
+U & Initially, the unassigned word was \textbf{[word]}.\\
+\bottomrule
+\end{tabular}
+\caption{Shortened routing confirmation prompt, with entity names abbreviated. Swap only \textbf{pending} (WEST) and \textbf{suspended} (EAST) within each row. Both members retain A's final routing state \texttt{restricted} (EAST), B's final state \texttt{pending} (WEST), and A's later archive tag \texttt{restricted}. The query asks for A's action. The correct answer is EAST in all eight prompts.}
+\label{tab:example}
+\end{table}
+Each history specifies initial and final assignments for two entities, an archive-tag update, and a supplied policy mapping four states through bins to two actions. Table~\ref{tab:example} shows the paired edit. The four constructions share the query, policy, final states, and archive-tag update. Their local syntax differs, so their contrasts measure differences between prompt constructions. The original design always gives the other entity a current state supporting the wrong action for the target. The edit preserves that cue, and the word may interact with entity confusion.
+
+The grid crosses natural and opaque state labels, target action, historical and current order, and entity orientation. Three cells vary record layout: sequential (initial entries before final blocks), interleaved (entries grouped by entity), and competing (interleaved with extra archived discussions quoting state words). State assignments rotate across roles. There are 128 confirmation histories per task and cell, or 384 per full task grid. Each history includes paired items for S, O, M, and U, a current-only item and a pair that edits the live state.
+
+\paragraph{Eligibility and confirmation.}
+Development, gate, and confirmation use separate seeds and entity names. Confirmation uses held-out introduction and query wording. The frozen gate requires at least 95\% strict current-state retrieval, at least 90\% current-only action accuracy, and at most 5\% invalid answers in each of direct retrieval and action generation for a cell. A model proceeds if any cell passes. Main cross-model estimates use confirmation histories in the cells selected by that gate. Confirmation competence is assessed separately. Gemma 3 4B and Ministral 3 14B failed every gate cell. OLMo 3 7B stopped at numerical preflight before gate scoring. Five models completed confirmation.
+
+\paragraph{Action scores.}
+For prompt $x$, let $L(x)$ be the log probability of the wrong candidate action minus that of the correct candidate. Each event is the action label followed by its model-specific end-of-turn suffix, including a newline where required. For construction $c$, the effect $D_c$ is the history mean of $L(x_{\rm wrong})-L(x_{\rm correct})$, where the subscripts refer to the action implied by the edited word. A positive value means the wrong-action word shifts the relative action score toward the wrong answer, in nats. The original primary outcomes were $D_S$ and $D_S-D_O$. Their 97.5\% intervals use the protocol's adjustment over two tasks. Generated switches and mention contrasts are secondary and use 95\% intervals. The percentile bootstrap uses 2,000 draws at the history level, keeping the paired members and constructions together. An interval containing zero is inconclusive.
+
+\paragraph{Generated decisions.}
+Greedy generation uses a 16-token budget with thinking disabled in the main runs. After whitespace stripping, outputs must equal an allowed label. Define net switch rate as wrong-action frequency with the wrong-action word minus wrong-action frequency with the correct-action word. Equivalently, count transitions into the wrong-action category minus transitions out, then divide by histories. Invalid answers are outside the wrong-action category in this calculation and count as failures for strict accuracy and prediction. Transitions involving invalid answers can therefore contribute to the metric. It measures a net change and can conceal switches in both directions.
+
+\paragraph{Separate retrieval questions.}
+We ask directly for the current state of each entity and separately for the initial state in the superseded prompts. For a post hoc tracking check, require correct target-current answers for both members of each included construction, correct initial answers for both superseded members, and a correct current-only action. Within each model, compare constructions on the intersection of histories passing these checks under all four constructions.
+
+\section{Results}
+All five models' superseded-word score effects are positive, with primary intervals excluding zero (Table~\ref{tab:routing}). Their generated decisions also shift. For example, on the distinct full Qwen3-8B routing grid, 75 of 384 superseded pairs switched toward the wrong action and four switched away, giving a net rate of 0.185 [0.143, 0.227]. The gate-selected estimate uses 256 histories.
+
+\paragraph{An incidental mention can change the action.}
+Mention score shifts are positive on the full routing grid in each tested model, and each gate-selected mention net switch interval excludes zero. The paired mention-minus-superseded net switch contrast is positive for Qwen3-8B and Granite 4.1 8B, negative for Gemma 4 12B, and inconclusive for Qwen3-14B and Qwen3.5 9B. Thus, interpreting the superseded edit alone as a test of sensitivity specific to past assignments would miss a source of action changes present even when the word was never assigned.
+
+\paragraph{The effect persists on tracked histories.}
+On each model's post hoc common tracked set, the superseded edit still shows positive net switching. For example, Qwen3-8B retains 335 of 384 histories, with net rates of 0.161 for superseded assignments and 0.266 for incidental mentions (paired difference 0.104 [0.057, 0.155]). The appendix gives the other retained counts and comparisons. Correct retrieval in separate prompts shows that the model can supply both values under those queries. It leaves open which information guided the action.
+
+\paragraph{A never-updated attribute also interferes.}
+The primary score contrast favors S over O in all five routing models. Both constructions include an update to the attribute that held the edited word, and the update to O could itself reduce the word's influence. A follow-up on the full 384 routing histories per Qwen3 model leaves the other attribute unchanged (N), with the direction of $D_O-D_N$ recorded before scoring. Updating the other attribute reduced its score effect by 1.204 nats [1.080, 1.326] for Qwen3-8B and 1.942 [1.706, 2.191] for Qwen3-14B (95\% intervals). The paired $D_S-D_N$ was inconclusive for Qwen3-8B (0.020 [$-0.201$, 0.254]) and favored N for Qwen3-14B ($-1.076$ [$-1.526$, $-0.661$]). The S--O contrast alone is therefore insufficient to establish specificity to the queried attribute.
+
+\paragraph{Thinking-enabled generation.}
+On the original 384 routing histories per model, exploratory thinking-enabled runs observed zero switches in either direction for S in both Qwen3 models. M still had seven wrong-directed switches in Qwen3-8B and one in Qwen3-14B, with zero reverse switches. The generation runs returned two invalid answers out of 3,456 items in Qwen3-8B and zero in Qwen3-14B. These runs provide no preference scores and used a different generation budget. The observed zeros describe the tested histories; efficacy as a mitigation remains open.
+
+\section{Implications and limitations}
+For a decision system that reads versioned records, a regression suite can freeze the current record and policy, then perturb archived terms in pairs. For each term, include both a previous assignment and an incidental mention. Check generated actions and invalid responses alongside direct retrieval of the current record. This tests invariance to changes that should leave the decision unchanged and helps distinguish sensitivity to a particular update construction from sensitivity to the same word elsewhere in the record.
+
+The estimates apply to short synthetic prompts and the tested model configurations. Model-specific cell selection limits comparisons of magnitudes across models. The wrong-action cue on the other entity creates room for an interaction with entity confusion. A descriptive Qwen3-8B follow-up uses different histories with identical current states for the two entities and observes fewer superseded switches; the design changes both the cue and the histories. Construction syntax also varies, and separate recall prompts cannot identify a decision mechanism. The experiments motivate tests for systems that consume updated records; field performance remains unmeasured.
+
+\bibliography{references}
+\appendix
+\input{appendix}
+\end{document}
