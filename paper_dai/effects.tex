@@ -1,0 +1,18 @@
+\begin{table*}[t]
+\centering
+\begin{tabular}{@{}lrccc@{}}
+\toprule
+& \multicolumn{3}{c}{Frozen-gate-selected routing layouts} & Full routing grid \\
+\cmidrule(lr){2-4}\cmidrule(l){5-5}
+Model & $n$ & S$-$O score (nats) & M net, 95\% interval & M score (nats) \\
+\midrule
+Qwen3-8B & 256 & $1.330$ $[0.978, 1.668]$ & $[0.258, 0.371]$ & $4.807$ $[4.455, 5.186]$ \\
+Qwen3-14B & 384 & $0.866$ $[0.417, 1.328]$ & $[0.133, 0.208]$ & $4.538$ $[4.134, 4.952]$ \\
+Gemma 4 12B & 384 & $3.247$ $[2.786, 3.724]$ & $[0.076, 0.135]$ & $2.513$ $[2.141, 2.911]$ \\
+Qwen3.5 9B & 256 & $0.358$ $[0.274, 0.444]$ & $[0.168, 0.262]$ & $1.111$ $[1.019, 1.204]$ \\
+Granite 4.1 8B & 256 & $0.793$ $[0.498, 1.097]$ & $[0.297, 0.414]$ & $5.515$ $[5.049, 5.991]$ \\
+\bottomrule
+\end{tabular}
+\caption{The S$-$O score contrast uses 97.5\% intervals. M net intervals accompany the point estimates in Table~\ref{tab:routing}. Full-grid M score shifts use 384 histories per model and 95\% intervals.}
+\label{tab:effects}
+\end{table*}

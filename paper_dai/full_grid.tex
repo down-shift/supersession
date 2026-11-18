@@ -1,16 +1,16 @@
 \begin{table*}[t]
 \centering
-\begin{tabular}{@{}lrrrrrrr@{}}
+\begin{tabular}{@{}lrrrrrrrr@{}}
 \toprule
-Model & S net & O net & M net & U net & S wrong word & S correct word & Current only \\
+Model & S net & O net & M net & U net & \shortstack{S wrong\\word} & \shortstack{S correct\\word} & \shortstack{M wrong\\word} & \shortstack{Current\\only} \\
 \midrule
-Qwen3-8B & 0.185 & 0.065 & 0.294 & 0.039 & 74.0 & 92.4 & 95.6 \\
-Qwen3-14B & 0.167 & 0.146 & 0.169 & 0.029 & 72.1 & 88.8 & 98.4 \\
-Gemma 4 12B & 0.148 & 0.010 & 0.104 & 0.016 & 75.5 & 90.4 & 90.9 \\
-Qwen3.5 9B & 0.229 & 0.109 & 0.193 & 0.026 & 64.1 & 87.0 & 93.5 \\
-Granite 4.1 8B & 0.164 & 0.138 & 0.370 & 0.182 & 69.3 & 85.7 & 91.1 \\
+Qwen3-8B & 0.185 & 0.065 & 0.294 & 0.039 & 74.0 & 92.4 & 64.3 & 95.6 \\
+Qwen3-14B & 0.167 & 0.146 & 0.169 & 0.029 & 72.1 & 88.8 & 73.4 & 98.4 \\
+Gemma 4 12B & 0.148 & 0.010$^{*}$ & 0.104 & 0.016$^{*}$ & 75.5 & 90.4 & 83.3 & 90.9 \\
+Qwen3.5 9B & 0.229 & 0.109 & 0.193 & 0.026$^{*}$ & 64.1 & 87.0 & 71.4 & 93.5 \\
+Granite 4.1 8B & 0.164 & 0.138 & 0.370 & 0.182 & 69.3 & 85.7 & 52.6 & 91.1 \\
 \bottomrule
 \end{tabular}
-\caption{Full routing grid, 384 confirmation histories per model. Net switches are fractions. The last three columns give strict action accuracy in percent on the wrong-word S member, correct-word S member, and current-only record. All use the same histories, including layouts outside the frozen gate selection.}
+\caption{Full routing grid, 384 confirmation histories per model. Net switches are fractions. The last four columns give strict action accuracy in percent. An asterisk marks a net rate whose 95\% paired history-bootstrap interval includes zero. All use the same histories, including layouts outside the frozen gate selection.}
 \label{tab:full_grid}
 \end{table*}
