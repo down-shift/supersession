@@ -6,7 +6,7 @@ Build from this directory with TeX Live and BibTeX.
 latexmk -pdf -interaction=nonstopmode -halt-on-error main.tex
 ```
 
-The build uses the unmodified `aaai2027.sty` and `aaai2027.bst` from the official AAAI-27 author kit. For the temporary TeX package tree used locally, prefix the command with `TEXMFHOME=/tmp/dai-tex`. A normal TeX Live installation with the style's dependencies does not need that prefix. The source is `main.tex`, its table and prompt inputs, `appendix.tex`, and `references.bib`. Main prose ends on page 3. The full prompt is part of the main text and appears on page 4 before the references. The complete PDF has nine pages.
+The build uses the unmodified `aaai2027.sty` and `aaai2027.bst` from the official AAAI-27 author kit. For the temporary TeX package tree used locally, prefix the command with `TEXMFHOME=/tmp/dai-tex`. A normal TeX Live installation with the style's dependencies does not need that prefix. The source is `main.tex`, its table and prompt inputs, `appendix.tex`, and `references.bib`. Main prose ends on page 3. The full prompt is part of the main text and appears on page 4 before the references. The complete PDF has eight pages.
 
 ## Evidence audit (author only)
 

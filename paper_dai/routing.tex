@@ -11,6 +11,6 @@ Qwen3.5 9B & comp., seq. & 256 & $1.085$ ${[0.975, 1.190]}$ & 0.230 & 0.215 & $-
 Granite 4.1 8B & int., seq. & 256 & $3.441$ ${[2.977, 3.973]}$ & 0.168 & 0.355 & $0.188$ ${[0.129, 0.246]}$ \\
 \bottomrule
 \end{tabular}
-\caption{Routing confirmation on cells selected by the frozen gate. $n$ counts histories. Seq., int., and comp. denote sequential, interleaved, and competing. S is the superseded assignment and M is the entity mention. Net is the change in wrong-action frequency. Intervals are 97.5\% for the S score shift and 95\% for the paired difference in net switches.}
+\caption{Routing results on the confirmation split, using layouts that passed screening on a separate split for each model. $n$ counts paired histories. Seq., int., and comp. denote sequential, interleaved, and competing. S is the superseded assignment and M is the entity mention. Net is the increase in wrong-route frequency with the wrong-route word. Intervals are 97.5\% for the S score shift and 95\% for the paired difference in net switches. For Gemma 4 12B, another interval calculation on the same histories includes zero (see appendix).}
 \label{tab:routing}
 \end{table*}
