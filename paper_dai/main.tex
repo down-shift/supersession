@@ -18,8 +18,21 @@
 \begin{document}
 \maketitle
 \begin{abstract}
-A language model routing a unit from an update history should use the unit's current state. We test whether changing one word in an earlier line changes the route while the current state, routing policy, and correct answer stay fixed. The edited word can be the unit's former routing state or appear in a line that merely mentions it. Among routing layouts selected by a separate screening split, replacing a word that maps to the correct route with one that maps to the wrong route increased wrong answers under both conditions in all five models. In two models, the increase was larger for mentions, with paired 95\% intervals above zero. In a post hoc analysis, edits to former states still changed routes on histories where the models correctly reported the former and current states in separate queries. The edits show that irrelevant words can change routing decisions in these records. The mechanism remains unresolved.
+A language model routing a unit should use its current state. We test whether
+changing one word in an earlier entry can change the model's decision while
+the current state, policy, and correct route stay fixed. The edited word
+appears either as the unit's former state or in a line that simply mentions
+it. In both cases, we replace a word that maps to the correct route with one
+that maps to the wrong route.
 
+On record layouts selected for each model using a separate screening split,
+all five models chose the wrong route more often after the edit in both
+conditions. For two models, the increase was larger for mentions than for
+former states, with paired 95\% bootstrap intervals for the difference above
+zero. In a post hoc analysis, edits to former states still changed routing
+decisions on records for which the models correctly reported both the former
+and current states when asked separately. The experiments show that both
+kinds of edits can change decisions. What drives those changes remains open.
 \end{abstract}
 
 \section{Introduction}
